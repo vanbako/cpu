@@ -253,6 +253,11 @@ Acceptance criteria:
 - Integer addresses are not directly dereferenceable in pure-capability mode.
 - All instruction fetch, load, and store operations are capability-authorized.
 
+Artifacts:
+
+- Normative spec section: `design.md` section 3.2
+- Story artifact: `spec/E01-S03-general-capability-registers.md`
+
 #### E01-S04: Define special capability registers
 
 As a kernel engineer, I want named special capability registers so that execution, data, trap, and root authority are separated.

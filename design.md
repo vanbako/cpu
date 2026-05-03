@@ -73,10 +73,35 @@ I would make this explicit in the ISA encoding, not implicit in opcode semantics
 
 #### 3.2 Capability register file
 
-* 8 general capability registers: `C0-C7`
-* Each capability is 96 bits plus an out-of-band tag bit
-* Integer addresses are never directly dereferenced in pure-capability mode
-* All fetch, load, and store operations are capability-authorized
+There are 8 general capability registers: `C0-C7`.
+
+Each general capability register contains:
+
+* a 96-bit architectural capability payload
+* one out-of-band validity tag
+
+The tag is architectural state but is not part of the 96-bit payload. A tagged capability is valid. An untagged capability is invalid and cannot authorize fetch, load, store, seal, unseal, or derivation operations.
+
+General capability registers hold data capabilities, object capabilities, sealed entry capabilities, and temporary delegated authority. They do not replace the special capability registers used for `PCC`, stacks, traps, and kernel roots.
+
+Pure-capability addressing rules:
+
+* integer registers never directly authorize memory access
+* integer addresses are never directly dereferenced in pure-capability mode
+* instruction fetch is authorized by `PCC`
+* explicit data loads and stores are authorized by a capability source register or by `DDC` when an instruction form explicitly uses the default data capability
+* capability loads and stores require both data access permission and capability load/store permission
+* invalid, sealed, out-of-bounds, or under-permissioned capabilities raise capability faults before the access commits
+
+Tag movement rules:
+
+* `CMOVE` copies the payload and tag
+* `CLC` loads the payload and tag from a naturally aligned capability slot
+* `CSC` stores the payload and tag to a naturally aligned capability slot
+* ordinary integer moves, integer ALU operations, and `LD48` do not create valid capability tags
+* ordinary `ST48` into a capability slot clears the memory tag for that slot
+
+This makes `C0-C7` the only general-purpose registers that can carry dereferenceable authority. Data registers may hold integer addresses for arithmetic, offsets, indexes, syscall arguments, or diagnostics, but those integers are not pointers unless converted through explicit capability instructions that preserve monotonic authority.
 
 #### 3.3 Special capability registers
 
