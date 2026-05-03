@@ -816,6 +816,11 @@ Acceptance criteria:
 - MVP page size is `2^11` cells.
 - Future page sizes `2^15` and `2^19` cells are reserved but not implemented in v0.1.
 
+Artifacts:
+
+- Normative spec section: `design.md` sections 12.1 and 12.2
+- Story artifact: `spec/E09-S01-address-and-page-size.md`
+
 #### E09-S02: Define `SATP`
 
 As a kernel engineer, I want `SATP` layout specified so that address translation can be enabled and switched.

@@ -737,19 +737,28 @@ RISC-V’s official documentation makes the tradeoff clear: weaker models buy mo
 
 #### 12.1 Address sizes
 
-* virtual addresses: 48 bits in cells
-* physical addresses: 48 bits in cells
+* virtual addresses are 48-bit cell addresses
+* physical addresses are 48-bit cell addresses
+* a virtual address names one of `2^48` virtual cells
+* a physical address names one of `2^48` physical cells
+* address translation maps virtual page numbers to physical page numbers, preserving the page offset
 
 #### 12.2 Page size
 
 MVP mandatory page size:
 
 * `2^11` cells = 2048 cells
+* page offset is 11 cell-address bits
+* VPN width is 37 bits
+* PPN width is 37 bits
+* one base page is 49152 bits, or 6144 octets when serialized externally
 
 Future-reserved page sizes:
 
 * `2^15` cells
 * `2^19` cells
+
+The future page sizes are reserved for encoding and software planning only. They are not valid v0.1 leaf page sizes until E09-S04 or a later architecture revision defines compatible page-table walker behavior.
 
 #### 12.3 SATP
 
