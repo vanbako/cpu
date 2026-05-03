@@ -345,6 +345,10 @@ Acceptance criteria:
 - Reset values are specified or delegated to firmware.
 - Per-core versus global scope is specified.
 
+Artifacts:
+
+- Story artifact: `spec/E02-S02-mandatory-scalar-csrs.md`
+
 #### E02-S03: Define extended CSR space
 
 As a platform engineer, I want extended CSR locations reserved for performance, cache, TLB, capability faults, and interrupt controller state so that v0.1 can grow without incompatible changes.
