@@ -676,6 +676,10 @@ Acceptance criteria:
 - Fetch without `EX` raises capability permission fault.
 - `PCC` cursor advancement respects slot and fetch-group rules.
 
+Artifacts:
+
+- Story artifact: `spec/E06-S01-pcc-execute-authority.md`
+
 #### E06-S02: Define sealed entry capabilities
 
 As a kernel and runtime engineer, I want sealed entry capabilities so that protected entry points can be called without exposing raw authority.
