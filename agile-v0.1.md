@@ -797,6 +797,10 @@ Acceptance criteria:
 - Capability tag visibility follows memory ordering rules.
 - Device memory exceptions are called out.
 
+Artifacts:
+
+- Story artifact: `spec/E08-S03-tso-memory-model.md`
+
 #### E08-S04: Define fence instructions
 
 As a kernel and driver engineer, I want fence instructions specified so that instruction fetch, data memory, MMU, and DMA boundaries are manageable.
