@@ -330,6 +330,10 @@ Acceptance criteria:
 - Reserved CSR behavior is documented.
 - Privilege checks for CSR reads and writes are specified.
 
+Artifacts:
+
+- Story artifact: `spec/E02-S01-scalar-csr-namespace.md`
+
 #### E02-S02: Define mandatory scalar CSRs
 
 As a kernel engineer, I want mandatory CSRs defined so that traps, timers, page tables, debug, and counters have stable software names.
