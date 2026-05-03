@@ -26,13 +26,35 @@ The ISA should look coherent and intentional, even if early prototypes refactor 
 
 The smallest addressable memory unit is a **cell**.
 
-* 1 cell = 24 bits
-* All architectural addresses are in **cells**, not bytes
-* 48-bit integer values occupy **2 aligned cells**
-* 96-bit capabilities occupy **4 aligned cells**
-* A fetch group is **2 cells = 48 bits**
+Normative unit rules:
 
-This means the architecture is **cell-addressed**, not byte-addressed. That is internally consistent, but it also means your toolchain and ABI are necessarily custom. For a Unix-like server OS, that is the single biggest nonstandard choice in the whole design.
+* 1 cell = 24 bits
+* all architectural addresses are **cell addresses**
+* the architecture has no architectural byte addresses
+* a 48-bit architectural address names one of `2^48` cells
+* address arithmetic, bounds, page sizes, cache lines, and memory ranges are counted in cells
+* a memory range `[base, top)` contains `top - base` cells
+* a cell address `A` identifies the 24 architectural memory bits belonging to cell `A`
+
+Object-size rules:
+
+* 48-bit integer values occupy **2 cells**
+* 96-bit capabilities occupy **4 cells** plus one out-of-band tag bit
+* a fetch group is **2 cells = 48 bits**
+* the MVP base page is `2^11` cells
+* the initial cache-line recommendation is 16 cells
+
+Alignment is also defined in cells:
+
+* an address is `N`-cell aligned when `address mod N = 0`
+* `LD48` and `ST48` require 2-cell alignment
+* `CLC` and `CSC` require 4-cell alignment
+* instruction fetch groups require 2-cell alignment
+* capability slots in memory require 4-cell alignment
+
+Sub-cell quantities such as 8-bit, 12-bit, 16-bit, and 24-bit instruction or register fields may exist, but they are not independently addressable memory locations in v0.1. Any future byte or sub-cell load/store extension would need an explicit architectural rule for packing, sign extension, capability tag clearing, alignment, and MMU interaction.
+
+This means the architecture is **cell-addressed**, not byte-addressed. That is internally consistent, but it also means the toolchain, ABI, object format conventions, debugger, loader, and OS memory-management code are necessarily custom. For a Unix-like server OS, this is the single biggest nonstandard choice in the whole design.
 
 ### 3. Architectural state
 

@@ -225,6 +225,11 @@ Acceptance criteria:
 - Fetch groups, pages, and cache lines are described in cells.
 - The spec explicitly states that this implies a custom toolchain and ABI.
 
+Artifacts:
+
+- Normative spec section: `design.md` section 2
+- Story artifact: `spec/E01-S01-cell-address-model.md`
+
 #### E01-S02: Define integer register semantics
 
 As a toolchain engineer, I want the 16 48-bit integer registers and narrow write rules specified so that code generation and simulation agree.
