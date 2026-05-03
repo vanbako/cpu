@@ -388,6 +388,10 @@ Acceptance criteria:
 - Tag preservation rules for CCSR reads and writes are defined.
 - Invalid writes cannot forge capability tags.
 
+Artifacts:
+
+- Story artifact: `spec/E02-S05-capability-csr-access.md`
+
 ## E03: Capability Model
 
 ### Goal
