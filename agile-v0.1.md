@@ -454,6 +454,11 @@ Acceptance criteria:
 - Violations raise capability local-store fault.
 - Stack and temporary delegation examples are documented.
 
+Artifacts:
+
+- Normative spec section: `design.md` section 5.4
+- Story artifact: `spec/E03-S05-local-capabilities.md`
+
 #### E03-S06: Define capability fault reporting
 
 As a kernel engineer, I want capability fault information exposed so that the OS can diagnose and handle faults.

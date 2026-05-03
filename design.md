@@ -377,6 +377,24 @@ These rules are essential if you want CHERI-like integrity rather than “fat po
 
 #### 5.4 Local capabilities
 
+Local capability flag rules:
+
+* `G=1` means global capability
+* `G=0` means local capability
+* local capabilities carry authority that must not be stored into ordinary global or heap memory
+* global capabilities may be stored through any capability that has `ST` and `SC`
+* local capabilities may be stored only through a destination capability that has `ST`, `SC`, and `SL`
+* violating the local-store rule raises a capability local-store fault and leaves memory unchanged
+
+Recommended usage:
+
+* data stack capabilities should normally be local
+* protected return stack capabilities should normally be local
+* temporary delegated authority should normally be local
+* heap, global, and persistent object capabilities should normally reject local capability stores unless explicitly intended
+
+This rule prevents stack-derived and temporary authority from leaking into longer-lived memory.
+
 Borrow one very good CHERIoT idea:
 
 * `G=1` means global capability
