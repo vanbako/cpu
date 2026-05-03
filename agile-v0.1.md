@@ -580,6 +580,10 @@ Acceptance criteria:
 - Bounds, permission, and sealing checks are specified.
 - Invalid operations produce named capability faults.
 
+Artifacts:
+
+- Story artifact: `spec/E04-S05-capability-instruction-semantics.md`
+
 #### E04-S06: Define mandatory MVP additions
 
 As a product owner for the architecture, I want the required missing instructions tracked so that v0.1 is complete enough to execute system software.
