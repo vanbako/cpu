@@ -890,6 +890,11 @@ Acceptance criteria:
 - L1 data cache is write-back and write-allocate.
 - L2 is the coherence point.
 
+Artifacts:
+
+- Normative spec section: `design.md` section 13
+- Story artifact: `spec/E10-S01-cache-hierarchy.md`
+
 #### E10-S02: Define cache line unit and size
 
 As an RTL engineer, I want cache lines defined in cells so that cache behavior matches the architectural address unit.

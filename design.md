@@ -724,14 +724,39 @@ A memory access succeeds only if:
 
 ### 13. Cache hierarchy and coherence
 
-Chosen cache design:
+Chosen cache hierarchy:
 
-* private L1 I-cache per core
-* private L1 D-cache per core
-* shared inclusive L2
-* write-back, write-allocate L1 D-cache
-* coherence point at L2
-* MESI-like coherence
+* each core has a private L1 instruction cache
+* each core has a private L1 data cache
+* all cores share one inclusive L2 cache
+* the L1 data cache is write-back and write-allocate
+* the L2 cache is the CPU coherence point
+* CPU coherence is MESI-like
+
+Hierarchy rules:
+
+* L1 instruction caches are read-only from the data side and are synchronized with data writes by `FENCE.I`
+* L1 data caches hold ordinary data, capability payload bits, and associated capability tag state
+* inclusive L2 means every valid L1 line has a corresponding L2 line or L2 directory entry
+* L2 is responsible for cross-core ownership, invalidation, and visibility ordering
+* memory below L2 is not the CPU coherence point
+* device/DMA agents do not participate in CPU cache coherence in v0.1
+
+Policy rules:
+
+* L1 data cache write hits update L1 and mark the line dirty
+* L1 data cache write misses allocate the line before writing it
+* dirty L1 data lines write back through L2
+* instruction fetch does not allocate into the L1 data cache
+* data load/store does not allocate into the L1 instruction cache
+* L1 instruction cache fill, L1 data cache fill, and L1 writeback all go through L2
+
+Deferred to later stories:
+
+* E10-S02 defines line size and index details
+* E10-S03 defines the coherence protocol state machine
+* E10-S04 defines noncoherent DMA policy
+* E10-S05 defines cache maintenance operations
 
 Because the architecture is cell-addressed, define cache lines in **cells**, not bytes. I would start with:
 
