@@ -372,6 +372,10 @@ Acceptance criteria:
 - Privileged access violations raise a named exception.
 - Short-form and long-form encodings are distinguished.
 
+Artifacts:
+
+- Story artifact: `spec/E02-S04-csr-instructions.md`
+
 #### E02-S05: Define capability CSR access
 
 As a security engineer, I want special capability registers accessed through explicit capability CSR instructions so that capability authority is not confused with scalar control state.
