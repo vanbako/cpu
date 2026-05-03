@@ -100,9 +100,32 @@ Because instructions can be 12/24/48 bits while addresses are cell-based, `PCC` 
 * slot 0 = first instruction in the 24-bit cell
 * slot 1 = second 12-bit half-instruction in the cell
 
-Branches, calls, returns, and trap targets always enter at **slot 0**. Slot 1 is reachable only by fall-through after a 12-bit instruction.
+Instruction start rules:
 
-This one rule makes variable-length decode much simpler.
+* a 12-bit instruction may start at slot 0 or slot 1
+* a 24-bit instruction may start only at slot 0
+* a 48-bit instruction may start only at slot 0 of the first cell in a fetch group
+* no instruction may cross a 48-bit fetch-group boundary
+
+Sequential fall-through rules:
+
+* after a 12-bit instruction in slot 0, execution advances to slot 1 in the same cell
+* after a 12-bit instruction in slot 1, execution advances to slot 0 of the next cell
+* after a 24-bit instruction, execution advances to slot 0 of the next cell
+* after a 48-bit instruction, execution advances to slot 0 of the next fetch group
+
+Explicit control-transfer rules:
+
+* direct branches enter at slot 0
+* indirect jumps enter at slot 0
+* calls enter at slot 0
+* returns enter at slot 0
+* trap and interrupt entry enter at slot 0
+* `IRET` restores the slot captured in `EPCC`, but normal trap entry must have captured a valid architectural slot
+
+Slot 1 is reachable only by sequential fall-through after a 12-bit instruction in slot 0. Any attempt to start a 24-bit or 48-bit instruction at slot 1 raises `ALIGN_FAULT`. Any explicit control transfer that would enter slot 1 also raises `ALIGN_FAULT`.
+
+This rule makes variable-length decode much simpler and lets cell boundaries remain the only externally visible branch, call, return, and trap targets.
 
 #### 3.5 Status register
 

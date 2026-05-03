@@ -276,6 +276,11 @@ Acceptance criteria:
 - Slot 1 is reachable only by fall-through after a 12-bit instruction.
 - Illegal slot targets raise a named exception.
 
+Artifacts:
+
+- Normative spec section: `design.md` section 3.4
+- Story artifact: `spec/E01-S05-pc-subslot-behavior.md`
+
 #### E01-S06: Define status register behavior
 
 As a kernel engineer, I want `SR` fields and update rules specified so that traps, privilege, and condition codes are predictable.
