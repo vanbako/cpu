@@ -401,6 +401,11 @@ Acceptance criteria:
 - Missing permissions raise named capability permission faults.
 - Permission reduction is monotonic.
 
+Artifacts:
+
+- Normative spec section: `design.md` section 5.1
+- Story artifact: `spec/E03-S02-capability-permissions.md`
+
 #### E03-S03: Define capability derivation rules
 
 As a verification engineer, I want monotonic derivation rules so that capabilities cannot gain authority through legal instructions.

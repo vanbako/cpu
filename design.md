@@ -251,16 +251,30 @@ This is an intentional v0.1 simplification. C-like one-past pointers and tempora
 
 The E14-S01 prototype tested a 30-bit layout with a 6-bit exponent, 12-bit base mantissa, and 12-bit top mantissa. It represented small objects, base pages, reserved future page sizes, large aligned regions, near-top regions, and the full 48-bit cell address space. Keep the 30-bit bounds metadata budget for v0.1, but treat the exact compression algorithm as an implementation-facing detail until the formal capability model is written.
 
-Suggested permission bits:
+Permission bits:
 
-* `LD` load data
-* `ST` store data
-* `EX` execute
-* `LC` load capability
-* `SC` store capability
-* `SL` store local capability
-* `SEAL`
-* `UNSEAL`
+* `LD`: permits integer/data loads through the capability
+* `ST`: permits integer/data stores through the capability
+* `EX`: permits instruction fetch through the capability
+* `LC`: permits capability loads through the capability
+* `SC`: permits capability stores through the capability
+* `SL`: permits storing local capabilities through the capability
+* `SEAL`: permits sealing with an authorized object type
+* `UNSEAL`: permits unsealing with an authorized object type
+
+Permission check rules:
+
+* instruction fetch requires `EX`
+* `LD48` requires `LD`
+* `ST48` requires `ST`
+* `CLC` requires `LD` and `LC`
+* `CSC` requires `ST` and `SC`
+* storing a local capability additionally requires `SL`
+* `CSEAL` requires `SEAL`
+* `CUNSEAL` requires `UNSEAL`
+* missing `SL` for a local capability store raises a capability local-store fault and leaves destination state unchanged
+* other missing required permissions raise a capability permission fault and leave destination state unchanged
+* derived capabilities may clear permission bits but may not set permission bits that were clear in the source capability
 
 Suggested flag bits:
 
@@ -272,7 +286,7 @@ Suggested object-type rule:
 * `otype = 0` means unsealed
 * `otype != 0` means sealed
 
-I am reasonably confident this is workable, but the one part I would prototype early is the **30-bit bounds compressor**. CHERI’s public designs rely on compressed bounds metadata to fit address, permissions, and bounds into a fixed-width capability, so this is the right direction; the exact precision/rounding tradeoffs are where you will likely tune the design. ([cl.cam.ac.uk][2])
+E14-S01 validated that the 30-bit bounds metadata budget is plausible for v0.1. The exact codec still needs a formal model before hardware freeze. CHERI's public designs remain the right reference point for compressed bounds metadata. ([cl.cam.ac.uk][2])
 
 #### 5.2 Capability semantics
 
