@@ -242,6 +242,10 @@ Acceptance criteria:
 - Flag-setting behavior is not implicit for ordinary arithmetic.
 - Illegal or reserved width encodings are documented.
 
+Artifacts:
+
+- Story artifact: `spec/E01-S02-integer-register-semantics.md`
+
 #### E01-S03: Define general capability registers
 
 As a compiler and OS engineer, I want the general capability register file specified so that pointer-carrying values are represented consistently.
