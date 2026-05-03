@@ -403,6 +403,47 @@ Borrow one very good CHERIoT idea:
 
 Use that for stacks, return capabilities, and temporary delegated authority. It gives you a clean way to stop stack-derived pointers from leaking into heap/global memory. ([CHERIoT Platform][5])
 
+#### 5.5 Capability fault reporting
+
+Capability faults use the normal precise exception path and additionally populate capability-specific reporting CSRs.
+
+Fault classes:
+
+* capability tag fault
+* capability bounds fault
+* capability permission fault
+* capability seal/type fault
+* capability local-store fault
+
+`CAPCAUSE` records the capability-specific reason. Required architectural names are:
+
+* `NONE`
+* `TAG`
+* `BOUNDS`
+* `PERMISSION`
+* `SEAL_TYPE`
+* `LOCAL_STORE`
+
+`FAULTCAPIDX` identifies the most relevant capability operand when possible:
+
+* `C0-C7` for general capability registers
+* `PCC` for instruction fetch faults
+* `DDC` for explicit default-data-capability forms
+* `DSC` or `RSC` for stack-specific operations
+* `KSC`, `KRC`, `EPCC`, or `TVC` for privileged special-capability faults
+* `NONE` when no single capability operand is responsible
+* `UNKNOWN` when the implementation cannot report a precise operand
+
+`TVAL` records the relevant cell address:
+
+* instruction fetch faults report the attempted fetch cell address
+* load/store faults report the effective cell address
+* `CSETADDR` and `CINCADDR` bounds faults report the attempted resulting cursor
+* `CSETBOUNDS` faults report the requested base when the base is the failing value, otherwise the requested top
+* seal/type faults with no relevant address write zero to `TVAL`
+
+On any capability fault, the faulting instruction does not commit destination register, memory, or tag updates. `EPCC` identifies the faulting instruction and its slot according to the precise exception rules.
+
 ### 6. Instruction encoding and fetch
 
 Fetch always operates on one **48-bit fetch group**.

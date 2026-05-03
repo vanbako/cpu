@@ -470,6 +470,11 @@ Acceptance criteria:
 - `FAULTCAPIDX` identifies the relevant source capability where possible.
 - Faulting virtual address or cell address behavior is defined through `TVAL`.
 
+Artifacts:
+
+- Normative spec section: `design.md` section 5.5
+- Story artifact: `spec/E03-S06-capability-fault-reporting.md`
+
 ## E04: ISA and Encoding
 
 ### Goal
