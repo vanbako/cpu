@@ -1170,6 +1170,11 @@ Acceptance criteria:
 - Coherence visibility of tags is tested.
 - Noncoherent DMA tag-clear behavior is documented.
 
+Artifacts:
+
+- Prototype: `tools/tag_cache_model.py`
+- Decision record: `spikes/E14-S04-capability-tag-cache-model.md`
+
 #### E14-S05: Spike protected return stack traps
 
 As a security and RTL engineer, I want call, return, trap, and debug interactions modeled so that the protected return stack remains precise and recoverable.
