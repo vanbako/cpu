@@ -418,6 +418,11 @@ Acceptance criteria:
 - Invalid-tag capabilities cannot be dereferenced.
 - Capability-address modification is allowed only through explicit capability instructions.
 
+Artifacts:
+
+- Normative spec section: `design.md` section 5.2
+- Story artifact: `spec/E03-S03-capability-derivation.md`
+
 #### E03-S04: Define capability memory tag rules
 
 As an RTL engineer, I want memory tag update rules so that capability forging is impossible through ordinary stores.

@@ -296,8 +296,27 @@ Architectural rules:
 * derivation is **monotonic**
 * bounds may be narrowed, not widened
 * permissions may be reduced, not increased
-* sealed capabilities cannot be dereferenced or modified
-* invalid-tag capabilities cannot be dereferenced
+* sealed capabilities cannot be dereferenced
+* sealed capabilities cannot be modified except by defined unseal or call-entry operations
+* invalid-tag capabilities cannot be dereferenced or used as derivation sources
+* faulting capability instructions leave destination architectural state unchanged
+
+Tag propagation rules:
+
+* `CMOVE` copies the source payload and tag unchanged
+* `CGETADDR` copies only the cursor into an integer register
+* successful derivation instructions preserve the source tag
+* failed derivation instructions do not create a valid destination tag
+
+Monotonic derivation rules:
+
+* `CSETADDR` may change only the cursor
+* `CINCADDR` may change only the cursor
+* `CSETBOUNDS` may narrow bounds but may not widen bounds
+* `CANDPERM` may clear permissions but may not set permissions
+* `CSEAL` may convert an unsealed capability into a sealed capability with an authorized object type
+* `CUNSEAL` may convert a sealed capability back to an unsealed capability only when authorized by a matching unseal capability
+* no instruction may create authority not already present in one of its valid capability operands
 
 Integer arithmetic on capability registers is forbidden except via explicit capability-address instructions:
 
