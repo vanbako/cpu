@@ -306,6 +306,10 @@ Acceptance criteria:
 - `CMP`, `TST`, or explicit flag-setting forms are defined as the source of condition flags.
 - Reserved bits have read and write behavior specified.
 
+Artifacts:
+
+- Story artifact: `spec/E01-S06-status-register-behavior.md`
+
 ## E02: CSR and Control State
 
 ### Goal
