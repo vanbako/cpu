@@ -965,6 +965,10 @@ Acceptance criteria:
 - Capability tags participate in coherent visibility.
 - Coherence behavior for instruction and data caches is documented.
 
+Artifacts:
+
+- Story artifact: `spec/E10-S03-cpu-coherence-protocol.md`
+
 #### E10-S04: Define noncoherent DMA policy
 
 As a driver engineer, I want I/O coherence boundaries specified so that device drivers use the right cache maintenance pattern.
