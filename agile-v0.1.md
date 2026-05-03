@@ -269,6 +269,10 @@ Acceptance criteria:
 - Reset-time initialization responsibility is assigned to hardware, ROM, or firmware.
 - Access paths through capability CSR instructions are specified or reserved.
 
+Artifacts:
+
+- Story artifact: `spec/E01-S04-special-capability-registers.md`
+
 #### E01-S05: Define PC subslot behavior
 
 As an RTL engineer, I want variable-length instruction slot rules specified so that fetch and decode remain deterministic.
