@@ -1179,6 +1179,11 @@ Acceptance criteria:
 - `2^15` and `2^19` cell future page sizes are analyzed against the radix geometry.
 - Large-page support is either revised, deferred, or given a compatible encoding plan.
 
+Artifacts:
+
+- Prototype: `tools/page_table_geometry.py`
+- Decision record: `spikes/E14-S03-page-table-geometry.md`
+
 #### E14-S04: Spike capability tag storage through cache hierarchy
 
 As an RTL and verification engineer, I want a model for capability tags moving through L1, L2, and memory so that tag atomicity is implementable.
