@@ -273,11 +273,36 @@ Use that for stacks, return capabilities, and temporary delegated authority. It 
 
 ### 6. Instruction encoding and fetch
 
-* Fetch always operates on one 48-bit fetch group
-* Instructions are 12, 24, or 48 bits
-* No instruction may cross a 48-bit fetch-group boundary
-* 24-bit cell boundaries are the only legal direct branch/call/trap targets
-* 48-bit instructions must begin at slot 0 of the first cell in a fetch group
+Fetch always operates on one **48-bit fetch group**.
+
+Fetch-group rules:
+
+* a fetch group is 2 consecutive cells
+* fetch-group base address is `PCC.address & ~1`
+* the first cell in a fetch group has an even cell address
+* the second cell in a fetch group has an odd cell address
+* instruction bytes do not exist architecturally; predecode consumes instruction bits from fetched cells
+
+Instruction sizes:
+
+* instructions are 12, 24, or 48 bits
+* no instruction may cross a 48-bit fetch-group boundary
+* 12-bit instructions may start at slot 0 or slot 1
+* 24-bit instructions may start only at slot 0 of either cell in a fetch group
+* 48-bit instructions must start at slot 0 of the first cell in a fetch group
+
+Target rules:
+
+* direct branch, call, and trap targets encode cell addresses only
+* direct branch, call, and trap targets always enter slot 0
+* indirect jump and return targets must resolve to slot 0
+* explicit slot-1 targets raise `ALIGN_FAULT`
+
+Boundary fault rules:
+
+* a 24-bit instruction decoded at slot 1 raises `ALIGN_FAULT`
+* a 48-bit instruction decoded at slot 1 raises `ALIGN_FAULT`
+* a 48-bit instruction decoded at slot 0 of the second cell in a fetch group raises `ALIGN_FAULT`
 
 Use the following encoding philosophy:
 

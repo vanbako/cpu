@@ -458,6 +458,11 @@ Acceptance criteria:
 - 24-bit cell boundaries are the only legal direct branch, call, and trap targets.
 - 48-bit instructions must begin at slot 0 of the first cell in a fetch group.
 
+Artifacts:
+
+- Normative spec section: `design.md` section 6
+- Story artifact: `spec/E04-S01-instruction-fetch-groups.md`
+
 #### E04-S02: Define integer operation set
 
 As a compiler engineer, I want the mandatory integer operations specified so that code generation has a stable target.
