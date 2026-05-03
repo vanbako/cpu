@@ -906,6 +906,11 @@ Acceptance criteria:
 - 16 cells are identified as 48 bytes.
 - Alignment and index implications are documented.
 
+Artifacts:
+
+- Normative spec section: `design.md` section 13
+- Story artifact: `spec/E10-S02-cache-line-size.md`
+
 #### E10-S03: Define CPU coherence protocol
 
 As a verification engineer, I want the CPU coherence behavior specified so that cross-core memory tests can be written.

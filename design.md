@@ -760,7 +760,17 @@ Deferred to later stories:
 
 Because the architecture is cell-addressed, define cache lines in **cells**, not bytes. I would start with:
 
-* 16-cell line size = 48 bytes
+* 16-cell line size
+* 16 cells = 384 bits = 48 octets of storage when serialized externally
+
+Cache-line address rules:
+
+* cache-line size is counted in cells
+* line offset is the low 4 bits of the cell address
+* line base address is `address & ~0xF`
+* a 16-cell line may contain four naturally aligned 96-bit capability slots
+* a 16-cell line may contain eight naturally aligned 48-bit integer slots
+* no byte address is implied by the 48-octet storage equivalence
 
 This keeps line size power-of-two in the architectural address unit.
 
