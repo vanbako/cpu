@@ -602,6 +602,10 @@ Acceptance criteria:
 - Stack alignment is specified.
 - Local capability storage rules are compatible with `SL`.
 
+Artifacts:
+
+- Story artifact: `spec/E05-S03-data-stack-model.md`
+
 #### E05-S04: Define return stack model
 
 As a security engineer, I want return addresses separated from data stack writes so that backward-edge control flow is protected.
