@@ -360,6 +360,10 @@ Acceptance criteria:
 - Unsupported CSR access behavior is specified.
 - Counter overflow behavior is defined or explicitly deferred.
 
+Artifacts:
+
+- Story artifact: `spec/E02-S03-extended-csr-space.md`
+
 #### E02-S04: Define CSR instructions
 
 As an assembler engineer, I want CSR instruction forms specified so that control-state access can be encoded and tested.
