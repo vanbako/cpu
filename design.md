@@ -331,6 +331,42 @@ Integer arithmetic on capability registers is forbidden except via explicit capa
 
 #### 5.3 Memory tag rules
 
+Normative memory tag granularity:
+
+* memory has one tag bit per naturally aligned 4-cell capability slot
+* a capability slot starts at an address where `address mod 4 = 0`
+* a 16-cell cache line contains four capability tag bits
+* tags are architectural metadata, not addressable memory bits
+
+Capability load/store rules:
+
+* `CLC` requires 4-cell alignment
+* `CLC` loads all 96 payload bits and the slot tag as one architectural operation
+* `CSC` requires 4-cell alignment
+* `CSC` stores all 96 payload bits and the slot tag as one architectural operation
+* misaligned `CLC` or `CSC` raises `ALIGN_FAULT`
+
+Ordinary store tag-clear rules:
+
+* `ST48` writes two cells
+* if either written cell overlaps a capability slot, that slot's tag is cleared
+* `ST48` may clear at most one capability-slot tag because it is 2-cell aligned
+* ordinary integer stores never create valid capability tags
+* `LD48` may read capability payload bits as integer data but never returns the tag
+
+Cache and coherence rules:
+
+* L1 data cache, L2, and memory carry tag state with cache-line data
+* CPU coherence treats tag bits as part of coherent line state
+* another core must not observe new capability payload with an old tag or old payload with a new tag
+* E14-S04 validated the one-tag-per-4-cell-slot model through L1, L2, and memory
+
+External overwrite rules:
+
+* non-tag-aware DMA or external agents clear tags for every overlapped capability slot in memory
+* DMA is noncoherent in v0.1, so CPU caches may hold stale data and stale tags until software performs cache maintenance
+* drivers must invalidate or clean/invalidate relevant CPU cache lines before CPU reuse of DMA-written buffers
+
 * `CSC` stores a full 96-bit capability and its tag atomically
 * `CLC` loads a full 96-bit capability and its tag atomically
 * any `ST48` into any of the four cells of a capability slot clears that slot’s tag

@@ -436,6 +436,12 @@ Acceptance criteria:
 - Non-tag-aware DMA or external overwrites clear tags.
 - Tag and data atomicity requirements are stated.
 
+Artifacts:
+
+- Normative spec section: `design.md` section 5.3
+- Story artifact: `spec/E03-S04-memory-tag-rules.md`
+- Supporting spike: `spikes/E14-S04-capability-tag-cache-model.md`
+
 #### E03-S05: Define local capability semantics
 
 As a security engineer, I want local capabilities to be constrained so that stack-derived authority cannot leak into global memory.
