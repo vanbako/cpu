@@ -856,6 +856,11 @@ Acceptance criteria:
 - VPN split is `7 + 10 + 10 + 10`.
 - Large pages are reserved but not implemented.
 
+Artifacts:
+
+- Story artifact: `spec/E09-S04-page-table-geometry.md`
+- Supporting spike: `spikes/E14-S03-page-table-geometry.md`
+
 #### E09-S05: Define PTE format
 
 As a kernel engineer, I want the 48-bit PTE format specified so that page-table memory is unambiguous.
