@@ -653,6 +653,10 @@ Acceptance criteria:
 - Ordinary data stores cannot write protected return-stack memory unless explicitly allowed by the architecture.
 - Return stack underflow, overflow, and permission faults are named.
 
+Artifacts:
+
+- Story artifact: `spec/E05-S04-return-stack-model.md`
+
 ## E06: Control-Flow Protection
 
 ### Goal
