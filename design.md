@@ -221,7 +221,7 @@ For special capability registers, define a parallel mechanism such as:
 
 #### 5.1 Capability format
 
-For MVP, I recommend a **96-bit capability + 1 out-of-band tag** with this architectural layout:
+For MVP, use a **96-bit capability + 1 out-of-band tag**.
 
 * `cursor/address`: 48 bits
 * `bounds metadata`: 30 bits
@@ -229,7 +229,27 @@ For MVP, I recommend a **96-bit capability + 1 out-of-band tag** with this archi
 * `object type`: 8 bits
 * `flags`: 2 bits
 
-Tag is not stored in addressable memory.
+The tag is not stored in addressable memory. It is carried in registers, cache, and memory tag state as separate architectural metadata.
+
+The capability cursor is a 48-bit cell address. Bounds metadata describes a cell-addressed half-open range `[base, top)`. The cursor of a tagged v0.1 capability must be inside its decoded bounds:
+
+* `base <= cursor < top`
+
+This is an intentional v0.1 simplification. C-like one-past pointers and temporarily out-of-bounds tagged capability cursors are not supported in v0.1. Software should keep tentative offsets in integer registers and update the capability cursor only after checking that the resulting address remains in bounds.
+
+`CSETADDR` and `CINCADDR` behavior:
+
+* if the resulting cursor is inside bounds, the result keeps the input tag
+* if the resulting cursor is outside bounds, the instruction raises a capability bounds fault and leaves the destination register unchanged
+
+`CSETBOUNDS` behavior:
+
+* requested bounds must be within the parent capability bounds
+* the implementation may round representable bounds outward
+* rounded bounds must still remain within the parent capability bounds
+* if exact or rounded-in-parent bounds cannot be represented, the instruction raises a capability bounds fault and leaves the destination register unchanged
+
+The E14-S01 prototype tested a 30-bit layout with a 6-bit exponent, 12-bit base mantissa, and 12-bit top mantissa. It represented small objects, base pages, reserved future page sizes, large aligned regions, near-top regions, and the full 48-bit cell address space. Keep the 30-bit bounds metadata budget for v0.1, but treat the exact compression algorithm as an implementation-facing detail until the formal capability model is written.
 
 Suggested permission bits:
 

@@ -384,6 +384,12 @@ Acceptance criteria:
 - `otype != 0` means sealed.
 - The 30-bit bounds compressor is identified as a prototype risk.
 
+Artifacts:
+
+- Normative spec section: `design.md` section 5.1
+- Story artifact: `spec/E03-S01-capability-representation.md`
+- Supporting spike: `spikes/E14-S01-capability-bounds-compression.md`
+
 #### E03-S02: Define permission bits
 
 As a security engineer, I want capability permission bits named so that access checks are clear and testable.

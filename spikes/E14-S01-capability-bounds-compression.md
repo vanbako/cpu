@@ -110,19 +110,13 @@ If v0.1 wants C-like one-past pointers or temporarily out-of-bounds capability c
 - define a richer correction algorithm that decodes stable bounds even when the cursor is just outside the interval, or
 - define separate architectural behavior for out-of-bounds cursor updates, such as clearing the tag or trapping.
 
-The current `design.md` does not yet decide that point.
+Resolution after E03-S01: v0.1 uses a strict in-bounds cursor invariant for tagged capabilities. `CSETADDR` and `CINCADDR` fault and leave the destination unchanged if the resulting cursor would be outside bounds. C-like one-past tagged capability pointers are deferred beyond v0.1.
 
 ## Recommendation
 
 Keep the 96-bit capability target and the 30-bit bounds metadata budget for v0.1.
 
-Do not freeze this exact codec yet. Use it as evidence that the budget is reasonable, then complete E03-S01 with an explicit decision on cursor-out-of-bounds behavior.
-
-Recommended next decision for E03-S01:
-
-- Tagged capabilities should remain decodable and monotonic.
-- `CSETBOUNDS` may round outward only when the rounded bounds stay inside the parent authority.
-- The architecture needs an explicit rule for `CSETADDR` and `CINCADDR` when the resulting cursor is outside bounds.
+Do not freeze this exact codec yet. Use it as evidence that the budget is reasonable. E03-S01 keeps the 30-bit metadata budget and defines the strict in-bounds cursor rule needed to keep tagged capabilities decodable and monotonic.
 
 ## Story Acceptance Review
 
@@ -132,5 +126,4 @@ Recommended next decision for E03-S01:
 | Precision and rounding behavior are measured. | Met by corpus table. |
 | Monotonic narrowing behavior is tested. | Met by 5000 accepted child derivation tests. |
 | Failure cases are documented. | Met by expected failure table. |
-| Recommendation is made to keep, revise, or expand the 96-bit format. | Keep 96-bit format, revise/finalize cursor-out-of-bounds semantics in E03-S01. |
-
+| Recommendation is made to keep, revise, or expand the 96-bit format. | Keep 96-bit format; E03-S01 resolved cursor-out-of-bounds behavior with a strict in-bounds cursor invariant. |
