@@ -662,6 +662,10 @@ Acceptance criteria:
 - `RET` accepts only a valid sealed return capability from `RSC`.
 - Invalid or tampered return capabilities raise seal/type or tag fault.
 
+Artifacts:
+
+- Story artifact: `spec/E06-S03-sealed-return-capabilities.md`
+
 #### E06-S04: Define protected return stack access
 
 As an RTL and kernel engineer, I want return-stack memory protected so that ordinary stores cannot corrupt return state.
