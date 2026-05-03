@@ -1084,6 +1084,11 @@ Acceptance criteria:
 - Failure cases are documented.
 - Recommendation is made to keep, revise, or expand the 96-bit format.
 
+Artifacts:
+
+- Prototype: `tools/cap_bounds_codec.py`
+- Decision record: `spikes/E14-S01-capability-bounds-compression.md`
+
 #### E14-S02: Spike 24-bit cell-addressed toolchain and ABI
 
 As a toolchain engineer, I want a small assembler or compiler-facing prototype so that the software impact of cell addressing is understood.
