@@ -1264,6 +1264,10 @@ Acceptance criteria:
 - Counter selection through `PERFSEL` is defined or reserved.
 - Unsupported counter behavior is specified.
 
+Artifacts:
+
+- Story artifact: `spec/E12-S05-extended-performance-counters.md`
+
 ## E13: Microarchitecture MVP
 
 ### Goal
