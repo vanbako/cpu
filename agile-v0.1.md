@@ -717,6 +717,10 @@ Acceptance criteria:
 - Ordinary store access restrictions are specified.
 - Trap behavior while return stack state is partially updated is precise.
 
+Artifacts:
+
+- Story artifact: `spec/E06-S04-protected-return-stack-access.md`
+
 ## E07: Privilege, Exceptions, and Interrupts
 
 ### Goal
