@@ -151,16 +151,18 @@ Until E11-S03 starts a secondary core, its architectural capability state must n
 
 When a secondary core is started, firmware or kernel startup code must install a valid `PCC` and the stack/root capability state required by the startup ABI before the core enters ordinary instruction execution.
 
-## Invalid-tag Fault Behavior
+## Invalid-tag and Delivery-failure Behavior
 
-Using an invalid reset capability follows the normal capability fault rules:
+Using an invalid reset capability follows the normal capability fault rules when the capability is consumed by an ordinary instruction or data access.
+
+Invalid `TVC` during trap or interrupt delivery follows the entry-failure rules in E07-S04 and E07-S05. It is not delivered as a recursive normal trap through the same invalid vector state.
 
 | Use of invalid reset capability | Fault behavior |
 | --- | --- |
 | Fetch through invalid `PCC` | Capability tag fault, `FAULTCAPIDX = PCC` |
 | Load/store through invalid `DSC` or `DDC` | Capability tag fault for the authorizing capability |
 | `CALL` or `RET` through invalid `RSC` | Return-stack permission/tag fault according to E05-S04 |
-| Trap entry through invalid `TVC` | Capability tag fault for `TVC` |
+| Trap or interrupt entry through invalid `TVC` | Fatal trap-entry or interrupt-entry failure; diagnostic reporting, if exposed, uses `FAULTCAPIDX=TVC` and `CAPCAUSE=TAG` |
 | `IRET` through invalid `EPCC` | Capability tag fault for `EPCC` |
 | Derivation from invalid `C0-C7` | Capability tag fault |
 
