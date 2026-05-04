@@ -7,3 +7,4 @@ The first implementation target is an internal decoded-instruction semantic mode
 Current implementation story:
 
 - I01-S01: package skeleton and import smoke test.
+- I02-S01: 24-bit cell and 48-bit address helpers.
