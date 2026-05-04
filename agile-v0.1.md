@@ -1238,6 +1238,10 @@ Acceptance criteria:
 - Counter width and overflow behavior are specified.
 - Privilege access policy is specified.
 
+Artifacts:
+
+- Story artifact: `spec/E12-S04-mandatory-counters.md`
+
 #### E12-S05: Define extended performance counters
 
 As a performance engineer, I want common miss, trap, branch, atomic, and capability-fault counters reserved so that later tuning can use stable names.
