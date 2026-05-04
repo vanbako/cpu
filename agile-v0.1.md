@@ -803,6 +803,10 @@ Acceptance criteria:
 - Timer, software IPI, and external interrupt causes are defined.
 - Interrupt priority and threshold behavior are specified or explicitly deferred.
 
+Artifacts:
+
+- Story artifact: `spec/E07-S05-vectored-interrupts.md`
+
 #### E07-S06: Define nested interrupt rules
 
 As a kernel engineer, I want one hardware level of saved trap state so that interrupt nesting is simple and explicit.
