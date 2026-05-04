@@ -157,7 +157,7 @@ The checker validates:
 | --- | --- | --- |
 | `NONE` | E07-S02, E02-S03 | No exception or no capability-specific cause, depending on the reporting field. |
 | `ILLEGAL_INSTRUCTION` | E07-S02 | Malformed, unsupported, or reserved instruction form. |
-| `BREAKPOINT` | E07-S02, E04-S04, E12-S01 | Breakpoint trap or debug breakpoint path. |
+| `BREAKPOINT` | E07-S02, E04-S04, E12-S01 | Ordinary `BRK` breakpoint trap when `DEBUGCTL.BRKHALT=0`; hardware/debug breakpoint events report `DEBUG_HALT`. |
 | `PRIVILEGE_FAULT` | E07-S02, E07-S01 | Insufficient privilege for an instruction or operation. |
 | `DIVIDE_BY_ZERO` | E07-S02, E04-S02 | Divide or modulo by zero. |
 | `ALIGN_FAULT` | E07-S02, E01-S05, E04-S01 | Misaligned memory object, illegal slot, illegal fetch placement, or explicit slot-1 target. |
@@ -169,7 +169,7 @@ The checker validates:
 | `CAPABILITY_PERMISSION_FAULT` | E07-S02, E03-S06 | Missing capability permission. |
 | `CAPABILITY_SEAL_TYPE_FAULT` | E07-S02, E03-S06 | Incorrect sealed use or object-type authority mismatch. |
 | `CAPABILITY_LOCAL_STORE_FAULT` | E07-S02, E03-S05, E03-S06 | Local capability stored without `SL`. |
-| `DEBUG_HALT` | E07-S02, E12-S01 | Debug halt entry condition. |
+| `DEBUG_HALT` | E07-S02, E12-S01, E12-S02, E12-S03 | Debug event trap class for external halt, `BRK` debug path, hardware breakpoint/watchpoint, single-step, and entry-failure fallback. |
 | `RESERVED_CSR_FAULT` | E07-S02, E02-S01, E02-S03, E02-S04 | Access to reserved, future, unimplemented, or undocumented scalar CSR. |
 | `ILLEGAL_CSR_READ` | E07-S02, E02-S04 | CSR exists but cannot be read by the requested operation. |
 | `ILLEGAL_CSR_WRITE` | E07-S02, E02-S04 | CSR exists but cannot be written with the requested value or operation. |

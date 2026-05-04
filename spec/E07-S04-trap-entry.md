@@ -77,12 +77,12 @@ Trap entry installs `TVC` into `PCC` only if `TVC` is valid for executing the di
 
 Required `TVC` checks:
 
-| Check | Delivery failure reason |
+| Check | Diagnostic reason if delivery failure reporting is exposed |
 | --- | --- |
-| `TVC.tag` is valid | Capability tag fault for `TVC`. |
-| `TVC` is unsealed | Capability seal/type fault for `TVC`. |
-| `TVC` has `EX` | Capability permission fault for `TVC`. |
-| `TVC.cursor` is inside `TVC.bounds` | Capability bounds fault for `TVC`. |
+| `TVC.tag` is valid | `FAULTCAPIDX=TVC`, `CAPCAUSE=TAG`. |
+| `TVC` is unsealed | `FAULTCAPIDX=TVC`, `CAPCAUSE=SEAL_TYPE`. |
+| `TVC` has `EX` | `FAULTCAPIDX=TVC`, `CAPCAUSE=PERMISSION`. |
+| `TVC.cursor` is inside `TVC.bounds` | `FAULTCAPIDX=TVC`, `CAPCAUSE=BOUNDS`. |
 
 On successful trap entry, the first handler fetch still uses the normal `PCC` execute-authority rules. For example, if the first handler instruction is a 48-bit instruction whose second cell is outside `TVC.bounds`, that later handler fetch raises a precise exception in kernel mode.
 

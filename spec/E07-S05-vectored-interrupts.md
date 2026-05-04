@@ -203,13 +203,13 @@ Vector index 0 is reserved for the direct synchronous exception entry at `TVC.cu
 
 Required `TVC` and target checks before interrupt entry commits:
 
-| Check | Delivery failure reason |
+| Check | Diagnostic reason if delivery failure reporting is exposed |
 | --- | --- |
-| `TVC.tag` is valid | Capability tag fault for `TVC`. |
-| `TVC` is unsealed | Capability seal/type fault for `TVC`. |
-| `TVC` has `EX` | Capability permission fault for `TVC`. |
-| `vector_cell` is representable as a 48-bit cell address | Capability bounds fault for `TVC`. |
-| `vector_cell` is inside `TVC.bounds` | Capability bounds fault for `TVC`. |
+| `TVC.tag` is valid | `FAULTCAPIDX=TVC`, `CAPCAUSE=TAG`. |
+| `TVC` is unsealed | `FAULTCAPIDX=TVC`, `CAPCAUSE=SEAL_TYPE`. |
+| `TVC` has `EX` | `FAULTCAPIDX=TVC`, `CAPCAUSE=PERMISSION`. |
+| `vector_cell` is representable as a 48-bit cell address | `FAULTCAPIDX=TVC`, `CAPCAUSE=BOUNDS`. |
+| `vector_cell` is inside `TVC.bounds` | `FAULTCAPIDX=TVC`, `CAPCAUSE=BOUNDS`. |
 
 The first instruction fetch at the vector target still follows E06-S01. If the handler instruction consumes additional cells outside `TVC.bounds`, that later handler fetch raises a precise exception in kernel mode.
 

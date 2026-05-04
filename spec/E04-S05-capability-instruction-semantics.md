@@ -424,7 +424,7 @@ Baseline reporting:
 | Sealed source used where unsealed required | `SEAL_TYPE` | Failing capability source | `0` |
 | Seal/unseal object-type mismatch | `SEAL_TYPE` | Source or authorizer according to failing check | `0` |
 
-`ALIGN_FAULT` is not a capability fault and does not use `CAPCAUSE` as its primary cause. Trap-entry stories define whether `CAPCAUSE` is cleared or preserved for non-capability faults.
+`ALIGN_FAULT` is not a capability fault. E07-S04 clears capability reporting for non-capability faults by writing `CAPCAUSE=NONE` and `FAULTCAPIDX=NONE`.
 
 ## Out of Scope for This Story
 

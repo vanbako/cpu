@@ -46,7 +46,7 @@ Kernel software may still write `CAUSE` for diagnostic replay as allowed by E02-
 | ---: | --- | --- | --- |
 | `0x0000` | `NONE` | No exception | Reset value or software-cleared reporting state. |
 | `0x0001` | `ILLEGAL_INSTRUCTION` | Illegal instruction | Malformed encoding, unsupported opcode, malformed operand class, or illegal reserved instruction form. |
-| `0x0002` | `BREAKPOINT` | Breakpoint | `BRK` instruction or debug breakpoint path. |
+| `0x0002` | `BREAKPOINT` | Breakpoint | `BRK` ordinary breakpoint trap when `DEBUGCTL.BRKHALT=0`. Debug breakpoint events report `DEBUG_HALT`. |
 | `0x0003` | `PRIVILEGE_FAULT` | Privilege violation | Kernel-only instruction, operation, CSR, or CCSR attempted from insufficient privilege. |
 | `0x0004` | `DIVIDE_BY_ZERO` | Arithmetic exception | Integer divide or modulo with zero divisor. |
 | `0x0005` | `ALIGN_FAULT` | Alignment exception | Misaligned memory object, illegal instruction slot, illegal fetch-group placement, or explicit slot-1 target. |
@@ -58,7 +58,7 @@ Kernel software may still write `CAUSE` for diagnostic replay as allowed by E02-
 | `0x000B` | `CAPABILITY_PERMISSION_FAULT` | Capability fault | Required capability permission is missing, except local-store failures. |
 | `0x000C` | `CAPABILITY_SEAL_TYPE_FAULT` | Capability fault | Sealed capability used incorrectly or object type authority mismatch. |
 | `0x000D` | `CAPABILITY_LOCAL_STORE_FAULT` | Capability fault | Local capability stored through destination authority without `SL`. |
-| `0x000E` | `DEBUG_HALT` | Debug halt | External debug halt request or debug-mode entry condition. |
+| `0x000E` | `DEBUG_HALT` | Debug halt | External halt request, `BRK` debug path, hardware breakpoint/watchpoint, single-step, or entry-failure fallback as refined by E12. |
 
 Values `0x000F-0x001F` are reserved for future mandatory synchronous exception classes.
 
@@ -202,13 +202,14 @@ E09-S07 owns the final effective-access priority between capability, translation
 Minimum conformance checks for later simulator and RTL work:
 
 - `CAUSE=0x0001` for malformed instruction encoding.
-- `CAUSE=0x0002` for `BRK`.
+- `CAUSE=0x0002` for `BRK` when `DEBUGCTL.BRKHALT=0`.
 - `CAUSE=0x0003` or the specific CSR/CCSR privilege cause for insufficient privilege.
 - `CAUSE=0x0004` for divide or modulo by zero.
 - `CAUSE=0x0005` for slot-1 24-bit or 48-bit instruction placement.
 - `CAUSE=0x0007` for page faults once E09 page-table behavior is implemented.
 - `CAUSE=0x0008` for `SYS` or `SCALL`.
 - `CAUSE=0x0009-0x000D` for baseline capability faults.
+- `CAUSE=0x000E` for debug events, with `DEBUGCTL.DCAUSE` selecting the E12 debug source.
 - `CAUSE=0x0020-0x0026` for assigned CSR and CCSR specific faults.
 - `CAUSE=0x0030-0x0032` for assigned protected return-stack faults.
 - Non-capability faults write `CAPCAUSE=NONE` and `FAULTCAPIDX=NONE`.
