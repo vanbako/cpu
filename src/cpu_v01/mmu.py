@@ -57,6 +57,7 @@ class AccessType(Enum):
     FETCH = "FETCH"
     LOAD = "LOAD"
     STORE = "STORE"
+    MAINTENANCE = "MAINTENANCE"
 
 
 @dataclass(frozen=True)
@@ -279,6 +280,8 @@ def _tlb_access_allowed(entry: TlbEntry, access_type: AccessType) -> bool:
         return entry.readable
     if access_type is AccessType.STORE:
         return entry.writable
+    if access_type is AccessType.MAINTENANCE:
+        return True
     raise AssertionError(f"unhandled access type {access_type}")
 
 
@@ -330,6 +333,8 @@ def _access_allowed(pte: PageTableEntry, access_type: AccessType) -> bool:
         return pte.readable
     if access_type is AccessType.STORE:
         return pte.writable
+    if access_type is AccessType.MAINTENANCE:
+        return True
     raise AssertionError(f"unhandled access type {access_type}")
 
 
