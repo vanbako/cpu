@@ -1,0 +1,50 @@
+"""Execution-result commit helpers for CPU v0.1."""
+
+from __future__ import annotations
+
+from .capabilities import Capability
+from .csrs import CSR_INSTRET, CSR_MASK
+from .instructions import ExecutionResult, ExecutionResultKind
+from .state import CoreState, SlottedCapability
+
+
+def commit_normal_result(core: CoreState, result: ExecutionResult) -> None:
+    """Commit a normal-retire result packet to architectural state."""
+    if not isinstance(core, CoreState):
+        raise TypeError("core must be a CoreState")
+    if not isinstance(result, ExecutionResult):
+        raise TypeError("result must be an ExecutionResult")
+    if result.kind is not ExecutionResultKind.NORMAL_RETIRE:
+        raise ValueError("only normal-retire results can be committed here")
+    assert result.normal is not None
+
+    effects = result.normal.effects
+
+    for index, value in effects.integer_writes:
+        core.write_d(index, value)
+
+    for index, capability in effects.capability_writes:
+        if not isinstance(capability, Capability):
+            raise TypeError("capability write value must be a Capability")
+        core.write_c(index, capability)
+
+    explicit_instret_write = False
+    for number, value in effects.csr_writes:
+        explicit_instret_write = explicit_instret_write or number == CSR_INSTRET
+        core.write_csr_raw(number, value)
+
+    for index, capability in effects.ccsr_writes:
+        if not isinstance(capability, Capability):
+            raise TypeError("CCSR write value must be a Capability")
+        core.write_ccsr(index, capability)
+
+    if effects.memory_effects:
+        raise NotImplementedError("memory retire effects are not implemented yet")
+
+    if effects.pcc_update is not None:
+        if not isinstance(effects.pcc_update, SlottedCapability):
+            raise TypeError("pcc_update must be a SlottedCapability")
+        core.install_pcc(effects.pcc_update)
+
+    if not explicit_instret_write:
+        core.write_csr_raw(CSR_INSTRET, (core.read_csr(CSR_INSTRET) + 1) & CSR_MASK)

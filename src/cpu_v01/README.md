@@ -13,3 +13,4 @@ Current implementation story:
 - I02-S04: architectural core-state containers for integer, general capability, and special capability registers.
 - I02-S05: mandatory scalar CSR storage and cold-reset state helpers.
 - I03-S01: decoded instruction representation and execution-result packets.
+- I03-S02: baseline integer operation semantics and normal-result commit helper.
