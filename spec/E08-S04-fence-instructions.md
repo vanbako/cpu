@@ -310,7 +310,7 @@ Privilege rules:
 | `FENCE.I` | `PRIVILEGE_FAULT`. | Allowed. |
 | `SFENCE.VM*` | `PRIVILEGE_FAULT`. | Allowed. |
 
-Fence instructions have no destination register. On a fault, they do not update memory, cache state, TLB state, predictor state, reservation state, or architectural registers.
+Fence instructions have no destination register. On a fault, they do not perform their normal memory, cache, TLB, predictor, or architectural-register effects. Any active `LL48`/`SC48` reservation is cleared by the resulting synchronous trap entry according to E08-S02.
 
 `FENCE` and valid kernel-mode `FENCE.I`/`SFENCE.VM` forms do not raise page faults, access faults, alignment faults, or capability faults because they do not perform an addressed architectural memory access.
 

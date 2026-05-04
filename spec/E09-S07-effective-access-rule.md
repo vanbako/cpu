@@ -72,7 +72,7 @@ For data, capability, stack, and atomic memory accesses, the selected fault is d
 
 The first failing check in this order determines the reported exception.
 
-No memory payload, memory tag, reservation state, TLB state visible to software, destination register, or store-buffer entry is updated when any check fails.
+No memory payload, memory tag, TLB state visible to software, destination register, or store-buffer entry is updated when any check fails. The faulting access does not create an `LL48` reservation or produce an `SC48` result. Any active reservation is cleared only by the synchronous trap-entry rule in E08-S02.
 
 ## Capability Checks
 
@@ -272,6 +272,7 @@ On any selected fault:
 - No store-buffer entry is allocated for the faulting store.
 - `LL48` does not create a valid reservation.
 - `SC48` does not store and does not report success.
+- Any pre-existing reservation is cleared by the resulting synchronous trap entry according to E08-S02.
 - The selected exception's trap reporting follows E07-S02, E07-S03, and E07-S04.
 
 If multiple fault conditions are true, the priority in this story selects exactly one architectural exception.

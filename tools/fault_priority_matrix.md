@@ -103,6 +103,6 @@ Access faults beat normal memory effects, LL reservation creation, `SC48` succes
 | Kernel `CACHE.*` range outside rounded line bounds and unmapped later line | Capability bounds fault | Capability/range checks precede translation. |
 | Kernel `CACHE.*` translation failure for maintained line | `PAGE_FAULT` | Implementations may document partial older-line maintenance; software must not depend on recovery progress. |
 | Kernel `CACHE.*` valid translation but memory type rejects maintenance | `ACCESS_FAULT` | Memory-type legality is after translation and page checks. |
-| User-mode `FENCE.I` or `SFENCE.VM*` | `PRIVILEGE_FAULT` | No cache, TLB, predictor, reservation, or register update. |
+| User-mode `FENCE.I` or `SFENCE.VM*` | `PRIVILEGE_FAULT` | No normal cache, TLB, predictor, or register effect; any active LL/SC reservation is cleared by trap entry. |
 | Malformed fence encoding | `ILLEGAL_INSTRUCTION` | `FENCE` itself performs no addressed access and raises no page/capability/access faults. |
 | Valid kernel `SFENCE.VM*` | Normal retire | Invalidates selected local TLB entries and orders local translation use. |
