@@ -1308,6 +1308,10 @@ Acceptance criteria:
 - Branch mispredict flush is required.
 - Precise exception replay or kill behavior is required.
 
+Artifacts:
+
+- Story artifact: `spec/E13-S03-hazard-handling.md`
+
 #### E13-S04: Define branch prediction MVP
 
 As a security and RTL engineer, I want a conservative branch predictor so that performance improves without opening unnecessary indirect prediction surface.
