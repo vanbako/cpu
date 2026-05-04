@@ -736,6 +736,10 @@ Acceptance criteria:
 - Privileged instructions and CSRs are identified.
 - Privilege violations raise a named exception.
 
+Artifacts:
+
+- Story artifact: `spec/E07-S01-privilege-levels.md`
+
 #### E07-S02: Define exception classes
 
 As a verification engineer, I want all mandatory exception classes named so that tests can cover fault behavior.
