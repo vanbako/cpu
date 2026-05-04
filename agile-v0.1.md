@@ -638,6 +638,10 @@ Acceptance criteria:
 - Callee-saved capability registers are `C6-C7`.
 - Tag preservation across call boundaries is specified.
 
+Artifacts:
+
+- Story artifact: `spec/E05-S02-capability-calling-convention.md`
+
 #### E05-S03: Define data stack model
 
 As a toolchain engineer, I want data stack rules specified so that stack frames are generated consistently.
