@@ -1299,6 +1299,11 @@ Acceptance criteria:
 - Return-stack underflow and overflow behavior is tested.
 - Recommendation is made on required hardware assists.
 
+Artifacts:
+
+- Prototype: `tools/return_stack_trap_model.py`
+- Decision record: `spikes/E14-S05-protected-return-stack-traps.md`
+
 ## Suggested MVP Milestones
 
 ### Milestone M1: Architecture Contract
