@@ -751,6 +751,10 @@ Acceptance criteria:
 - Exception priority for simultaneous faults is specified.
 - Recoverable versus fatal behavior is documented where applicable.
 
+Artifacts:
+
+- Story artifact: `spec/E07-S02-exception-classes.md`
+
 #### E07-S03: Define precise exception model
 
 As an RTL engineer, I want precise exception requirements so that retire and rollback behavior are testable.
