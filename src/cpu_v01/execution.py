@@ -5,10 +5,15 @@ from __future__ import annotations
 from .capabilities import Capability
 from .csrs import CSR_INSTRET, CSR_MASK
 from .instructions import ExecutionResult, ExecutionResultKind
+from .memory import TaggedMemory
 from .state import CoreState, SlottedCapability
 
 
-def commit_normal_result(core: CoreState, result: ExecutionResult) -> None:
+def commit_normal_result(
+    core: CoreState,
+    result: ExecutionResult,
+    memory: TaggedMemory | None = None,
+) -> None:
     """Commit a normal-retire result packet to architectural state."""
     if not isinstance(core, CoreState):
         raise TypeError("core must be a CoreState")
@@ -39,7 +44,13 @@ def commit_normal_result(core: CoreState, result: ExecutionResult) -> None:
         core.write_ccsr(index, capability)
 
     if effects.memory_effects:
-        raise NotImplementedError("memory retire effects are not implemented yet")
+        if not isinstance(memory, TaggedMemory):
+            raise ValueError("memory effects require a TaggedMemory commit target")
+        for memory_effect in effects.memory_effects:
+            apply_effect = getattr(memory_effect, "apply", None)
+            if apply_effect is None:
+                raise TypeError("memory effect must provide apply(memory)")
+            apply_effect(memory)
 
     if effects.pcc_update is not None:
         if not isinstance(effects.pcc_update, SlottedCapability):

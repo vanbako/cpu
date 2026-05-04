@@ -22,8 +22,10 @@ from .cells import (
     CELL_BITS,
     CELL_MASK,
     INTEGER_OBJECT_CELLS,
+    CellRange,
     align_down,
     capability_object_range,
+    cell_range,
     integer_object_range,
     is_aligned,
     require_cell_address,
@@ -57,6 +59,7 @@ class TaggedMemory:
     def __init__(self) -> None:
         self._cells: dict[int, int] = {}
         self._tagged_slots: set[int] = set()
+        self._protected_ranges: list[CellRange] = []
 
     @staticmethod
     def capability_slot_base(address: int) -> int:
@@ -86,6 +89,16 @@ class TaggedMemory:
     def read_cell(self, address: int) -> int:
         address = require_cell_address(address)
         return self._cells.get(address, 0)
+
+    def protect_range(self, base: int, length_cells: int) -> None:
+        self._protected_ranges.append(cell_range(base, length_cells))
+
+    def overlaps_protected_range(self, address: int, length_cells: int) -> bool:
+        access = cell_range(address, length_cells)
+        for protected_range in self._protected_ranges:
+            if access.base < protected_range.top and protected_range.base < access.top:
+                return True
+        return False
 
     def write_cell(self, address: int, value: int) -> None:
         address = require_cell_address(address)

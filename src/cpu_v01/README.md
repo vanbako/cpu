@@ -15,3 +15,5 @@ Current implementation story:
 - I03-S01: decoded instruction representation and execution-result packets.
 - I03-S02: baseline integer operation semantics and normal-result commit helper.
 - I03-S03: first register-only capability derivation semantics.
+- I03-S04: `LD48`, `ST48`, `CLC`, and `CSC` memory operation semantics without translation.
+- I04-S01: decoded-program fetch placement and hidden slot fall-through sequencing.
