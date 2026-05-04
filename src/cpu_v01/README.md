@@ -22,3 +22,4 @@ Current implementation story:
 - I04-S04: non-monitor debug halt, resume, and single-step baseline.
 - I05-S01: direct `CALL` with protected return-stack push.
 - I05-S02: `CALLC` sealed entry-capability calls.
+- I05-S03: `RET` with protected return-stack pop.
