@@ -12,3 +12,4 @@ Current implementation story:
 - I02-S03: cell-addressed memory and capability-slot tag storage.
 - I02-S04: architectural core-state containers for integer, general capability, and special capability registers.
 - I02-S05: mandatory scalar CSR storage and cold-reset state helpers.
+- I03-S01: decoded instruction representation and execution-result packets.
