@@ -89,7 +89,7 @@ Store-buffer entries carry all architectural effects of the store:
 
 - `ST48` buffered state includes the two written cells and any capability-slot tag clear.
 - `CSC` buffered state includes the four payload cells and the capability tag.
-- Successful `SC48` buffered state includes the two written cells.
+- Successful `SC48` buffered state includes the two written cells and any capability-slot tag clear.
 
 For a same-core load after older buffered stores, the result must be as if those older same-core stores occur before the load. If a same-core buffered `ST48` overlaps a later `CLC` to the same capability slot, the `CLC` must observe the local tag clear. If a same-core buffered `CSC` is followed by a `CLC` to the same slot, the `CLC` must observe the local payload and tag.
 
@@ -117,7 +117,7 @@ For normal coherent cacheable memory:
 - Stores become globally visible only through the CPU coherence point.
 - The visibility point of a store includes all payload and tag effects of that store.
 
-`ST48` visibility includes:
+`ST48` and successful `SC48` visibility include:
 
 - The two written cells.
 - Clearing the tag for the overlapped 4-cell capability slot, if any.
@@ -170,15 +170,15 @@ Rules:
 - Tag bits participate in coherent visibility.
 - A `CSC` publishes payload and tag together at one global visibility point.
 - A `CLC` observes payload and tag from one coherent visibility point, after applying older same-core buffered store effects.
-- A `ST48` publishes its payload write and required tag clear together at one global visibility point.
-- The tag clear from `ST48` is ordered like the `ST48` store itself.
+- A `ST48` or successful `SC48` publishes its payload write and required tag clear together at one global visibility point.
+- The tag clear from `ST48` or successful `SC48` is ordered like the store itself.
 - A `FENCE` that orders data stores also orders capability payload writes and tag updates.
 
 Consequences:
 
 - Core 1 cannot observe a valid tag for stale capability payload after Core 0's `CSC` is globally visible.
 - Core 1 cannot observe new capability payload with an old tag after Core 0's `CSC` is globally visible.
-- Core 1 cannot observe an old valid tag for a capability slot after Core 0's overlapping `ST48` tag clear is globally visible.
+- Core 1 cannot observe an old valid tag for a capability slot after Core 0's overlapping `ST48` or successful `SC48` tag clear is globally visible.
 
 ## Device, DMA, and Noncoherent Exceptions
 
@@ -265,7 +265,7 @@ Minimum conformance checks for later simulator and RTL work:
 - Same-core `CLC` after buffered `CSC` observes the buffered payload and tag.
 - Same-core `CLC` after buffered overlapping `ST48` observes the local tag clear.
 - Cross-core `CSC` visibility publishes payload and tag together.
-- Cross-core overlapping `ST48` visibility publishes payload and tag clear together.
+- Cross-core overlapping `ST48` or successful `SC48` visibility publishes payload and tag clear together.
 - Failed `SC48` has no global store visibility point.
 - Successful `SC48` is globally ordered as a store.
 - DMA overwrite requires cache invalidation before CPU reuse to observe memory payload and tag clear.

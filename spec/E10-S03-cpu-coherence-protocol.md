@@ -135,7 +135,7 @@ Capability tag bits participate in coherent line state.
 - The four written payload cells.
 - The written tag bit for the capability slot.
 
-`ST48` visibility includes:
+`ST48` and successful `SC48` visibility include:
 
 - The two written payload cells.
 - Clearing the tag bit for the overlapped 4-cell capability slot.
@@ -148,7 +148,7 @@ Coherence rules:
 - A writeback from `M` writes both payload and tags.
 - L2 responses include both payload and tags.
 - No core may observe new payload with old tag or old payload with new tag for a `CSC` visibility point.
-- No core may observe an old valid tag after an overlapping `ST48` tag clear is globally visible.
+- No core may observe an old valid tag after an overlapping `ST48` or successful `SC48` tag clear is globally visible.
 
 The L2 directory and data arrays may store tags directly or may track a dirty owner that has current tags. Either implementation is valid if every read, ownership transfer, and writeback observes the current payload and tags together.
 
@@ -237,7 +237,7 @@ Minimum conformance checks for later simulator and RTL work:
 - L2 eviction invalidates included L1 data-cache copies.
 - Stores from one core become globally visible in program order.
 - `CSC` cross-core visibility transfers payload and tag together.
-- `ST48` cross-core visibility transfers payload and tag clear together.
+- `ST48` or successful `SC48` cross-core visibility transfers payload and tag clear together.
 - Instruction-cache contents can remain stale after data stores until `FENCE.I`.
 - DMA writes are not observed through CPU coherence without cache maintenance.
 

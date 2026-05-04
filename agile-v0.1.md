@@ -862,6 +862,10 @@ Acceptance criteria:
 - `SC48` success and failure return behavior is defined.
 - `SC48` may fail spuriously.
 
+Artifacts:
+
+- Story artifact: `spec/E08-S01-ll48-sc48.md`
+
 #### E08-S02: Define LL/SC progress guarantee
 
 As a kernel engineer, I want a progress rule so that lock algorithms can rely on bounded retry under non-contention conditions.
