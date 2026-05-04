@@ -47,6 +47,7 @@ A story is done when:
 | E12 | Debug and Observability | Breakpoints, watchpoints, single-step, counters, and debug mode are defined. |
 | E13 | Microarchitecture MVP | The first in-order pipeline, hazards, long-latency units, and predictor are bounded. |
 | E14 | Prototype Risk Spikes | The riskiest design choices are prototyped before the rest of the backlog hardens. |
+| E15 | Consistency and Release Hardening | Cross-spec contradictions, gaps, and deferred choices are found and resolved before v0.1 freeze. |
 
 ## Story Refinement Matrix
 
@@ -203,6 +204,18 @@ Size:
 | E14-S03 | P0 | Spike | E09-S01 | Page-table geometry prototype and large-page compatibility recommendation. | Page-walk model and analysis of `2^15` and `2^19` cell pages. |
 | E14-S04 | P0 | Spike | E03-S01, E10-S01 | Tag-through-cache prototype covering L1, L2, memory, `CLC`, `CSC`, `ST48`, coherence, and DMA. | Tag atomicity tests, partial-store tests, and cross-core visibility tests. |
 | E14-S05 | P0 | Spike | E05-S04, E06-S03, E07-S03 | Protected return-stack model for call, return, trap, debug unwind, underflow, and overflow behavior. | Trap-during-return scenarios, debug unwind scenarios, and precise-state checks. |
+
+### E15 Refined Stories
+
+| Story | Priority | Size | Depends on | Refined deliverable | Verification path |
+| --- | --- | --- | --- | --- | --- |
+| E15-S01 | P0 | M | Completed E01-E14 backlog | Terminology, symbol, and cross-reference inventory covering names, acronyms, story ownership, artifact links, and normative/deferred language. | Scripted reference checks, glossary diff, and reviewer sign-off on renamed or aliased terms. |
+| E15-S02 | P0 | L | E15-S01 | Numeric consistency audit for cell/bit widths, object sizes, alignment, address fields, CSR numbers, PTE fields, exception codes, instruction sizes, and cache/page geometry. | Machine-readable table extraction where practical plus hand-checked numeric invariant tests. |
+| E15-S03 | P0 | L | E15-S01 | State-transition consistency audit for reset, privilege changes, trap entry/return, debug entry/exit, single-step, WFI, secondary-core startup, and protected return-stack updates. | State-machine diagrams or tables plus transition conformance scenarios. |
+| E15-S04 | P0 | L | E07-S02, E09-S07, E15-S01 | Fault, exception, interrupt, and debug-priority audit covering cause names, report registers, recoverability, precision, and same-cycle ordering. | Fault-priority matrix tests and cross-reference review against all instruction and memory stories. |
+| E15-S05 | P0 | XL | E03-S04, E08-S03, E09-S07, E10-S03, E15-S01 | Cross-subsystem access audit for capability permissions, translation, page memory types, cache coherence, tag visibility, fences, LL/SC reservations, and DMA. | Litmus-test checklist, access-rule matrix, and simulator/RTL review notes for each composed path. |
+| E15-S06 | P1 | L | E04-S06, E05-S01, E05-S02, E11-S03, E12-S01, E15-S01 | Software-facing contract audit for mandatory instructions, ABI registers, stack layout, firmware boot protocol, debug interface, and assembler/toolchain assumptions. | Example program walkthroughs, ABI preservation checks, boot-sequence checklist, and opcode coverage report. |
+| E15-S07 | P0 | M | E15-S02, E15-S03, E15-S04, E15-S05, E15-S06 | v0.1 freeze report that resolves contradictions, lists accepted errata, closes or explicitly defers open choices, and defines post-v0.1 backlog items. | Release checklist with no unresolved P0/P1 inconsistencies and linked patches for every accepted correction. |
 
 ## E01: Architectural Foundation
 
@@ -1432,6 +1445,140 @@ Artifacts:
 - Prototype: `tools/return_stack_trap_model.py`
 - Decision record: `spikes/E14-S05-protected-return-stack-traps.md`
 
+## E15: Consistency and Release Hardening
+
+### Goal
+
+Find and resolve contradictions across completed v0.1 stories before the architecture is frozen for simulator, assembler, RTL, firmware, kernel, and verification implementation.
+
+This epic should run after the first pass of E01-E14 is complete. It is not a new architecture feature epic. Its output is a corrected, internally consistent v0.1 contract, plus a clear list of intentionally deferred or post-v0.1 work.
+
+### Stories
+
+#### E15-S01: Audit terminology, ownership, and cross-references
+
+As a CPU architect, I want the completed specs to use one vocabulary and one ownership model so that implementers do not infer different meanings from different stories.
+
+Acceptance criteria:
+
+- A glossary covers architectural terms, CSR names, CCSR names, capability fields, exception names, memory-type names, instruction names, and state names.
+- Every story artifact listed in `agile-v0.1.md` exists and is linked from the correct backlog story.
+- Cross-story references use stable story IDs and artifact paths.
+- Normative requirements are distinguishable from examples, notes, rationale, deferred items, and platform-profile choices.
+- Duplicate terms and aliases are either consolidated or explicitly defined as aliases.
+- Story ownership is clear for shared subjects such as `PCC`, `RSC`, `SR`, `CAUSE`, `CAPCAUSE`, cache maintenance, TLB invalidation, and debug state.
+
+Artifacts:
+
+- Consistency report: `spec/E15-S01-terminology-cross-reference-audit.md`
+- Optional checker: `tools/spec_reference_check.py`
+
+#### E15-S02: Audit numeric constants, encodings, and bitfields
+
+As an RTL and toolchain engineer, I want all numeric architectural constants checked so that encoders, decoders, tables, page walkers, and register files are not built from contradictory values.
+
+Acceptance criteria:
+
+- Cell, byte, object-size, alignment, fetch-group, cache-line, and page-size values are consistent.
+- Virtual address, physical address, PPN, VPN, ASID, CSR, CCSR, PTE, and capability field widths are consistent.
+- CSR numbers, CCSR indices, exception cause codes, debug cause codes, interrupt bits, permission bits, memory-type encodings, and reserved fields do not collide unless explicitly aliased.
+- Instruction-size and slot rules agree across fetch, control transfer, single-step, branch prediction, trap, and ABI stories.
+- All reserved encodings say whether access traps, reads as zero, writes ignore, writes fault, or is platform-defined.
+- Any numeric correction identifies every artifact that must change.
+
+Artifacts:
+
+- Consistency report: `spec/E15-S02-numeric-encoding-audit.md`
+- Optional machine-readable table: `tools/spec_constants_model.py`
+
+#### E15-S03: Audit architectural state transitions
+
+As a firmware, kernel, RTL, and debug engineer, I want reset, trap, debug, and multicore state transitions checked together so that no transition loses or exposes architectural state.
+
+Acceptance criteria:
+
+- Cold reset and reset capability state agree on initial scalar state, capability state, core parking, MMU state, interrupt state, cache state, and ROM entry authority.
+- Trap entry, nested interrupt entry, `IRET`, debug entry, debug exit, single-step, breakpoint/watchpoint events, and forced halt agree on saved state and priority.
+- `CALL`, `CALLC`, `RET`, protected return-stack updates, exceptions during call/return, and debug unwind rules agree on atomicity and precise state.
+- Secondary-core startup agrees with reset, interrupt, mailbox, cache, fence, and capability setup rules.
+- `WFI`, `PAUSE`, interrupt masking, pending interrupts, and start events have compatible wake and ordering rules.
+- Every transition names which state is committed, killed, preserved, restored, or invalidated.
+
+Artifacts:
+
+- Consistency report: `spec/E15-S03-state-transition-audit.md`
+
+#### E15-S04: Audit fault, exception, interrupt, and debug priority
+
+As a verification engineer, I want all trap-like events and report registers checked as one matrix so that conformance tests can predict the single architecturally visible event.
+
+Acceptance criteria:
+
+- Exception classes, cause codes, capability-fault details, page faults, alignment faults, illegal instructions, CSR faults, CCSR faults, breakpoints, watchpoints, single-step, interrupts, and fatal conditions have one priority model.
+- `CAUSE`, `TVAL`, `CAPCAUSE`, `FAULTCAPIDX`, `EPCC`, `SR.EXL`, debug cause state, and relevant CCSR/CSR side effects agree across producer stories.
+- Fault priority is checked for instruction fetch, data load/store, capability load/store, capability derivation, atomics, CSR/CCSR access, cache maintenance, TLB invalidation, return-stack operations, and control transfer.
+- Recoverability and precision rules agree with the retire model.
+- User/kernel privilege faults and debug-mode behavior are not contradictory.
+- Cases deliberately left to implementation or platform policy are explicitly marked and do not affect mandatory conformance.
+
+Artifacts:
+
+- Consistency report: `spec/E15-S04-fault-priority-audit.md`
+- Verification matrix: `tools/fault_priority_matrix.md`
+
+#### E15-S05: Audit composed memory, capability, MMU, cache, and ordering rules
+
+As a security and systems engineer, I want all memory-access authority and visibility rules checked together so that data, tags, permissions, translations, and ordering form one coherent model.
+
+Acceptance criteria:
+
+- The effective access rule agrees with every load, store, capability, atomic, cache-maintenance, TLB, and fetch story.
+- Capability tag storage, tag clearing, `CLC`, `CSC`, `ST48`, non-tag-aware DMA, coherence, and memory ordering use compatible visibility and atomicity rules.
+- Permission bits, local capability rules, protected return-stack storage, page permissions, privilege mode, memory types, and alignment compose without gaps.
+- TSO, fences, `FENCE.I`, `SFENCE.VM`, cache maintenance, LL/SC reservation clearing, shootdown, and DMA ownership rules form valid software sequences.
+- Cache hierarchy, coherence point, inclusive L2, private L1s, device memory, and uncacheable memory are consistent.
+- Any path where an implementation could observe stale data, stale tags, stale translations, or stale instruction bytes is either forbidden, fenced, invalidated, or explicitly out of scope.
+
+Artifacts:
+
+- Consistency report: `spec/E15-S05-memory-composition-audit.md`
+- Optional litmus catalog: `tools/memory_consistency_litmus.md`
+
+#### E15-S06: Audit software-facing ABI, firmware, debug, and toolchain contracts
+
+As a toolchain, firmware, kernel, and debugger implementer, I want the user-visible contracts checked end to end so that a first software stack can be built without guessing.
+
+Acceptance criteria:
+
+- Mandatory instruction lists agree with the instruction semantics, privilege rules, CSR/CCSR access rules, fences, atomics, debug behavior, and return-stack operations.
+- Integer and capability calling conventions agree on register use, preserved state, return values, overflow arguments, variadic deferrals, and stack alignment.
+- Data-stack and return-stack models agree with local capabilities, protected storage, trap handling, debug unwind, and boot setup.
+- Firmware reset, ROM entry, reset capability authority, secondary-core startup, cache/TLB state, and interrupt setup form one boot sequence.
+- Debug halt, breakpoints, watchpoints, single-step, counters, and performance events expose enough state for simulation and bring-up without violating capability integrity.
+- Toolchain assumptions for 24-bit cells, fetch groups, instruction sizes, alignment, and ABI layout are documented as required custom behavior.
+
+Artifacts:
+
+- Consistency report: `spec/E15-S06-software-contract-audit.md`
+
+#### E15-S07: Produce the v0.1 freeze report
+
+As the product owner for the architecture, I want a final consistency report so that v0.1 can be frozen with known corrections, accepted deferrals, and a clear post-v0.1 backlog.
+
+Acceptance criteria:
+
+- Findings from E15-S01 through E15-S06 are triaged as blocking inconsistency, non-blocking erratum, wording cleanup, accepted deferral, platform-profile item, or post-v0.1 feature.
+- All blocking P0 and P1 inconsistencies are fixed in `design.md`, `agile-v0.1.md`, the affected story artifacts, or the affected tool models.
+- Accepted deferrals are listed with the owning future story or out-of-scope rationale.
+- Release notes summarize changed constants, encodings, state rules, fault priority rules, and software-visible behavior.
+- A simulator/assembler/RTL/firmware/kernel/debugger implementation checklist is produced from the frozen spec.
+- v0.1 freeze is not declared until every required correction has a linked patch or an explicit non-blocking disposition.
+
+Artifacts:
+
+- Freeze report: `spec/E15-S07-v0.1-freeze-report.md`
+- Implementation checklist: `spec/v0.1-implementation-checklist.md`
+
 ## Suggested MVP Milestones
 
 ### Milestone M1: Architecture Contract
@@ -1490,6 +1637,18 @@ Exit criteria:
 
 - Capability compression, 24-bit tooling, page geometry, tag storage, and protected return stack risks have evidence-backed recommendations.
 - Any resulting architecture changes are folded back into `design.md` before v0.1 is frozen.
+
+### Milestone M4: v0.1 Consistency Freeze
+
+Includes:
+
+- E15 Consistency and Release Hardening
+
+Exit criteria:
+
+- Cross-spec terminology, constants, state transitions, fault priority, memory composition, and software-facing contracts have been audited.
+- All blocking inconsistencies are fixed or explicitly dispositioned as non-blocking deferrals.
+- A simulator/assembler/RTL/firmware/kernel/debugger implementation checklist exists for the frozen v0.1 contract.
 
 ## Initial Backlog Priority
 

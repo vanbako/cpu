@@ -167,9 +167,9 @@ An implementation may flush local TLB state on any committed `SATP` or `ASID` wr
 | Desired state | `SATP` value |
 | --- | ---: |
 | Translation off, ASID 0 | `0x0000_0000_0000` |
-| Translation off, ASID 7 | `0x000E_0000_0000` |
+| Translation off, ASID 7 | `0x00E0_0000_0000` |
 | `RADIX4`, ASID 0, root PPN 0 | `0x2000_0000_0000` |
-| `RADIX4`, ASID 1, root PPN `0x12345` | `0x2002_0001_2345` |
+| `RADIX4`, ASID 1, root PPN `0x12345` | `0x2020_0001_2345` |
 | `RADIX4`, ASID 255, root PPN all ones | `0x3FFF_FFFF_FFFF` |
 
 Encoding formula:
