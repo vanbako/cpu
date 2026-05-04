@@ -19,3 +19,4 @@ Current platform binding:
 - `docs/implementation/test-platform-profile.md`: minimal simulator/test platform for reset, memory map, fatal-entry, and debug policy.
 - `docs/implementation/secondary-startup.md`: per-core start mailbox and platform start-event binding.
 - `docs/implementation/trap-context-abi.md`: trap-frame layout and context-switch save-set supplement.
+- `docs/implementation/rtl-handoff.md`: decoder, commit-point, fault-packet, tag-path, and conformance checklist for RTL.
