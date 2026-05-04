@@ -1275,6 +1275,10 @@ Acceptance criteria:
 - Each stage has a short responsibility.
 - Retire is the precise-exception point.
 
+Artifacts:
+
+- Story artifact: `spec/E13-S01-pipeline-stages.md`
+
 #### E13-S02: Define long-latency multiply/divide unit
 
 As an RTL engineer, I want `MUL`, `DIV`, and `MOD` handled by an independent execution unit so that the pipeline can continue around long operations.
