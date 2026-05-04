@@ -1237,6 +1237,11 @@ Acceptance criteria:
 - Byte-oriented host-tool assumptions are listed.
 - Recommendation is made on required custom toolchain scope.
 
+Artifacts:
+
+- Spike artifact: `spikes/E14-S02-24-bit-toolchain-abi.md`
+- Prototype: `tools/toolchain_abi_model.py`
+
 #### E14-S03: Spike page-table geometry and future page sizes
 
 As a kernel and RTL engineer, I want the page-table geometry tested against future large-page goals so that v0.1 does not block later evolution.
