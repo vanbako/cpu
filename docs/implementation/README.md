@@ -17,3 +17,4 @@ Start with `docs/implementation/local-checks.md` for the local commands expected
 Current platform binding:
 
 - `docs/implementation/test-platform-profile.md`: minimal simulator/test platform for reset, memory map, fatal-entry, and debug policy.
+- `docs/implementation/secondary-startup.md`: per-core start mailbox and platform start-event binding.
