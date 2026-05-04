@@ -818,6 +818,10 @@ Acceptance criteria:
 - Interrupts are re-enabled only by explicit software action.
 - `IRET` restores privilege and interrupt enable state.
 
+Artifacts:
+
+- Story artifact: `spec/E07-S06-nested-interrupt-rules.md`
+
 ## E08: Atomics and Memory Ordering
 
 ### Goal
