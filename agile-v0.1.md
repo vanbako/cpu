@@ -606,6 +606,10 @@ Acceptance criteria:
 - Each instruction has a short description and privilege rule.
 - Optional future instructions such as `CAS48` and `CAS96` are excluded from required v0.1.
 
+Artifacts:
+
+- Story artifact: `spec/E04-S06-mandatory-mvp-additions.md`
+
 ## E05: ABI and Calling Convention
 
 ### Goal
