@@ -12,7 +12,14 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .capabilities import Capability, CapabilityFlag, CapabilityPermission, OTYPE_RETURN
+from .capabilities import (
+    Capability,
+    CapabilityFlag,
+    CapabilityPermission,
+    OTYPE_ENTRY,
+    OTYPE_RETURN,
+    OTYPE_UNSEALED,
+)
 from .cells import ADDRESS_SPACE_CELLS, CAPABILITY_OBJECT_CELLS
 from .instructions import (
     ArchitecturalEffects,
@@ -31,10 +38,11 @@ from .state import (
     SLOT_0,
     SlottedCapability,
     SPECIAL_NAME_TO_CCSR_INDEX,
+    require_general_capability_register_index,
 )
 
 
-CALL_MNEMONICS = frozenset({"CALL"})
+CALL_MNEMONICS = frozenset({"CALL", "CALLC"})
 
 
 @dataclass(frozen=True)
@@ -97,7 +105,6 @@ def _execute_call_checked(
             )
         )
 
-    (target_cell,) = _operands(instruction, 1)
     location = _instruction_location(core, instruction)
     if not instruction.size.is_legal_start(location.address, location.slot):
         return instruction.fault(
@@ -119,9 +126,28 @@ def _execute_call_checked(
     if not pcc_capability.payload.bounds.contains_cursor(continuation):
         return _pcc_bounds_fault(core, instruction, continuation)
 
-    target_fault = _check_direct_target(core, instruction, target_cell)
-    if target_fault is not None:
-        return target_fault
+    if instruction.mnemonic == "CALL":
+        (target_cell,) = _integer_operands(instruction, 1)
+        target_fault = _check_direct_target(core, instruction, target_cell)
+        if target_fault is not None:
+            return target_fault
+        next_pcc = SlottedCapability.from_capability(
+            pcc_capability.with_cursor(target_cell),
+            SLOT_0,
+        )
+    elif instruction.mnemonic == "CALLC":
+        (cs,) = _integer_operands(instruction, 1)
+        cs = require_general_capability_register_index(cs)
+        entry_capability = core.read_c(cs)
+        entry_fault = _check_entry_capability(core, instruction, cs, entry_capability)
+        if entry_fault is not None:
+            return entry_fault
+        next_pcc = SlottedCapability.from_capability(
+            entry_capability.with_otype(OTYPE_UNSEALED),
+            SLOT_0,
+        )
+    else:
+        raise AssertionError(f"unhandled call mnemonic {instruction.mnemonic}")
 
     return_capability = _return_capability(pcc_capability, continuation)
     push_target = core.special_capabilities.read("RSC").payload.cursor - CAPABILITY_OBJECT_CELLS
@@ -131,10 +157,6 @@ def _execute_call_checked(
 
     rsc = core.special_capabilities.read("RSC")
     next_rsc = rsc.with_cursor(push_target)
-    next_pcc = SlottedCapability.from_capability(
-        pcc_capability.with_cursor(target_cell),
-        SLOT_0,
-    )
     return instruction.normal_retire(
         ArchitecturalEffects(
             ccsr_writes=((SPECIAL_NAME_TO_CCSR_INDEX["RSC"], next_rsc),),
@@ -190,6 +212,52 @@ def _check_direct_target(
         return _pcc_bounds_fault(core, instruction, 0)
     if not core.pcc.payload.bounds.contains_cursor(target_cell):
         return _pcc_bounds_fault(core, instruction, target_cell)
+    return None
+
+
+def _check_entry_capability(
+    core: CoreState,
+    instruction: DecodedInstruction,
+    register_index: int,
+    entry_capability: Capability,
+) -> ExecutionResult | None:
+    fault_cap_idx = _c_index(register_index)
+    if entry_capability.is_invalid:
+        return _capability_fault(
+            core,
+            instruction,
+            ExceptionCause.CAPABILITY_TAG_FAULT,
+            CapCause.TAG,
+            fault_cap_idx,
+            0,
+        )
+    if entry_capability.is_unsealed or entry_capability.payload.otype != OTYPE_ENTRY:
+        return _capability_fault(
+            core,
+            instruction,
+            ExceptionCause.CAPABILITY_SEAL_TYPE_FAULT,
+            CapCause.SEAL_TYPE,
+            fault_cap_idx,
+            0,
+        )
+    if not entry_capability.payload.has_permissions(CapabilityPermission.EX):
+        return _capability_fault(
+            core,
+            instruction,
+            ExceptionCause.CAPABILITY_PERMISSION_FAULT,
+            CapCause.PERMISSION,
+            fault_cap_idx,
+            0,
+        )
+    if not entry_capability.payload.bounds.contains_cursor(entry_capability.payload.cursor):
+        return _capability_fault(
+            core,
+            instruction,
+            ExceptionCause.CAPABILITY_BOUNDS_FAULT,
+            CapCause.BOUNDS,
+            fault_cap_idx,
+            entry_capability.payload.cursor,
+        )
     return None
 
 
@@ -281,13 +349,13 @@ def _instruction_location(
     return InstructionLocation(core.pcc)
 
 
-def _operands(instruction: DecodedInstruction, count: int) -> tuple[int, ...]:
+def _integer_operands(instruction: DecodedInstruction, count: int) -> tuple[int, ...]:
     if len(instruction.operands) != count:
         raise ValueError("wrong operand count")
     result = []
     for operand in instruction.operands:
         if type(operand) is not int:
-            raise TypeError("call operands must be integer cell addresses")
+            raise TypeError("call operands must be integers")
         result.append(operand)
     return tuple(result)
 
@@ -309,6 +377,10 @@ def _pcc_bounds_fault(
         FaultCapIndex.PCC,
         tval,
     )
+
+
+def _c_index(index: int) -> FaultCapIndex:
+    return FaultCapIndex(0x10 + index)
 
 
 def _return_stack_overflow(
