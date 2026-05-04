@@ -10,3 +10,5 @@ Current implementation story:
 - I02-S01: 24-bit cell and 48-bit address helpers.
 - I02-S02: capability payload, tag, permission, flag, and object-type data types.
 - I02-S03: cell-addressed memory and capability-slot tag storage.
+- I02-S04: architectural core-state containers for integer, general capability, and special capability registers.
+- I02-S05: mandatory scalar CSR storage and cold-reset state helpers.
