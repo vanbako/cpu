@@ -15,7 +15,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 
 from .capabilities import Capability, CapabilityPayload, require_uint
-from .csrs import CSR_COREID, CSR_SR, ScalarCsrFile
+from .csrs import CSR_ASID, CSR_COREID, CSR_SATP, CSR_SR, ScalarCsrFile
+from .reservations import ReservationState
 from .tlb import LocalTlbs
 
 
@@ -334,6 +335,7 @@ class CoreState:
     )
     scalar_csrs: ScalarCsrFile = field(default_factory=ScalarCsrFile)
     tlbs: LocalTlbs = field(default_factory=LocalTlbs)
+    reservation: ReservationState = field(default_factory=ReservationState)
     step_active: bool = False
 
     def __post_init__(self) -> None:
@@ -355,6 +357,8 @@ class CoreState:
             raise TypeError("scalar_csrs must be a ScalarCsrFile")
         if not isinstance(self.tlbs, LocalTlbs):
             raise TypeError("tlbs must be LocalTlbs")
+        if not isinstance(self.reservation, ReservationState):
+            raise TypeError("reservation must be ReservationState")
         if type(self.step_active) is not bool:
             raise TypeError("step_active must be a bool")
         self.scalar_csrs.write_raw(CSR_COREID, self.core_id)
@@ -385,6 +389,8 @@ class CoreState:
 
     def write_csr_raw(self, number: int, value: int) -> None:
         self.scalar_csrs.write_raw(number, value)
+        if number in (CSR_SR, CSR_SATP, CSR_ASID):
+            self.reservation.clear()
         if number == CSR_SR:
             self._sync_sr_slot_from_pcc()
 

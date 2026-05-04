@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from .capabilities import Capability
+from .cells import CAPABILITY_OBJECT_CELLS, INTEGER_OBJECT_CELLS
 from .csrs import CSR_INSTRET, CSR_MASK
 from .instructions import ExecutionResult, ExecutionResultKind
 from .memory import TaggedMemory
@@ -51,11 +52,18 @@ def commit_normal_result(
             if apply_effect is None:
                 raise TypeError("memory effect must provide apply(memory)")
             apply_effect(memory)
+            _clear_reservation_for_memory_effect(core, memory_effect)
 
     for tlb_effect in effects.tlb_effects:
         apply_effect = getattr(tlb_effect, "apply", None)
         if apply_effect is None:
             raise TypeError("TLB effect must provide apply(core)")
+        apply_effect(core)
+
+    for reservation_effect in effects.reservation_effects:
+        apply_effect = getattr(reservation_effect, "apply", None)
+        if apply_effect is None:
+            raise TypeError("reservation effect must provide apply(core)")
         apply_effect(core)
 
     if effects.pcc_update is not None:
@@ -70,3 +78,16 @@ def commit_normal_result(
 
     if not explicit_instret_write:
         core.write_csr_raw(CSR_INSTRET, (core.read_csr(CSR_INSTRET) + 1) & CSR_MASK)
+
+
+def _clear_reservation_for_memory_effect(core: CoreState, memory_effect: object) -> None:
+    address = getattr(memory_effect, "address", None)
+    if type(address) is not int:
+        return
+    length_cells = getattr(memory_effect, "length_cells", None)
+    if type(length_cells) is not int:
+        if hasattr(memory_effect, "capability"):
+            length_cells = CAPABILITY_OBJECT_CELLS
+        else:
+            length_cells = INTEGER_OBJECT_CELLS
+    core.reservation.clear_if_overlaps(address, length_cells)

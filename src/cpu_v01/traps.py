@@ -105,6 +105,7 @@ def enter_trap(core: CoreState, packet: FaultPacket) -> TrapEntryResult:
     if not isinstance(packet, FaultPacket):
         raise TypeError("packet must be a FaultPacket")
 
+    core.reservation.clear()
     tvc = core.special_capabilities.read("TVC")
     failure = _tvc_delivery_failure(tvc)
     if failure is not None:

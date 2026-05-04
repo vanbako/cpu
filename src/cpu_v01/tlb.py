@@ -136,6 +136,10 @@ class TlbInvalidateEffect:
         local_tlbs = getattr(core, "tlbs", None)
         if not isinstance(local_tlbs, LocalTlbs):
             raise TypeError("core must provide LocalTlbs")
+        reservation = getattr(core, "reservation", None)
+        clear_reservation = getattr(reservation, "clear", None)
+        if clear_reservation is not None:
+            clear_reservation()
         if self.kind is TlbInvalidateKind.ALL:
             local_tlbs.invalidate_all()
         elif self.kind is TlbInvalidateKind.ASID:

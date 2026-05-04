@@ -36,6 +36,7 @@ MEMORY_MNEMONICS = frozenset({"LD48", "ST48", "CLC", "CSC"})
 class St48Effect:
     address: int
     value: int
+    length_cells: int = INTEGER_OBJECT_CELLS
 
     def apply(self, memory: TaggedMemory) -> None:
         memory.st48(self.address, self.value)
@@ -45,6 +46,7 @@ class St48Effect:
 class CscEffect:
     address: int
     capability: Capability
+    length_cells: int = CAPABILITY_OBJECT_CELLS
 
     def apply(self, memory: TaggedMemory) -> None:
         memory.csc(self.address, self.capability)

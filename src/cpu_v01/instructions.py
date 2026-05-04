@@ -190,6 +190,7 @@ class ArchitecturalEffects:
     ccsr_writes: tuple[tuple[int, object], ...] = ()
     memory_effects: tuple[object, ...] = ()
     tlb_effects: tuple[object, ...] = ()
+    reservation_effects: tuple[object, ...] = ()
     pcc_update: SlottedCapability | None = None
     epcc_update: SlottedCapability | None = None
 
@@ -202,6 +203,7 @@ class ArchitecturalEffects:
             and not self.ccsr_writes
             and not self.memory_effects
             and not self.tlb_effects
+            and not self.reservation_effects
             and self.pcc_update is None
             and self.epcc_update is None
         )

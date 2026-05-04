@@ -25,3 +25,4 @@ Current implementation story:
 - I05-S03: `RET` with protected return-stack pop.
 - I06-S01: `RADIX4` translation and page-permission checks for memory operations.
 - I06-S02: private TLBs and `SFENCE.VM` local invalidation forms.
+- I06-S03: `LL48`/`SC48` reservations and store-conditional result semantics.
