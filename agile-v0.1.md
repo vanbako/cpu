@@ -788,6 +788,10 @@ Acceptance criteria:
 - `CAUSE`, `TVAL`, and `CAPCAUSE` are populated where applicable.
 - Hardware does not auto-save all GPRs.
 
+Artifacts:
+
+- Story artifact: `spec/E07-S04-trap-entry.md`
+
 #### E07-S05: Define vectored interrupts
 
 As a kernel engineer, I want vectored interrupts so that common timer, IPI, and external interrupt paths can enter quickly.
