@@ -76,12 +76,17 @@ class OpcodeForm:
     @property
     def encoding_pattern(self) -> str:
         width = self.size.bits // 4
-        known = f"{self.fixed_value:0{width}X}"
-        if self.size is InstructionSize.BITS_12:
-            return f"12'h{known}"
-        if self.size is InstructionSize.BITS_24:
-            return f"24'h{known[:2]}xxxx"
-        return f"48'h{known[:2]}xxxxxxxxxx"
+        nibbles: list[str] = []
+        for shift in range((width - 1) * 4, -1, -4):
+            mask_nibble = (self.fixed_mask >> shift) & 0xF
+            value_nibble = (self.fixed_value >> shift) & 0xF
+            if mask_nibble == 0xF:
+                nibbles.append(f"{value_nibble:X}")
+            elif mask_nibble == 0:
+                nibbles.append("x")
+            else:
+                nibbles.append("?")
+        return f"{self.size.bits}'h{''.join(nibbles)}"
 
 
 CONDITION_CODES: tuple[str, ...] = (
@@ -206,8 +211,8 @@ def _form48(
         mnemonic=mnemonic,
         size=InstructionSize.BITS_48,
         opcode_id=major,
-        fixed_mask=0xFF0000000000,
-        fixed_value=major << 40,
+        fixed_mask=0xFF0000,
+        fixed_value=major << 16,
         operand_format=operand_format,
         binary_format=binary_format,
         privilege=privilege,

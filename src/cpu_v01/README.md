@@ -28,3 +28,4 @@ Current implementation story:
 - I06-S03: `LL48`/`SC48` reservations and store-conditional result semantics.
 - I06-S04: executable TSO, cache-maintenance, and noncoherent-DMA litmus support.
 - I07-S01: final mandatory opcode table with canonical mnemonics, synonyms, and exclusions.
+- I07-S02: assembler/disassembler helpers for mandatory binary fixtures.
