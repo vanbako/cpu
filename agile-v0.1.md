@@ -881,6 +881,10 @@ Acceptance criteria:
 - Context switch and interrupt effects on reservations are specified.
 - Cache eviction and coherence invalidation behavior is defined.
 
+Artifacts:
+
+- Story artifact: `spec/E08-S02-ll-sc-progress-guarantee.md`
+
 #### E08-S03: Define TSO-like memory model
 
 As an OS and compiler engineer, I want a TSO-like coherent memory model so that shared-memory software has a strong and understandable contract.
