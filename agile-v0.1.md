@@ -1065,6 +1065,10 @@ Acceptance criteria:
 - Undefined capability registers have defined invalid-tag behavior.
 - Reset cannot expose forgeable capability state.
 
+Artifacts:
+
+- Story artifact: `spec/E11-S02-reset-capability-state.md`
+
 #### E11-S03: Define secondary-core startup
 
 As a firmware and kernel engineer, I want secondary-core bring-up specified so that multicore boot is reliable.
