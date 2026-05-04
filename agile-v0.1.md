@@ -1336,6 +1336,10 @@ Acceptance criteria:
 - Predictor state is flushed or partitioned on privilege change and ASID switch.
 - Mispredict recovery behavior is specified.
 
+Artifacts:
+
+- Story artifact: `spec/E13-S04-branch-prediction-mvp.md`
+
 ## E14: Prototype Risk Spikes
 
 ### Goal
