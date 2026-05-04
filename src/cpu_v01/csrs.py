@@ -39,6 +39,8 @@ CSR_SATP = 0x0C
 CSR_ASID = 0x0D
 CSR_DEBUGCTL = 0x0E
 CSR_PERFSEL = 0x0F
+CSR_FAULTCAPIDX = 0x4A
+CSR_CAPCAUSE = 0x4B
 
 MANDATORY_CSR_NAMES = (
     "SR",
@@ -61,8 +63,13 @@ MANDATORY_CSR_NAMES = (
 CSR_NUMBER_TO_NAME = {
     index: name for index, name in enumerate(MANDATORY_CSR_NAMES)
 }
+EXTENDED_CSR_NUMBER_TO_NAME = {
+    CSR_FAULTCAPIDX: "FAULTCAPIDX",
+    CSR_CAPCAUSE: "CAPCAUSE",
+}
+ASSIGNED_CSR_NUMBER_TO_NAME = CSR_NUMBER_TO_NAME | EXTENDED_CSR_NUMBER_TO_NAME
 CSR_NAME_TO_NUMBER = {
-    name: index for index, name in CSR_NUMBER_TO_NAME.items()
+    name: index for index, name in ASSIGNED_CSR_NUMBER_TO_NAME.items()
 }
 
 SR_Z_BIT = 0
@@ -81,6 +88,29 @@ SR_RES0_MASK = CSR_MASK ^ SR_ASSIGNED_MASK
 SR_RESET_VALUE = (1 << SR_PRIV_BIT) | (1 << SR_PPRIV_BIT)
 
 TIMECMP_RESET_VALUE = CSR_MASK
+CAPCAUSE_DEFINED_VALUES = frozenset(range(0x0, 0x6))
+FAULTCAPIDX_DEFINED_VALUES = frozenset(
+    {
+        0x00,
+        0x01,
+        0x10,
+        0x11,
+        0x12,
+        0x13,
+        0x14,
+        0x15,
+        0x16,
+        0x17,
+        0x20,
+        0x21,
+        0x22,
+        0x23,
+        0x24,
+        0x25,
+        0x26,
+        0x27,
+    }
+)
 
 
 def require_slot(slot: int) -> int:
@@ -98,7 +128,7 @@ def require_csr_number(number: int) -> int:
 def csr_name(number: int) -> str:
     number = require_csr_number(number)
     try:
-        return CSR_NUMBER_TO_NAME[number]
+        return ASSIGNED_CSR_NUMBER_TO_NAME[number]
     except KeyError as exc:
         raise KeyError(f"reserved CSR number {number}") from exc
 
@@ -136,12 +166,27 @@ def mandatory_csr_reset_values(core_id: int) -> tuple[int, ...]:
     return tuple(values)
 
 
+def _validate_extended_csr_value(number: int, value: int) -> int:
+    value = require_uint(value, CSR_BITS, csr_name(number))
+    if number == CSR_CAPCAUSE:
+        if value not in CAPCAUSE_DEFINED_VALUES:
+            raise ValueError("CAPCAUSE must be a defined 4-bit value")
+    elif number == CSR_FAULTCAPIDX:
+        if value not in FAULTCAPIDX_DEFINED_VALUES:
+            raise ValueError("FAULTCAPIDX must be a defined 8-bit value")
+    return value
+
+
 class ScalarCsrFile:
     """Mutable storage for the mandatory per-core fast scalar CSRs."""
 
     def __init__(self, core_id: int = 0, values: tuple[int, ...] | None = None) -> None:
         if values is None:
             self._values = list(mandatory_csr_reset_values(core_id))
+            self._extended_values = {
+                CSR_FAULTCAPIDX: 0,
+                CSR_CAPCAUSE: 0,
+            }
             return
 
         if len(values) != FAST_CSR_COUNT:
@@ -150,6 +195,10 @@ class ScalarCsrFile:
             require_uint(value, CSR_BITS, CSR_NUMBER_TO_NAME[index])
             for index, value in enumerate(values)
         ]
+        self._extended_values = {
+            CSR_FAULTCAPIDX: 0,
+            CSR_CAPCAUSE: 0,
+        }
 
     @classmethod
     def reset(cls, core_id: int = 0) -> "ScalarCsrFile":
@@ -164,11 +213,16 @@ class ScalarCsrFile:
     def read(self, number: int) -> int:
         number = require_csr_number(number)
         csr_name(number)
+        if number in self._extended_values:
+            return self._extended_values[number]
         return self._values[number]
 
     def write_raw(self, number: int, value: int) -> None:
         number = require_csr_number(number)
         csr_name(number)
+        if number in self._extended_values:
+            self._extended_values[number] = _validate_extended_csr_value(number, value)
+            return
         self._values[number] = require_uint(value, CSR_BITS, csr_name(number))
 
     def read_name(self, name: str) -> int:
