@@ -19,3 +19,4 @@ Current implementation story:
 - I04-S01: decoded-program fetch placement and hidden slot fall-through sequencing.
 - I04-S02: direct synchronous trap entry from precise fault packets.
 - I04-S03: `IRET`, `EPCCRD`, and `EPCCWR` trap-return semantics.
+- I04-S04: non-monitor debug halt, resume, and single-step baseline.

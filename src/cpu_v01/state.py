@@ -54,6 +54,8 @@ class CoreLifecycle(Enum):
     STOPPED = "STOPPED"
     WFI_PARKED = "WFI_PARKED"
     STARTED = "STARTED"
+    DEBUG_HALTED = "DEBUG_HALTED"
+    DEBUG_MONITOR = "DEBUG_MONITOR"
 
 
 def require_register_index(index: int, count: int, prefix: str) -> int:
@@ -330,6 +332,7 @@ class CoreState:
         default_factory=SpecialCapabilityRegisters
     )
     scalar_csrs: ScalarCsrFile = field(default_factory=ScalarCsrFile)
+    step_active: bool = False
 
     def __post_init__(self) -> None:
         if type(self.core_id) is not int:
@@ -348,6 +351,8 @@ class CoreState:
             raise TypeError("special_capabilities must be SpecialCapabilityRegisters")
         if not isinstance(self.scalar_csrs, ScalarCsrFile):
             raise TypeError("scalar_csrs must be a ScalarCsrFile")
+        if type(self.step_active) is not bool:
+            raise TypeError("step_active must be a bool")
         self.scalar_csrs.write_raw(CSR_COREID, self.core_id)
         self._sync_sr_slot_from_pcc()
 
