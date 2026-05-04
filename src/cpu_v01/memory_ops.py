@@ -25,6 +25,7 @@ from .instructions import (
     InstructionSize,
 )
 from .memory import TaggedMemory
+from .mmu import AccessType, Translation, translate
 from .state import CoreState, require_general_capability_register_index, require_integer_register_index
 
 
@@ -118,8 +119,17 @@ def _execute_memory_checked(
         )
         if fault is not None:
             return fault
+        physical = _translate_memory_access(
+            core,
+            memory,
+            instruction,
+            effective,
+            AccessType.LOAD,
+        )
+        if not isinstance(physical, int):
+            return physical
         return instruction.normal_retire(
-            ArchitecturalEffects(integer_writes=((dd, memory.ld48(effective)),))
+            ArchitecturalEffects(integer_writes=((dd, memory.ld48(physical)),))
         )
 
     if mnemonic == "ST48":
@@ -140,9 +150,18 @@ def _execute_memory_checked(
         )
         if fault is not None:
             return fault
+        physical = _translate_memory_access(
+            core,
+            memory,
+            instruction,
+            effective,
+            AccessType.STORE,
+        )
+        if not isinstance(physical, int):
+            return physical
         return instruction.normal_retire(
             ArchitecturalEffects(
-                memory_effects=(St48Effect(effective, core.read_d(ds)),)
+                memory_effects=(St48Effect(physical, core.read_d(ds)),)
             )
         )
 
@@ -164,8 +183,17 @@ def _execute_memory_checked(
         )
         if fault is not None:
             return fault
+        physical = _translate_memory_access(
+            core,
+            memory,
+            instruction,
+            effective,
+            AccessType.LOAD,
+        )
+        if not isinstance(physical, int):
+            return physical
         return instruction.normal_retire(
-            ArchitecturalEffects(capability_writes=((cd, memory.clc(effective)),))
+            ArchitecturalEffects(capability_writes=((cd, memory.clc(physical)),))
         )
 
     if mnemonic == "CSC":
@@ -191,8 +219,17 @@ def _execute_memory_checked(
         )
         if fault is not None:
             return fault
+        physical = _translate_memory_access(
+            core,
+            memory,
+            instruction,
+            effective,
+            AccessType.STORE,
+        )
+        if not isinstance(physical, int):
+            return physical
         return instruction.normal_retire(
-            ArchitecturalEffects(memory_effects=(CscEffect(effective, stored_capability),))
+            ArchitecturalEffects(memory_effects=(CscEffect(physical, stored_capability),))
         )
 
     raise AssertionError(f"unhandled memory mnemonic {mnemonic}")
@@ -287,6 +324,25 @@ def _instruction_location(
     if instruction.location is not None:
         return instruction.location
     return InstructionLocation(core.pcc)
+
+
+def _translate_memory_access(
+    core: CoreState,
+    memory: TaggedMemory,
+    instruction: DecodedInstruction,
+    effective: int,
+    access_type: AccessType,
+) -> int | ExecutionResult:
+    translated = translate(
+        core,
+        memory,
+        effective,
+        access_type,
+        _instruction_location(core, instruction),
+    )
+    if isinstance(translated, Translation):
+        return translated.physical_address
+    return instruction.fault(translated)
 
 
 def _operands(instruction: DecodedInstruction, count: int) -> tuple[int, ...]:

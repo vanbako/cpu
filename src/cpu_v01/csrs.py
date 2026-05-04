@@ -42,6 +42,18 @@ CSR_PERFSEL = 0x0F
 CSR_FAULTCAPIDX = 0x4A
 CSR_CAPCAUSE = 0x4B
 
+SATP_MODE_SHIFT = 45
+SATP_MODE_BITS = 3
+SATP_ASID_SHIFT = 37
+SATP_ASID_BITS = 8
+SATP_ROOT_PPN_SHIFT = 11
+SATP_ROOT_PPN_BITS = 37
+SATP_MODE_BARE = 0b000
+SATP_MODE_RADIX4 = 0b001
+SATP_MODE_MASK = (1 << SATP_MODE_BITS) - 1
+SATP_ASID_MASK = (1 << SATP_ASID_BITS) - 1
+SATP_ROOT_PPN_MASK = (1 << SATP_ROOT_PPN_BITS) - 1
+
 MANDATORY_CSR_NAMES = (
     "SR",
     "COREID",
@@ -175,6 +187,51 @@ def sr_slot(value: int) -> int:
     return SLOT_1 if value & SR_SLOT_MASK else SLOT_0
 
 
+def pack_satp(mode: int, asid: int = 0, root_ppn: int = 0) -> int:
+    mode = require_uint(mode, SATP_MODE_BITS, "SATP.MODE")
+    asid = require_uint(asid, SATP_ASID_BITS, "SATP.ASID")
+    root_ppn = require_uint(root_ppn, SATP_ROOT_PPN_BITS, "SATP.ROOT_PPN")
+    value = (mode << SATP_MODE_SHIFT) | (asid << SATP_ASID_SHIFT) | root_ppn
+    return validate_satp_value(value)
+
+
+def satp_mode(value: int) -> int:
+    value = require_uint(value, CSR_BITS, "SATP")
+    return (value >> SATP_MODE_SHIFT) & SATP_MODE_MASK
+
+
+def satp_asid(value: int) -> int:
+    value = require_uint(value, CSR_BITS, "SATP")
+    return (value >> SATP_ASID_SHIFT) & SATP_ASID_MASK
+
+
+def satp_root_ppn(value: int) -> int:
+    value = require_uint(value, CSR_BITS, "SATP")
+    return value & SATP_ROOT_PPN_MASK
+
+
+def satp_with_asid(value: int, asid: int) -> int:
+    value = require_uint(value, CSR_BITS, "SATP")
+    asid = validate_asid_value(asid)
+    value &= ~(SATP_ASID_MASK << SATP_ASID_SHIFT)
+    value |= asid << SATP_ASID_SHIFT
+    return value
+
+
+def validate_satp_value(value: int) -> int:
+    value = require_uint(value, CSR_BITS, "SATP")
+    mode = satp_mode(value)
+    if mode not in (SATP_MODE_BARE, SATP_MODE_RADIX4):
+        raise ValueError("SATP.MODE is reserved in v0.1")
+    if mode == SATP_MODE_BARE and satp_root_ppn(value) != 0:
+        raise ValueError("SATP.ROOT_PPN must be zero in BARE mode")
+    return value
+
+
+def validate_asid_value(value: int) -> int:
+    return require_uint(value, SATP_ASID_BITS, "ASID")
+
+
 def mandatory_csr_reset_values(core_id: int) -> tuple[int, ...]:
     core_id = require_uint(core_id, CSR_BITS, "core_id")
     values = [0] * FAST_CSR_COUNT
@@ -231,6 +288,8 @@ class ScalarCsrFile:
     def read(self, number: int) -> int:
         number = require_csr_number(number)
         csr_name(number)
+        if number == CSR_ASID:
+            return satp_asid(self._values[CSR_SATP])
         if number in self._extended_values:
             return self._extended_values[number]
         return self._values[number]
@@ -240,6 +299,15 @@ class ScalarCsrFile:
         csr_name(number)
         if number in self._extended_values:
             self._extended_values[number] = _validate_extended_csr_value(number, value)
+            return
+        if number == CSR_SATP:
+            self._values[CSR_SATP] = validate_satp_value(value)
+            self._values[CSR_ASID] = satp_asid(value)
+            return
+        if number == CSR_ASID:
+            asid = validate_asid_value(value)
+            self._values[CSR_SATP] = satp_with_asid(self._values[CSR_SATP], asid)
+            self._values[CSR_ASID] = asid
             return
         self._values[number] = require_uint(value, CSR_BITS, csr_name(number))
 
@@ -253,4 +321,5 @@ class ScalarCsrFile:
         self._values[CSR_SR] = sr_with_slot(self._values[CSR_SR], slot)
 
     def as_tuple(self) -> tuple[int, ...]:
+        self._values[CSR_ASID] = satp_asid(self._values[CSR_SATP])
         return tuple(self._values)

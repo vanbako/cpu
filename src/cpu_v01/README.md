@@ -23,3 +23,4 @@ Current implementation story:
 - I05-S01: direct `CALL` with protected return-stack push.
 - I05-S02: `CALLC` sealed entry-capability calls.
 - I05-S03: `RET` with protected return-stack pop.
+- I06-S01: `RADIX4` translation and page-permission checks for memory operations.
