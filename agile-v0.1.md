@@ -940,6 +940,10 @@ Acceptance criteria:
 - Supported `MODE` values are specified.
 - Illegal `SATP` writes are handled predictably.
 
+Artifacts:
+
+- Story artifact: `spec/E09-S02-satp-layout.md`
+
 #### E09-S03: Define TLB model
 
 As an RTL and OS engineer, I want TLB behavior specified so that address-space switching and shootdown are correct.
@@ -951,6 +955,10 @@ Acceptance criteria:
 - Local TLB invalidate instructions are mandatory.
 - Remote shootdown is performed through IPI.
 - TLB behavior on privilege and ASID changes is specified.
+
+Artifacts:
+
+- Story artifact: `spec/E09-S03-tlb-model.md`
 
 #### E09-S04: Define page-table geometry
 
@@ -1106,6 +1114,10 @@ Acceptance criteria:
 - Interrupts are masked.
 - Caches are off or invalid.
 
+Artifacts:
+
+- Story artifact: `spec/E11-S01-cold-reset-state.md`
+
 #### E11-S02: Define reset capability state
 
 As a security engineer, I want reset capabilities initialized safely so that firmware starts with defined authority.
@@ -1132,6 +1144,10 @@ Acceptance criteria:
 - Target core transitions to `STARTED`.
 - Startup capability and stack state requirements are documented.
 - Failed startup or invalid mailbox behavior is specified.
+
+Artifacts:
+
+- Story artifact: `spec/E11-S03-secondary-core-startup.md`
 
 ## E12: Debug and Observability
 
