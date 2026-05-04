@@ -57,5 +57,10 @@ def commit_normal_result(
             raise TypeError("pcc_update must be a SlottedCapability")
         core.install_pcc(effects.pcc_update)
 
+    if effects.epcc_update is not None:
+        if not isinstance(effects.epcc_update, SlottedCapability):
+            raise TypeError("epcc_update must be a SlottedCapability")
+        core.install_epcc(effects.epcc_update)
+
     if not explicit_instret_write:
         core.write_csr_raw(CSR_INSTRET, (core.read_csr(CSR_INSTRET) + 1) & CSR_MASK)

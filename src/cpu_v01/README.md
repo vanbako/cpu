@@ -18,3 +18,4 @@ Current implementation story:
 - I03-S04: `LD48`, `ST48`, `CLC`, and `CSC` memory operation semantics without translation.
 - I04-S01: decoded-program fetch placement and hidden slot fall-through sequencing.
 - I04-S02: direct synchronous trap entry from precise fault packets.
+- I04-S03: `IRET`, `EPCCRD`, and `EPCCWR` trap-return semantics.
