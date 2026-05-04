@@ -1097,6 +1097,10 @@ Acceptance criteria:
 - Non-tag-aware DMA clears capability tags on overwrite.
 - Coherent I/O is explicitly deferred.
 
+Artifacts:
+
+- Story artifact: `spec/E10-S04-noncoherent-dma-policy.md`
+
 #### E10-S05: Define cache maintenance operations
 
 As a kernel and driver engineer, I want cache maintenance operations specified so that DMA, code loading, and page lifecycle operations are safe.
