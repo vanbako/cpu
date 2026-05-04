@@ -544,6 +544,10 @@ Acceptance criteria:
 - Overflow and flag behavior are defined.
 - Encoding category is assigned as 12-bit, 24-bit, or 48-bit where applicable.
 
+Artifacts:
+
+- Story artifact: `spec/E04-S02-integer-operation-set.md`
+
 #### E04-S03: Define memory operation set
 
 As an RTL engineer, I want data and capability load/store behavior specified so that alignment, checks, and faults are deterministic.
