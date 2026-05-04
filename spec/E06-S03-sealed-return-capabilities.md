@@ -46,7 +46,7 @@ Rules:
 
 `CALL` and `RET` use internal architectural seal authority. `CALL` does not require `SEAL` permission in `PCC` or any software-visible capability. `RET` does not require `UNSEAL` permission in any software-visible capability.
 
-E06-S02 must not reuse `OTYPE_RETURN` for sealed entry capabilities.
+E06-S02 assigns `OTYPE_ENTRY = 0xFE` for sealed entry capabilities. It must not reuse `OTYPE_RETURN`.
 
 ## Return Capability Payload
 

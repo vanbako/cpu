@@ -288,6 +288,8 @@ On failure:
 - Sealed source, sealed authorizer, zero `otype`, or unavailable reserved `otype` raises capability seal/type fault.
 - Missing `SEAL` raises capability permission fault.
 
+`OTYPE_ENTRY` from E06-S02 is reserved for architectural entry capabilities but is available to ordinary `CSEAL` when the sealing authority selects that type.
+
 `OTYPE_RETURN` from E06-S03 is reserved for architectural return capabilities. Ordinary `CSEAL` cannot create it.
 
 ## `CUNSEAL`
@@ -319,6 +321,8 @@ On failure:
 - Invalid source or authorizer tag raises capability tag fault and reports the failing source.
 - Unsealed source, sealed authorizer, object-type mismatch, or unavailable reserved `otype` raises capability seal/type fault.
 - Missing `UNSEAL` raises capability permission fault.
+
+`CUNSEAL` cannot unseal `OTYPE_ENTRY`; only `CALLC` consumes that architectural object type in v0.1.
 
 `CUNSEAL` cannot unseal `OTYPE_RETURN`; only `RET` consumes that architectural object type in v0.1.
 
@@ -446,7 +450,9 @@ Minimum conformance checks for later assembler, simulator, and RTL work:
 - `CANDPERM` clears permissions and never sets a previously clear permission bit.
 - `CSEAL` requires valid unsealed source, valid unsealed `SEAL` authority, and a nonzero available object type.
 - `CUNSEAL` requires valid sealed source, valid unsealed `UNSEAL` authority, and matching object type.
+- `CSEAL` can create `OTYPE_ENTRY` when authorized.
 - `CSEAL` cannot create `OTYPE_RETURN`.
+- `CUNSEAL` cannot unseal `OTYPE_ENTRY`.
 - `CUNSEAL` cannot unseal `OTYPE_RETURN`.
 - `CLC` requires valid unsealed load authority with `LD` and `LC`.
 - `CLC` requires 4-cell alignment.

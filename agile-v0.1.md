@@ -105,7 +105,7 @@ Size:
 | E04-S03 | P0 | L | E03-S04, E09-S07 | Data and capability load/store semantics with alignment, authorization, page checks, and tag behavior. | Load/store tests covering alignment, permission, tag, page, and privilege faults. |
 | E04-S04 | P1 | L | E04-S01, E06-S03, E07-S04 | Control-transfer ISA semantics for branches, calls, returns, breakpoints, syscalls, slot-aware trap-state helpers, `IRET`, `WFI`, and `PAUSE`. | Branch/call/return tests, syscall/trap tests, and privilege tests. |
 | E04-S05 | P0 | L | E03-S03, E04-S01 | Capability instruction semantics with tag propagation, bounds, permissions, sealing, and faults. | Capability instruction conformance tests and derivation monotonicity tests. |
-| E04-S06 | P1 | M | E02-S04, E02-S05, E04-S04, E08-S01, E08-S04 | Final mandatory v0.1 instruction checklist with privilege class and optional-future exclusions. | ISA completeness review and assembler opcode coverage report. |
+| E04-S06 | P1 | M | E02-S04, E02-S05, E04-S04, E06-S02, E08-S01, E08-S04 | Final mandatory v0.1 instruction checklist with privilege class and optional-future exclusions. | ISA completeness review and assembler opcode coverage report. |
 
 ### E05 Refined Stories
 
@@ -594,7 +594,7 @@ As a product owner for the architecture, I want the required missing instruction
 
 Acceptance criteria:
 
-- `LL48`, `SC48`, `FENCE`, `FENCE.I`, `SFENCE.VM`, `CSRRD`, `CSRWR`, `CSRSET`, `CSRCLR`, `CCSRRD`, `CCSRWR`, `EPCCRD`, `EPCCWR`, `BRK`, `SYS` or `SCALL`, `WFI`, and `PAUSE` are in the v0.1 ISA list.
+- `LL48`, `SC48`, `FENCE`, `FENCE.I`, `SFENCE.VM`, `CSRRD`, `CSRWR`, `CSRSET`, `CSRCLR`, `CCSRRD`, `CCSRWR`, `EPCCRD`, `EPCCWR`, `CALLC`, `BRK`, `SYS` or `SCALL`, `WFI`, and `PAUSE` are in the v0.1 ISA list.
 - Each instruction has a short description and privilege rule.
 - Optional future instructions such as `CAS48` and `CAS96` are excluded from required v0.1.
 
@@ -694,6 +694,10 @@ Acceptance criteria:
 - `CALLC Cs` checks for a sealed entry capability.
 - Unseal-and-enter behavior is atomic from the architectural point of view.
 - Invalid entry capabilities raise seal/type fault.
+
+Artifacts:
+
+- Story artifact: `spec/E06-S02-sealed-entry-capabilities.md`
 
 #### E06-S03: Define sealed return capabilities
 
