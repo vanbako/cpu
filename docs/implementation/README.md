@@ -13,3 +13,7 @@ Use this directory for:
 Normative architecture stories remain in `spec/`.
 
 Start with `docs/implementation/local-checks.md` for the local commands expected before implementation commits.
+
+Current platform binding:
+
+- `docs/implementation/test-platform-profile.md`: minimal simulator/test platform for reset, memory map, fatal-entry, and debug policy.

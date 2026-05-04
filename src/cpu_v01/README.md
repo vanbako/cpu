@@ -29,3 +29,4 @@ Current implementation story:
 - I06-S04: executable TSO, cache-maintenance, and noncoherent-DMA litmus support.
 - I07-S01: final mandatory opcode table with canonical mnemonics, synonyms, and exclusions.
 - I07-S02: assembler/disassembler helpers for mandatory binary fixtures.
+- I08-S01: minimal test-platform profile for reset, memory map, fatal-entry, and debug policy.
