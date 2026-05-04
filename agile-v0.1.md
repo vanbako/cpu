@@ -1235,6 +1235,10 @@ Acceptance criteria:
 - Faulting instructions report their normal fault before or instead of step completion according to a defined priority.
 - Slot behavior with 12-bit instructions is specified.
 
+Artifacts:
+
+- Story artifact: `spec/E12-S03-single-step.md`
+
 #### E12-S04: Define mandatory counters
 
 As a performance engineer, I want mandatory counters so that basic performance and progress can be measured.
