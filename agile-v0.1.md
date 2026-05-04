@@ -561,6 +561,10 @@ Acceptance criteria:
 - Unaligned access raises `ALIGN_FAULT`.
 - Load/store capability permission checks are tied to the effective access rule.
 
+Artifacts:
+
+- Story artifact: `spec/E04-S03-memory-operation-set.md`
+
 #### E04-S04: Define control transfer instructions
 
 As a compiler and kernel engineer, I want branch, call, syscall, trap return, and wait instructions specified so that programs and traps can execute correctly.
@@ -1015,6 +1019,10 @@ Acceptance criteria:
 - Current privilege mode must allow the access.
 - Alignment rules must be satisfied.
 - Fault priority between capability, translation, privilege, and alignment faults is specified.
+
+Artifacts:
+
+- Story artifact: `spec/E09-S07-effective-access-rule.md`
 
 ## E10: Cache and Coherence
 
