@@ -9,10 +9,18 @@ Owner stories:
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass, replace
 from enum import IntFlag
 
-from .cells import ADDRESS_BITS, require_cell_address
+from .cells import (
+    ADDRESS_BITS,
+    CAPABILITY_OBJECT_CELLS,
+    CELL_BITS,
+    mask_cell,
+    require_cell_address,
+    require_cell_value,
+)
 
 
 CAPABILITY_PAYLOAD_BITS = 96
@@ -27,6 +35,12 @@ BOUNDS_METADATA_MASK = (1 << CAPABILITY_BOUNDS_METADATA_BITS) - 1
 PERMISSION_MASK = (1 << CAPABILITY_PERMISSION_BITS) - 1
 OBJECT_TYPE_MASK = (1 << CAPABILITY_OBJECT_TYPE_BITS) - 1
 FLAG_MASK = (1 << CAPABILITY_FLAG_BITS) - 1
+
+PAYLOAD_FLAG_SHIFT = 0
+PAYLOAD_OBJECT_TYPE_SHIFT = PAYLOAD_FLAG_SHIFT + CAPABILITY_FLAG_BITS
+PAYLOAD_PERMISSION_SHIFT = PAYLOAD_OBJECT_TYPE_SHIFT + CAPABILITY_OBJECT_TYPE_BITS
+PAYLOAD_BOUNDS_METADATA_SHIFT = PAYLOAD_PERMISSION_SHIFT + CAPABILITY_PERMISSION_BITS
+PAYLOAD_CURSOR_SHIFT = PAYLOAD_BOUNDS_METADATA_SHIFT + CAPABILITY_BOUNDS_METADATA_BITS
 
 OTYPE_UNSEALED = 0x00
 OTYPE_ENTRY = 0xFE
@@ -113,6 +127,10 @@ def is_cunseal_available_otype(otype: int) -> bool:
     return otype not in (OTYPE_UNSEALED, OTYPE_ENTRY, OTYPE_RETURN)
 
 
+def require_payload_bits(value: int, name: str = "payload") -> int:
+    return require_uint(value, CAPABILITY_PAYLOAD_BITS, name)
+
+
 @dataclass(frozen=True)
 class CapabilityPayload:
     """The 96-bit architectural capability payload fields.
@@ -197,6 +215,50 @@ class CapabilityPayload:
 
     def as_global(self) -> "CapabilityPayload":
         return self.with_flags(self.flags | int(CapabilityFlag.G))
+
+
+def pack_payload(payload: CapabilityPayload) -> int:
+    if not isinstance(payload, CapabilityPayload):
+        raise TypeError("payload must be a CapabilityPayload")
+    return (
+        (payload.cursor << PAYLOAD_CURSOR_SHIFT)
+        | (payload.bounds_metadata << PAYLOAD_BOUNDS_METADATA_SHIFT)
+        | (payload.permissions << PAYLOAD_PERMISSION_SHIFT)
+        | (payload.otype << PAYLOAD_OBJECT_TYPE_SHIFT)
+        | (payload.flags << PAYLOAD_FLAG_SHIFT)
+    )
+
+
+def unpack_payload(value: int) -> CapabilityPayload:
+    value = require_payload_bits(value)
+    return CapabilityPayload(
+        cursor=(value >> PAYLOAD_CURSOR_SHIFT) & ((1 << CAPABILITY_CURSOR_BITS) - 1),
+        bounds_metadata=(
+            (value >> PAYLOAD_BOUNDS_METADATA_SHIFT) & BOUNDS_METADATA_MASK
+        ),
+        permissions=(value >> PAYLOAD_PERMISSION_SHIFT) & PERMISSION_MASK,
+        otype=(value >> PAYLOAD_OBJECT_TYPE_SHIFT) & OBJECT_TYPE_MASK,
+        flags=(value >> PAYLOAD_FLAG_SHIFT) & FLAG_MASK,
+    )
+
+
+def payload_to_cells(payload: CapabilityPayload) -> tuple[int, int, int, int]:
+    packed = pack_payload(payload)
+    return tuple(
+        mask_cell(packed >> (CELL_BITS * index))
+        for index in range(CAPABILITY_OBJECT_CELLS)
+    )
+
+
+def payload_from_cells(cells: Iterable[int]) -> CapabilityPayload:
+    cell_tuple = tuple(cells)
+    if len(cell_tuple) != CAPABILITY_OBJECT_CELLS:
+        raise ValueError(f"payload requires {CAPABILITY_OBJECT_CELLS} cells")
+
+    packed = 0
+    for index, cell in enumerate(cell_tuple):
+        packed |= require_cell_value(cell, f"cells[{index}]") << (CELL_BITS * index)
+    return unpack_payload(packed)
 
 
 @dataclass(frozen=True)
