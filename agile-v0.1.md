@@ -1220,6 +1220,10 @@ Acceptance criteria:
 - Match granularity and privilege behavior are specified.
 - Watchpoint interaction with capability and page faults is specified.
 
+Artifacts:
+
+- Story artifact: `spec/E12-S02-hardware-breakpoints-watchpoints.md`
+
 #### E12-S03: Define single-step
 
 As a debug tool engineer, I want single-step behavior specified so that debuggers can advance one architectural instruction at a time.
