@@ -767,6 +767,10 @@ Acceptance criteria:
 - Long-latency operations report exceptions at retire.
 - Capability and MMU faults have deterministic priority.
 
+Artifacts:
+
+- Story artifact: `spec/E07-S03-precise-exception-model.md`
+
 #### E07-S04: Define trap entry
 
 As a kernel engineer, I want direct exception trap entry so that the kernel receives enough state to build a software trap frame.
