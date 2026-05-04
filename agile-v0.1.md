@@ -622,6 +622,10 @@ Acceptance criteria:
 - Callee-saved integer registers are `D12-D15`.
 - Variadic and overflow argument handling is defined or explicitly deferred.
 
+Artifacts:
+
+- Story artifact: `spec/E05-S01-integer-calling-convention.md`
+
 #### E05-S02: Define capability argument and return registers
 
 As a compiler engineer, I want capability calling convention registers specified so that pure-capability pointers and authority pass through calls safely.
