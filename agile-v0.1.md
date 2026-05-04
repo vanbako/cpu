@@ -1008,6 +1008,10 @@ Acceptance criteria:
 - Reserved memory type behavior is specified.
 - Fence requirements for device memory are documented.
 
+Artifacts:
+
+- Story artifact: `spec/E09-S06-page-memory-types.md`
+
 #### E09-S07: Define effective access rule
 
 As a security and verification engineer, I want the complete access rule specified so that capability, page, privilege, and alignment checks compose correctly.
