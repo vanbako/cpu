@@ -1292,6 +1292,10 @@ Acceptance criteria:
 - Results return through normal register writeback.
 - MDU completion is not exposed through CSR.
 
+Artifacts:
+
+- Story artifact: `spec/E13-S02-long-latency-mdu.md`
+
 #### E13-S03: Define hazard handling
 
 As a verification engineer, I want hazard handling requirements specified so that instruction interaction tests are meaningful.
