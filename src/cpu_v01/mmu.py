@@ -22,6 +22,7 @@ from .instructions import (
 )
 from .memory import MemoryAccessError, TaggedMemory
 from .state import CoreState
+from .tlb import TlbEntry, TlbKind, page_offset, vpn_from_address
 
 
 PTE_SIZE_CELLS = INTEGER_OBJECT_CELLS
@@ -117,6 +118,10 @@ class Translation:
     physical_address: int
     memory_type: int = MEMORY_TYPE_NORMAL_COHERENT
     global_mapping: bool = False
+    user: bool = True
+    readable: bool = True
+    writable: bool = True
+    executable: bool = True
 
 
 def pte_value(
@@ -168,6 +173,9 @@ def translate(
         return Translation(virtual_address, virtual_address)
     if mode != csrs.SATP_MODE_RADIX4:
         return _page_fault(location, virtual_address)
+    tlb_hit = _tlb_lookup(core, satp, virtual_address, access_type, location)
+    if tlb_hit is not None:
+        return tlb_hit
     return _radix4_translate(core, memory, satp, virtual_address, access_type, location)
 
 
@@ -180,6 +188,9 @@ def _radix4_translate(
     location: InstructionLocation,
 ) -> Translation | FaultPacket:
     table_base = csrs.satp_root_ppn(satp) << csrs.SATP_ROOT_PPN_SHIFT
+    vpn = vpn_from_address(virtual_address)
+    asid = csrs.satp_asid(satp)
+    tlb_kind = _tlb_kind(access_type)
     for level, index in enumerate(vpn_indexes(virtual_address)):
         pte_address = table_base + (index * PTE_SIZE_CELLS)
         try:
@@ -196,14 +207,79 @@ def _radix4_translate(
             )
             if physical >= ADDRESS_SPACE_CELLS:
                 return _page_fault(location, virtual_address)
+            core.tlbs.insert(
+                TlbEntry(
+                    kind=tlb_kind,
+                    mode=csrs.SATP_MODE_RADIX4,
+                    vpn=vpn,
+                    asid=asid,
+                    ppn=pte.ppn,
+                    user=pte.user,
+                    readable=pte.readable,
+                    writable=pte.writable,
+                    executable=pte.executable,
+                    memory_type=pte.memory_type,
+                    global_mapping=pte.global_mapping,
+                )
+            )
             return Translation(
                 virtual_address=virtual_address,
                 physical_address=physical,
                 memory_type=pte.memory_type,
                 global_mapping=pte.global_mapping,
+                user=pte.user,
+                readable=pte.readable,
+                writable=pte.writable,
+                executable=pte.executable,
             )
         table_base = pte.ppn << csrs.SATP_ROOT_PPN_SHIFT
     return _page_fault(location, virtual_address)
+
+
+def _tlb_lookup(
+    core: CoreState,
+    satp: int,
+    virtual_address: int,
+    access_type: AccessType,
+    location: InstructionLocation,
+) -> Translation | FaultPacket | None:
+    mode = csrs.satp_mode(satp)
+    vpn = vpn_from_address(virtual_address)
+    asid = csrs.satp_asid(satp)
+    entry = core.tlbs.lookup(_tlb_kind(access_type), mode, vpn, asid)
+    if entry is None:
+        return None
+    if _is_user_mode(core) and not entry.user:
+        return _page_fault(location, virtual_address)
+    if not _tlb_access_allowed(entry, access_type):
+        return _page_fault(location, virtual_address)
+    physical = (entry.ppn << csrs.SATP_ROOT_PPN_SHIFT) | page_offset(virtual_address)
+    return Translation(
+        virtual_address=virtual_address,
+        physical_address=physical,
+        memory_type=entry.memory_type,
+        global_mapping=entry.global_mapping,
+        user=entry.user,
+        readable=entry.readable,
+        writable=entry.writable,
+        executable=entry.executable,
+    )
+
+
+def _tlb_kind(access_type: AccessType) -> TlbKind:
+    if access_type is AccessType.FETCH:
+        return TlbKind.INSTRUCTION
+    return TlbKind.DATA
+
+
+def _tlb_access_allowed(entry: TlbEntry, access_type: AccessType) -> bool:
+    if access_type is AccessType.FETCH:
+        return entry.executable
+    if access_type is AccessType.LOAD:
+        return entry.readable
+    if access_type is AccessType.STORE:
+        return entry.writable
+    raise AssertionError(f"unhandled access type {access_type}")
 
 
 def vpn_indexes(virtual_address: int) -> tuple[int, int, int, int]:

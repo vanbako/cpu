@@ -16,6 +16,7 @@ from enum import Enum
 
 from .capabilities import Capability, CapabilityPayload, require_uint
 from .csrs import CSR_COREID, CSR_SR, ScalarCsrFile
+from .tlb import LocalTlbs
 
 
 INTEGER_REGISTER_BITS = 48
@@ -332,6 +333,7 @@ class CoreState:
         default_factory=SpecialCapabilityRegisters
     )
     scalar_csrs: ScalarCsrFile = field(default_factory=ScalarCsrFile)
+    tlbs: LocalTlbs = field(default_factory=LocalTlbs)
     step_active: bool = False
 
     def __post_init__(self) -> None:
@@ -351,6 +353,8 @@ class CoreState:
             raise TypeError("special_capabilities must be SpecialCapabilityRegisters")
         if not isinstance(self.scalar_csrs, ScalarCsrFile):
             raise TypeError("scalar_csrs must be a ScalarCsrFile")
+        if not isinstance(self.tlbs, LocalTlbs):
+            raise TypeError("tlbs must be LocalTlbs")
         if type(self.step_active) is not bool:
             raise TypeError("step_active must be a bool")
         self.scalar_csrs.write_raw(CSR_COREID, self.core_id)

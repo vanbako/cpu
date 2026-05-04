@@ -24,3 +24,4 @@ Current implementation story:
 - I05-S02: `CALLC` sealed entry-capability calls.
 - I05-S03: `RET` with protected return-stack pop.
 - I06-S01: `RADIX4` translation and page-permission checks for memory operations.
+- I06-S02: private TLBs and `SFENCE.VM` local invalidation forms.

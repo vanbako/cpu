@@ -52,6 +52,12 @@ def commit_normal_result(
                 raise TypeError("memory effect must provide apply(memory)")
             apply_effect(memory)
 
+    for tlb_effect in effects.tlb_effects:
+        apply_effect = getattr(tlb_effect, "apply", None)
+        if apply_effect is None:
+            raise TypeError("TLB effect must provide apply(core)")
+        apply_effect(core)
+
     if effects.pcc_update is not None:
         if not isinstance(effects.pcc_update, SlottedCapability):
             raise TypeError("pcc_update must be a SlottedCapability")
