@@ -1201,6 +1201,10 @@ Acceptance criteria:
 - A separate debug vector is defined.
 - Halt/resume control is exposed through debug state.
 
+Artifacts:
+
+- Story artifact: `spec/E12-S01-debug-halt-behavior.md`
+
 #### E12-S02: Define hardware breakpoints and watchpoints
 
 As a debug tool engineer, I want instruction breakpoints and data watchpoints so that hardware and simulator debugging can observe execution.
