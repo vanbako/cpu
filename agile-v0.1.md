@@ -909,6 +909,10 @@ Acceptance criteria:
 - Privilege rules are specified.
 - Fence effects on caches, TLBs, and predictors are documented where applicable.
 
+Artifacts:
+
+- Story artifact: `spec/E08-S04-fence-instructions.md`
+
 ## E09: MMU and Virtual Memory
 
 ### Goal
