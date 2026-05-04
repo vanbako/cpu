@@ -15,10 +15,13 @@ from enum import IntFlag
 
 from .cells import (
     ADDRESS_BITS,
+    ADDRESS_SPACE_CELLS,
     CAPABILITY_OBJECT_CELLS,
     CELL_BITS,
+    CellRange,
     mask_cell,
     require_cell_address,
+    require_cell_endpoint,
     require_cell_value,
 )
 
@@ -35,6 +38,15 @@ BOUNDS_METADATA_MASK = (1 << CAPABILITY_BOUNDS_METADATA_BITS) - 1
 PERMISSION_MASK = (1 << CAPABILITY_PERMISSION_BITS) - 1
 OBJECT_TYPE_MASK = (1 << CAPABILITY_OBJECT_TYPE_BITS) - 1
 FLAG_MASK = (1 << CAPABILITY_FLAG_BITS) - 1
+
+BOUNDS_MANTISSA_BITS = 12
+BOUNDS_EXPONENT_BITS = 6
+BOUNDS_MANTISSA_MASK = (1 << BOUNDS_MANTISSA_BITS) - 1
+BOUNDS_EXPONENT_MASK = (1 << BOUNDS_EXPONENT_BITS) - 1
+BOUNDS_BASE_MANTISSA_SHIFT = 0
+BOUNDS_TOP_MANTISSA_SHIFT = BOUNDS_BASE_MANTISSA_SHIFT + BOUNDS_MANTISSA_BITS
+BOUNDS_EXPONENT_SHIFT = BOUNDS_TOP_MANTISSA_SHIFT + BOUNDS_MANTISSA_BITS
+BOUNDS_FULL_ADDRESS_SPACE = 0
 
 PAYLOAD_FLAG_SHIFT = 0
 PAYLOAD_OBJECT_TYPE_SHIFT = PAYLOAD_FLAG_SHIFT + CAPABILITY_FLAG_BITS
@@ -132,6 +144,80 @@ def require_payload_bits(value: int, name: str = "payload") -> int:
 
 
 @dataclass(frozen=True)
+class CapabilityBounds:
+    """Decoded half-open capability bounds."""
+
+    base: int
+    top: int
+
+    def __post_init__(self) -> None:
+        base = require_cell_endpoint(self.base, "base")
+        top = require_cell_endpoint(self.top, "top")
+        if top <= base:
+            raise ValueError("capability bounds must be non-empty")
+
+    @property
+    def range(self) -> CellRange:
+        return CellRange(self.base, self.top)
+
+    def contains_cursor(self, cursor: int) -> bool:
+        cursor = require_cell_address(cursor, "cursor")
+        return self.base <= cursor < self.top
+
+    def contains_range(self, base: int, top: int) -> bool:
+        base = require_cell_endpoint(base, "base")
+        top = require_cell_endpoint(top, "top")
+        return self.base <= base and top <= self.top
+
+
+def encode_bounds_metadata(base: int, top: int) -> int:
+    """Encode exactly representable half-open bounds into 30 metadata bits.
+
+    This is the implementation model used by the semantic simulator. Metadata
+    value 0 represents the full 48-bit cell address space.
+    """
+    base = require_cell_endpoint(base, "base")
+    top = require_cell_endpoint(top, "top")
+    if top <= base:
+        raise ValueError("capability bounds must be non-empty")
+    if base == 0 and top == ADDRESS_SPACE_CELLS:
+        return BOUNDS_FULL_ADDRESS_SPACE
+
+    for exponent in range(1 << BOUNDS_EXPONENT_BITS):
+        unit = 1 << exponent
+        if base % unit != 0 or top % unit != 0:
+            continue
+        base_mantissa = base >> exponent
+        top_mantissa = top >> exponent
+        if base_mantissa <= BOUNDS_MANTISSA_MASK and top_mantissa <= BOUNDS_MANTISSA_MASK:
+            return (
+                (exponent << BOUNDS_EXPONENT_SHIFT)
+                | (top_mantissa << BOUNDS_TOP_MANTISSA_SHIFT)
+                | (base_mantissa << BOUNDS_BASE_MANTISSA_SHIFT)
+            )
+    raise ValueError("bounds are not exactly representable")
+
+
+def decode_bounds_metadata(bounds_metadata: int) -> CapabilityBounds:
+    bounds_metadata = require_bounds_metadata(bounds_metadata)
+    if bounds_metadata == BOUNDS_FULL_ADDRESS_SPACE:
+        return CapabilityBounds(0, ADDRESS_SPACE_CELLS)
+
+    exponent = (bounds_metadata >> BOUNDS_EXPONENT_SHIFT) & BOUNDS_EXPONENT_MASK
+    base_mantissa = (
+        bounds_metadata >> BOUNDS_BASE_MANTISSA_SHIFT
+    ) & BOUNDS_MANTISSA_MASK
+    top_mantissa = (
+        bounds_metadata >> BOUNDS_TOP_MANTISSA_SHIFT
+    ) & BOUNDS_MANTISSA_MASK
+    base = base_mantissa << exponent
+    top = top_mantissa << exponent
+    if top > ADDRESS_SPACE_CELLS:
+        raise ValueError("decoded capability bounds exceed address space")
+    return CapabilityBounds(base, top)
+
+
+@dataclass(frozen=True)
 class CapabilityPayload:
     """The 96-bit architectural capability payload fields.
 
@@ -169,6 +255,10 @@ class CapabilityPayload:
         return CapabilityPermission(self.permissions)
 
     @property
+    def bounds(self) -> CapabilityBounds:
+        return decode_bounds_metadata(self.bounds_metadata)
+
+    @property
     def flag_set(self) -> CapabilityFlag:
         return CapabilityFlag(self.flags)
 
@@ -197,6 +287,9 @@ class CapabilityPayload:
 
     def with_bounds_metadata(self, bounds_metadata: int) -> "CapabilityPayload":
         return replace(self, bounds_metadata=bounds_metadata)
+
+    def with_bounds(self, base: int, top: int) -> "CapabilityPayload":
+        return self.with_bounds_metadata(encode_bounds_metadata(base, top))
 
     def with_permissions(self, permissions: int) -> "CapabilityPayload":
         return replace(self, permissions=permissions)
