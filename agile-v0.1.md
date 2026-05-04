@@ -988,6 +988,10 @@ Acceptance criteria:
 - Accessed-bit update behavior is defined or delegated to software.
 - Reserved-bit violations raise page fault.
 
+Artifacts:
+
+- Story artifact: `spec/E09-S05-pte-format.md`
+
 #### E09-S06: Define page memory types
 
 As a driver and kernel engineer, I want page memory types specified so that cacheable, uncacheable, and device memory are handled correctly.
