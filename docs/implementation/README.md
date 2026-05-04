@@ -11,3 +11,5 @@ Use this directory for:
 - Implementation decisions that do not change the frozen architecture contract.
 
 Normative architecture stories remain in `spec/`.
+
+Start with `docs/implementation/local-checks.md` for the local commands expected before implementation commits.
