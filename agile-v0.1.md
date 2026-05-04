@@ -1105,6 +1105,10 @@ Acceptance criteria:
 - Required interaction with `FENCE` and `FENCE.I` is documented.
 - Address range and alignment behavior are specified.
 
+Artifacts:
+
+- Story artifact: `spec/E10-S05-cache-maintenance-operations.md`
+
 ## E11: Boot, Reset, and Multicore Bring-up
 
 ### Goal
