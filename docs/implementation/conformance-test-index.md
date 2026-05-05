@@ -64,3 +64,4 @@ table in the same change.
 | `tests\conformance\test_i13_s01_pipeline_trace.py` | `I13-S01` | `E13-S01`, `E07-S03`, `E07-S04` | `E15-S03`, `E15-S04`, `E15-S06` |
 | `tests\conformance\test_i13_s02_pipeline_semantic_compare.py` | `I13-S02` | `E13-S01`, `E13-S02`, `E07-S03` | `E15-S03`, `E15-S04`, `E15-S06` |
 | `tests\conformance\test_i13_s03_pipeline_hazards.py` | `I13-S03` | `E13-S02`, `E13-S03`, `E13-S04` | `E15-S03`, `E15-S04`, `E15-S06` |
+| `tests\conformance\test_i14_s01_tiny_rom.py` | `I14-S01` | `E11-S02`, `E15-S03`, `E15-S06` | `E15-S03`, `E15-S04`, `E15-S06` |

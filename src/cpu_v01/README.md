@@ -48,3 +48,4 @@ Current implementation story:
 - I13-S01: single-issue in-order pipeline trace model.
 - I13-S02: pipeline versus semantic execution comparison.
 - I13-S03: first hazard, MDU busy, and predictor trace cases.
+- I14-S01: trusted tiny ROM initialization and kernel handoff fixture.
