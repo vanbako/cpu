@@ -28,3 +28,4 @@ Current platform binding:
 - `docs/implementation/program-image-manifest.md`: simulator program-image manifest and loader boundary profile.
 - `docs/implementation/program-image-loader.md`: serialized cell image loading and explicit capability sidecar profile.
 - `docs/implementation/reset-to-trap-smoke.md`: serialized reset-to-trap smoke fixture for the semantic simulator.
+- `docs/implementation/story-coverage.md`: implementation story coverage report profile.
