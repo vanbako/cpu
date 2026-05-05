@@ -22,3 +22,15 @@ python -m unittest discover -s tests/litmus -p "test_*.py"
 ## Full Local Check
 
 Run all commands above before committing implementation code.
+
+I12-S01 adds a one-command runner for the full local check:
+
+```text
+python tools\local_checks.py
+```
+
+To inspect the command plan without running it:
+
+```text
+python tools\local_checks.py --list
+```

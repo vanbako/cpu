@@ -58,3 +58,4 @@ table in the same change.
 | `tests\conformance\test_i11_s01_program_image.py` | `I11-S01` | `E11-S01`, `E11-S02`, `E14-S02` | `E15-S03`, `E15-S05`, `E15-S06` |
 | `tests\conformance\test_i11_s02_program_image_loader.py` | `I11-S02` | `E03-S04`, `E11-S01`, `E14-S02` | `E15-S03`, `E15-S05`, `E15-S06` |
 | `tests\conformance\test_i11_s03_reset_to_trap_smoke.py` | `I11-S03` | `E04-S02`, `E04-S03`, `E07-S04`, `E11-S01` | `E15-S03`, `E15-S04`, `E15-S06` |
+| `tests\conformance\test_i12_s01_local_checks.py` | `I12-S01` | `E15-S07` | `E15-S01`, `E15-S02`, `E15-S07` |

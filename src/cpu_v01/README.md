@@ -42,3 +42,4 @@ Current implementation story:
 - I11-S01: program-image manifest and loader boundary validation.
 - I11-S02: serialized cell image loading with explicit capability sidecars.
 - I11-S03: serialized reset-to-trap smoke program execution.
+- I12-S01: one-command local check runner.
