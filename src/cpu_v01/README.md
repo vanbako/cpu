@@ -55,3 +55,4 @@ Current implementation story:
 - I15-S02: property-style capability tag integrity checks across memory, DMA, CCSR, and debug surfaces.
 - I15-S03: property-style precise-fault checks for register, memory, tag, TLB, reservation, and protected-stack effects.
 - I16-S01: invariant registry and coverage matrix for security and correctness properties.
+- I16-S02: deterministic capability derivation property generators.

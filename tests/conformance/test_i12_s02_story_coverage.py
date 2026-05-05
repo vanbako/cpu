@@ -55,7 +55,8 @@ class StoryCoverageReportTests(unittest.TestCase):
         self.assertEqual(rows["I15-S02"].status, "tested")
         self.assertEqual(rows["I15-S03"].status, "tested")
         self.assertEqual(rows["I16-S01"].status, "tested")
-        self.assertEqual(rows["I16-S02"].status, "missing")
+        self.assertEqual(rows["I16-S02"].status, "tested")
+        self.assertEqual(rows["I16-S03"].status, "missing")
         self.assertGreater(report.tested_count, 0)
         self.assertGreater(report.missing_count, 0)
 
@@ -71,7 +72,8 @@ class StoryCoverageReportTests(unittest.TestCase):
         self.assertIn("`I15-S02` | tested", rendered)
         self.assertIn("`I15-S03` | tested", rendered)
         self.assertIn("`I16-S01` | tested", rendered)
-        self.assertIn("`I16-S02` | missing", rendered)
+        self.assertIn("`I16-S02` | tested", rendered)
+        self.assertIn("`I16-S03` | missing", rendered)
 
     def test_missing_only_cli_filters_report_rows(self) -> None:
         tool = load_story_coverage_module()
@@ -82,7 +84,7 @@ class StoryCoverageReportTests(unittest.TestCase):
 
         output = stream.getvalue()
         self.assertEqual(result, 0)
-        self.assertIn("`I16-S02` | missing", output)
+        self.assertIn("`I16-S03` | missing", output)
         self.assertNotIn("`I15-S03` | tested", output)
         self.assertNotIn("`I01-S01` | tested", output)
 

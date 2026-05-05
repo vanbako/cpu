@@ -39,3 +39,4 @@ Current platform binding:
 - `docs/implementation/tag-integrity-properties.md`: deterministic property-style capability tag non-forgery checks.
 - `docs/implementation/precise-fault-properties.md`: deterministic property-style precise-fault side-effect checks.
 - `docs/implementation/invariant-registry.md`: invariant coverage registry for property and RTL follow-up work.
+- `docs/implementation/capability-property-generators.md`: deterministic capability derivation property case generators.
