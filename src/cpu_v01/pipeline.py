@@ -7,10 +7,11 @@ Owner stories:
 
 from __future__ import annotations
 
+import copy
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from . import atomic_ops, cache_ops, call_ops, control_ops, memory_ops, program, return_ops, traps
+from . import atomic_ops, cache_ops, call_ops, control_ops, csrs, memory_ops, program, return_ops, traps
 from .execution import commit_normal_result
 from .instructions import (
     DecodedInstruction,
@@ -47,6 +48,7 @@ MEMORY_RESULT_MNEMONICS = frozenset(
 )
 
 InstructionExecutor = Callable[[CoreState, DecodedInstruction], ExecutionResult]
+ExecutorFactory = Callable[[TaggedMemory | None], InstructionExecutor]
 
 
 @dataclass(frozen=True)
@@ -83,6 +85,30 @@ class PipelineStepTrace:
     @property
     def retired(self) -> bool:
         return self.events[-1].retired
+
+
+@dataclass(frozen=True)
+class ArchitecturalSnapshot:
+    integer_registers: tuple[int, ...]
+    general_capabilities: tuple[object, ...]
+    pcc: SlottedCapability
+    epcc: SlottedCapability
+    csr_values: tuple[tuple[int, int], ...]
+    memory_cells: tuple[tuple[int, int], ...] = ()
+    memory_tags: tuple[tuple[int, bool], ...] = ()
+
+
+@dataclass(frozen=True)
+class PipelineSemanticComparison:
+    pipeline_traces: tuple[PipelineStepTrace, ...]
+    semantic_results: tuple[ExecutionResult, ...]
+    pipeline_snapshot: ArchitecturalSnapshot
+    semantic_snapshot: ArchitecturalSnapshot
+    issues: tuple[str, ...]
+
+    @property
+    def matches(self) -> bool:
+        return not self.issues
 
 
 class SingleIssuePipeline:
@@ -177,6 +203,84 @@ def validate_pipeline_trace_model() -> tuple[str, ...]:
     return tuple(issues)
 
 
+def compare_pipeline_to_semantic(
+    core: CoreState,
+    decoded_program: program.DecodedProgram,
+    executor_factory: ExecutorFactory,
+    *,
+    memory: TaggedMemory | None = None,
+    steps: int,
+    enter_traps: bool = False,
+    observed_cells: tuple[int, ...] = (),
+    observed_tag_slots: tuple[int, ...] = (),
+) -> PipelineSemanticComparison:
+    """Run pipeline and semantic execution on copied state and compare outcomes."""
+    if not isinstance(core, CoreState):
+        raise TypeError("core must be a CoreState")
+    if not isinstance(decoded_program, program.DecodedProgram):
+        raise TypeError("decoded_program must be a DecodedProgram")
+    if not callable(executor_factory):
+        raise TypeError("executor_factory must be callable")
+    if memory is not None and not isinstance(memory, TaggedMemory):
+        raise TypeError("memory must be TaggedMemory or None")
+    if type(steps) is not int or steps < 0:
+        raise ValueError("steps must be a nonnegative int")
+
+    pipeline_core = copy.deepcopy(core)
+    semantic_core = copy.deepcopy(core)
+    pipeline_memory = copy.deepcopy(memory) if memory is not None else None
+    semantic_memory = copy.deepcopy(memory) if memory is not None else None
+
+    pipeline_executor = executor_factory(pipeline_memory)
+    semantic_executor = executor_factory(semantic_memory)
+    trace_model = SingleIssuePipeline(
+        decoded_program,
+        pipeline_executor,
+        memory=pipeline_memory,
+        enter_traps=enter_traps,
+    )
+
+    pipeline_traces: list[PipelineStepTrace] = []
+    semantic_results: list[ExecutionResult] = []
+    issues: list[str] = []
+    for step_index in range(steps):
+        pipeline_trace = trace_model.step(pipeline_core)
+        semantic_result = _semantic_step(
+            semantic_core,
+            decoded_program,
+            semantic_executor,
+            semantic_memory,
+            enter_traps=enter_traps,
+        )
+        pipeline_traces.append(pipeline_trace)
+        semantic_results.append(semantic_result)
+        if pipeline_trace.result != semantic_result:
+            issues.append(f"step {step_index} result packet mismatch")
+
+    pipeline_snapshot = _snapshot(
+        pipeline_core,
+        pipeline_memory,
+        observed_cells=observed_cells,
+        observed_tag_slots=observed_tag_slots,
+    )
+    semantic_snapshot = _snapshot(
+        semantic_core,
+        semantic_memory,
+        observed_cells=observed_cells,
+        observed_tag_slots=observed_tag_slots,
+    )
+    if pipeline_snapshot != semantic_snapshot:
+        issues.append("final architectural snapshot mismatch")
+
+    return PipelineSemanticComparison(
+        tuple(pipeline_traces),
+        tuple(semantic_results),
+        pipeline_snapshot,
+        semantic_snapshot,
+        tuple(issues),
+    )
+
+
 def _prepare_result(
     core: CoreState,
     decoded_program: program.DecodedProgram,
@@ -208,6 +312,25 @@ def _prepare_result(
     if result.is_normal_retire:
         result = program.with_sequential_fallthrough(result)
     return instruction, result, _result_detection_stage(instruction)
+
+
+def _semantic_step(
+    core: CoreState,
+    decoded_program: program.DecodedProgram,
+    executor: InstructionExecutor,
+    memory: TaggedMemory | None,
+    *,
+    enter_traps: bool,
+) -> ExecutionResult:
+    result = program.step_decoded_program(
+        core,
+        decoded_program,
+        executor,
+        memory=memory,
+        commit=False,
+    )
+    _commit_at_retire(core, result, memory, commit=True, enter_traps=enter_traps)
+    return result
 
 
 def _commit_at_retire(
@@ -279,3 +402,29 @@ def _result_kind_or_none(value: ExecutionResultKind | None) -> ExecutionResultKi
     if value is None:
         return None
     return ExecutionResultKind(value)
+
+
+def _snapshot(
+    core: CoreState,
+    memory: TaggedMemory | None,
+    *,
+    observed_cells: tuple[int, ...],
+    observed_tag_slots: tuple[int, ...],
+) -> ArchitecturalSnapshot:
+    memory_cells: tuple[tuple[int, int], ...] = ()
+    memory_tags: tuple[tuple[int, bool], ...] = ()
+    if memory is not None:
+        memory_cells = tuple((address, memory.read_cell(address)) for address in observed_cells)
+        memory_tags = tuple((slot, memory.capability_tag(slot)) for slot in observed_tag_slots)
+    return ArchitecturalSnapshot(
+        integer_registers=core.integer_registers.as_tuple(),
+        general_capabilities=core.general_capabilities.as_tuple(),
+        pcc=core.pcc,
+        epcc=core.epcc,
+        csr_values=tuple(
+            (number, core.read_csr(number))
+            for number in sorted(csrs.ASSIGNED_CSR_NUMBER_TO_NAME)
+        ),
+        memory_cells=memory_cells,
+        memory_tags=memory_tags,
+    )

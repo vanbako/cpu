@@ -30,3 +30,4 @@ Current platform binding:
 - `docs/implementation/reset-to-trap-smoke.md`: serialized reset-to-trap smoke fixture for the semantic simulator.
 - `docs/implementation/story-coverage.md`: implementation story coverage report profile.
 - `docs/implementation/pipeline-trace.md`: single-issue in-order pipeline trace model.
+- `docs/implementation/pipeline-semantic-comparison.md`: pipeline versus semantic execution comparison profile.
