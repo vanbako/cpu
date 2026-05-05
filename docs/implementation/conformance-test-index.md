@@ -68,3 +68,4 @@ table in the same change.
 | `tests\conformance\test_i14_s02_kernel_handlers.py` | `I14-S02` | `E07-S05`, `E07-S06`, `E15-S03` | `E15-S03`, `E15-S04`, `E15-S06` |
 | `tests\conformance\test_i14_s03_secondary_boot_demo.py` | `I14-S03` | `E11-S03`, `E15-S03`, `E15-S06` | `E15-S03`, `E15-S04`, `E15-S06` |
 | `tests\conformance\test_i15_s01_capability_monotonicity.py` | `I15-S01` | `E03-S03`, `E04-S05` | `E15-S01`, `E15-S05` |
+| `tests\conformance\test_i15_s02_tag_integrity.py` | `I15-S02` | `E03-S04`, `E04-S03`, `E10-S03`, `E10-S04`, `E10-S05`, `E12-S03` | `E15-S01`, `E15-S05`, `E15-S06` |
