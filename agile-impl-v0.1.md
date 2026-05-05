@@ -56,6 +56,11 @@ Implementation principles:
 | I13 | P1 | Cycle-level prototype. | Pipeline trace model checked against semantic retire packets. |
 | I14 | P1 | Firmware and kernel bring-up path. | Tiny ROM, trap/syscall/timer handlers, and secondary-core boot demo in simulation. |
 | I15 | P1 | Formal and security invariants. | Property-style tests for capability monotonicity, tag integrity, and precise fault effects. |
+| I16 | P1 | Formal invariant expansion. | Registry, reusable generators, and seeded invariant runner for security/correctness properties. |
+| I17 | P1 | Toolchain and binary pipeline. | Richer assembler/linker fixtures, relocations, object metadata, and debug symbols. |
+| I18 | P1 | Kernel/userland bring-up. | User process image, VM allocation, syscall demo, and minimal scheduler fixtures. |
+| I19 | P2 | Devices and multicore platform. | MMIO devices, IPI/interrupt controller model, DMA driver protocol, and multicore integration tests. |
+| I20 | P1 | RTL readiness and golden corpus. | Golden trace corpus, differential harness, CI artifacts, and RTL handoff gap report. |
 
 ## First Vertical Slice
 
@@ -118,7 +123,7 @@ Explicitly excluded from the first slice:
 | I11-S02 | P0 | M | I11-S01, I02-S03 | Implement serialized 24-bit cell image loading into simulator memory. | Little-endian cells load into ROM/RAM regions, capability tags remain explicit, protected regions reject ordinary image writes, and bad alignment fails. |
 | I11-S03 | P0 | L | I11-S02, I04-S03, I07-S02 | Execute a serialized reset-to-trap smoke program. | A binary fixture resets through the test platform, executes integer/load/store/control flow, takes a trap, and returns with `IRET`. |
 | I12-S01 | P0 | S | I01-S02, I01-S03 | Add one-command full local check runner. | Spec checks, conformance tests, litmus tests, and whitespace checks run through one documented command. |
-| I12-S02 | P0 | M | I01-S03 | Generate a story coverage report from tests and docs. | Current `I01-I15` story rows report indexed tests, missing tests, and intentionally documentation-only stories. |
+| I12-S02 | P0 | M | I01-S03 | Generate a story coverage report from tests and docs. | Current implementation story rows report indexed tests, missing tests, and intentionally documentation-only stories. |
 | I12-S03 | P1 | M | I12-S02 | Add drift checks for story IDs, test names, and implementation docs. | New test files without index rows, stale index rows, and unowned implementation docs fail the local check. |
 | I13-S01 | P1 | L | I10-S01, E13-S01 | Implement a single-issue pipeline trace model. | FE0 through RT stages emit deterministic traces for straight-line, branch, trap, and load/store programs. |
 | I13-S02 | P1 | L | I13-S01, I03-S01 | Compare cycle-level retire packets against semantic execution. | Matching programs produce identical committed architectural state, fault packets, debug events, and redirects. |
@@ -129,6 +134,9 @@ Explicitly excluded from the first slice:
 | I15-S01 | P1 | M | I03-S03, E03-S03 | Add property-style capability monotonicity tests. | Derivation, bounds, permissions, sealing, and unsealing cannot widen authority or synthesize valid tags. |
 | I15-S02 | P1 | M | I02-S03, I03-S04, E03-S04 | Add property-style tag integrity tests. | Integer stores, serialization, DMA, cache movement, CCSR copies, and debug observation cannot forge capability tags. |
 | I15-S03 | P1 | L | I04-S02, I06-S01, E15-S04 | Add precise-fault and no-side-effect property tests. | Fault-priority cases suppress partial register, memory, tag, reservation, TLB, and protected-stack effects. |
+| I16-S01 | P1 | M | I15-S01, I15-S02, I15-S03, E15-S01 | Define the invariant registry and coverage matrix. | Registry entries map invariant keys to implementation stories, architecture owners, E15 coverage, artifacts, and checked surfaces. |
+| I16-S02 | P1 | M | I16-S01, I03-S03, E03-S03 | Add reusable deterministic capability property generators. | Shared generators cover authority-preserving and authority-reducing capability cases without broadening tags, bounds, or permissions. |
+| I16-S03 | P1 | L | I16-S01, I06-S01, I15-S03, E15-S04 | Add a seed-stable invariant runner. | A repeatable runner executes selected invariant families, records seed/case IDs, and reproduces failures from the command line. |
 
 ## Near-term Sprint Plan
 

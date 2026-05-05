@@ -25,7 +25,7 @@ def load_story_coverage_module():
 
 
 class StoryCoverageReportTests(unittest.TestCase):
-    def test_backlog_story_parser_covers_i01_through_i15_rows(self) -> None:
+    def test_backlog_story_parser_covers_i01_through_i16_rows(self) -> None:
         tool = load_story_coverage_module()
 
         stories = tool.implementation_story_ids(ROOT / "agile-impl-v0.1.md")
@@ -33,6 +33,7 @@ class StoryCoverageReportTests(unittest.TestCase):
         self.assertIn("I01-S01", stories)
         self.assertIn("I12-S02", stories)
         self.assertIn("I15-S03", stories)
+        self.assertIn("I16-S03", stories)
         self.assertEqual(len(stories), len(set(stories)))
 
     def test_report_classifies_tested_doc_only_and_missing_stories(self) -> None:
@@ -53,10 +54,12 @@ class StoryCoverageReportTests(unittest.TestCase):
         self.assertEqual(rows["I15-S01"].status, "tested")
         self.assertEqual(rows["I15-S02"].status, "tested")
         self.assertEqual(rows["I15-S03"].status, "tested")
+        self.assertEqual(rows["I16-S01"].status, "tested")
+        self.assertEqual(rows["I16-S02"].status, "missing")
         self.assertGreater(report.tested_count, 0)
-        self.assertEqual(report.missing_count, 0)
+        self.assertGreater(report.missing_count, 0)
 
-    def test_rendered_report_lists_artifacts_and_final_story(self) -> None:
+    def test_rendered_report_lists_artifacts_and_next_missing_story(self) -> None:
         tool = load_story_coverage_module()
 
         rendered = tool.render_report(tool.coverage_report(ROOT))
@@ -67,6 +70,8 @@ class StoryCoverageReportTests(unittest.TestCase):
         self.assertIn("`I15-S01` | tested", rendered)
         self.assertIn("`I15-S02` | tested", rendered)
         self.assertIn("`I15-S03` | tested", rendered)
+        self.assertIn("`I16-S01` | tested", rendered)
+        self.assertIn("`I16-S02` | missing", rendered)
 
     def test_missing_only_cli_filters_report_rows(self) -> None:
         tool = load_story_coverage_module()
@@ -77,8 +82,7 @@ class StoryCoverageReportTests(unittest.TestCase):
 
         output = stream.getvalue()
         self.assertEqual(result, 0)
-        self.assertIn("Stories: 0", output)
-        self.assertIn("Missing: 0", output)
+        self.assertIn("`I16-S02` | missing", output)
         self.assertNotIn("`I15-S03` | tested", output)
         self.assertNotIn("`I01-S01` | tested", output)
 
