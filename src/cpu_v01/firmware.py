@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from . import assembly, capabilities as caps, platform, program_image, serialization, state
+from . import assembly, capabilities as caps, platform, program_image, serialization, startup, state
 from .cells import CAPABILITY_OBJECT_CELLS, is_aligned
 from .memory import TaggedMemory
 
@@ -25,6 +25,8 @@ ROM_INIT_SOURCE = (
 KERNEL_HANDOFF_SOURCE = (
     "PAUSE",
 )
+SECONDARY_ENTRY_CELL = platform.RESET_VECTOR + 0x180
+SECONDARY_BOOT_ARG0 = 0xC0_02
 
 KERNEL_STACK_BASE = platform.RAM_BASE + 0x1000
 KERNEL_STACK_CELLS = 0x400
@@ -32,6 +34,9 @@ DATA_STACK_BASE = platform.RAM_BASE + 0x2000
 DATA_STACK_CELLS = 0x400
 RETURN_STACK_BASE = platform.RAM_BASE + 0x3000
 RETURN_STACK_CELLS = 0x400
+SECONDARY_STACK_BASE = platform.RAM_BASE + 0x4000
+SECONDARY_STACK_STRIDE = 0x1000
+SECONDARY_STACK_CELLS = 0x100
 
 
 class TinyRomError(RuntimeError):
@@ -59,6 +64,20 @@ class TinyRomReport:
     profile_issues: tuple[str, ...]
     steps: int
     handoff: TinyRomHandoffState
+
+
+@dataclass(frozen=True)
+class SecondaryCoreBootDemoReport:
+    cores: tuple[state.CoreState, ...]
+    controller: startup.SecondaryStartupController
+    initial_lifecycle: state.CoreLifecycle
+    start_result: startup.StartupResult
+    repeated_start_result: startup.StartupResult
+    invalid_start_result: startup.StartupResult
+    started_coreid: int
+    invalid_coreid: int
+    started_entry: state.SlottedCapability
+    started_arg0: int
 
 
 def tiny_rom_manifest() -> program_image.ProgramImageManifest:
@@ -113,6 +132,89 @@ def run_tiny_rom_initialization(
         profile_issues=issues,
         steps=3,
         handoff=handoff,
+    )
+
+
+def run_secondary_core_boot_demo(
+    *,
+    target_coreid: int = 1,
+    invalid_coreid: int = 2,
+    profile: platform.TestPlatformProfile = platform.TEST_PLATFORM_PROFILE,
+) -> SecondaryCoreBootDemoReport:
+    """Run the firmware-controlled secondary-core startup demo."""
+    if not isinstance(profile, platform.TestPlatformProfile):
+        raise TypeError("profile must be a TestPlatformProfile")
+    if target_coreid == invalid_coreid:
+        raise ValueError("target_coreid and invalid_coreid must differ")
+
+    memory = TaggedMemory()
+    cores = list(platform.cold_reset_cores(profile))
+    initialize_boot_core_for_kernel_handoff(cores[0], memory, profile=profile)
+    controller = startup.SecondaryStartupController(profile=profile)
+    initial_lifecycle = cores[target_coreid].lifecycle
+
+    started_entry = _secondary_entry_pcc(profile)
+    arg_cap0 = _global_capability(
+        cursor=platform.RAM_BASE,
+        base=platform.RAM_BASE,
+        top=platform.RAM_BASE + 0x100,
+        permissions=caps.CapabilityPermission.LD,
+    )
+    controller.publish_start(
+        target_coreid,
+        1,
+        entry_pcc=started_entry,
+        dsc=_secondary_stack_capability(target_coreid, 0),
+        rsc=_secondary_stack_capability(target_coreid, 1),
+        ksc=_secondary_stack_capability(target_coreid, 2),
+        krc=cores[0].special_capabilities.read("KRC"),
+        tvc=cores[0].special_capabilities.read("TVC"),
+        arg0=SECONDARY_BOOT_ARG0,
+        arg_cap0=arg_cap0,
+    )
+    start_result = controller.send_start_signal(cores, target_coreid)
+
+    controller.publish_start(
+        target_coreid,
+        2,
+        entry_pcc=state.SlottedCapability.from_capability(
+            _global_capability(
+                cursor=SECONDARY_ENTRY_CELL + 4,
+                base=profile.reset_rom_region.base,
+                top=profile.reset_rom_region.end,
+                permissions=caps.CapabilityPermission.EX,
+            ),
+            state.SLOT_0,
+        ),
+        dsc=_secondary_stack_capability(target_coreid, 0),
+        rsc=_secondary_stack_capability(target_coreid, 1),
+    )
+    repeated_start_result = controller.send_start_signal(cores, target_coreid)
+
+    invalid_entry = state.SlottedCapability.from_capability(
+        _secondary_entry_pcc(profile).without_slot().with_tag(False),
+        state.SLOT_0,
+    )
+    controller.publish_start(
+        invalid_coreid,
+        1,
+        entry_pcc=invalid_entry,
+        dsc=_secondary_stack_capability(invalid_coreid, 0),
+        rsc=_secondary_stack_capability(invalid_coreid, 1),
+    )
+    invalid_start_result = controller.send_start_signal(cores, invalid_coreid)
+
+    return SecondaryCoreBootDemoReport(
+        cores=tuple(cores),
+        controller=controller,
+        initial_lifecycle=initial_lifecycle,
+        start_result=start_result,
+        repeated_start_result=repeated_start_result,
+        invalid_start_result=invalid_start_result,
+        started_coreid=target_coreid,
+        invalid_coreid=invalid_coreid,
+        started_entry=started_entry,
+        started_arg0=SECONDARY_BOOT_ARG0,
     )
 
 
@@ -238,6 +340,26 @@ def _stack_capability(base: int, size_cells: int) -> caps.Capability:
 
 def _stack_cursor(base: int, size_cells: int) -> int:
     return base + size_cells - CAPABILITY_OBJECT_CELLS
+
+
+def _secondary_entry_pcc(
+    profile: platform.TestPlatformProfile,
+) -> state.SlottedCapability:
+    rom = profile.reset_rom_region
+    return state.SlottedCapability.from_capability(
+        _global_capability(
+            cursor=SECONDARY_ENTRY_CELL,
+            base=rom.base,
+            top=rom.end,
+            permissions=caps.CapabilityPermission.EX,
+        ),
+        state.SLOT_0,
+    )
+
+
+def _secondary_stack_capability(core_id: int, stack_index: int) -> caps.Capability:
+    base = SECONDARY_STACK_BASE + core_id * SECONDARY_STACK_STRIDE + stack_index * SECONDARY_STACK_CELLS
+    return _stack_capability(base, SECONDARY_STACK_CELLS)
 
 
 def _global_capability(

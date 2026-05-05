@@ -34,3 +34,4 @@ Current platform binding:
 - `docs/implementation/pipeline-hazards-predictor.md`: first hazard, MDU busy, and predictor trace profile.
 - `docs/implementation/tiny-rom.md`: trusted tiny ROM initialization and kernel handoff fixture.
 - `docs/implementation/minimal-kernel-handlers.md`: trap-frame, syscall, timer, and `IRET` handler fixtures.
+- `docs/implementation/secondary-core-boot-demo.md`: firmware-controlled secondary-core startup demo.
