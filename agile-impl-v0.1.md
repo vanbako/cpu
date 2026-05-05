@@ -101,6 +101,7 @@ Explicitly excluded from the first slice:
 | I06-S04 | P1 | L | I06-S01, I06-S03, E08-S03, E10-S03, E10-S05 | Implement architectural memory ordering and cache/DMA litmus model. | `tools/memory_consistency_litmus.md` scenarios are executable and passing where in scope. |
 | I07-S01 | P0 | L | I03-S01, E04-S06 | Allocate final opcode table for mandatory v0.1 instructions. | Every mandatory mnemonic has a canonical encoding or synonym; excluded instructions are absent. |
 | I07-S02 | P0 | M | I07-S01 | Implement assembler and disassembler for binary fixtures. | Round-trip source/binary/source tests and illegal-encoding tests pass. |
+| I07-S03 | P0 | M | I07-S02, E01-S01, E14-S02 | Define byte-oriented 24-bit cell serialization and section payload profile. | Little-endian 3-octet cells, page/cache-line byte sizes, cell-addressed section metadata, and assembler fixture serialization tests pass. |
 | I08-S01 | P0 | M | I02-S05, E11-S01, E11-S02 | Define minimal test platform profile. | Reset vector, memory map, ROM/RAM/device regions, fatal entry behavior, and debug policy are documented. |
 | I08-S02 | P0 | M | I08-S01, E11-S03 | Implement secondary-core startup platform binding. | Mailbox publish, start signal, valid startup, invalid startup, and already-started cases pass. |
 | I09-S01 | P1 | M | I04-S03, E07-S06, E15-S06 | Define trap-frame and context-switch ABI supplement. | Nested trap frame, `EPCC.slot`, general register save set, special capability save set, and return tests are specified. |
