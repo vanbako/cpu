@@ -56,3 +56,4 @@ Current implementation story:
 - I15-S03: property-style precise-fault checks for register, memory, tag, TLB, reservation, and protected-stack effects.
 - I16-S01: invariant registry and coverage matrix for security and correctness properties.
 - I16-S02: deterministic capability derivation property generators.
+- I16-S03: seed-stable invariant runner and replay CLI.

@@ -40,3 +40,4 @@ Current platform binding:
 - `docs/implementation/precise-fault-properties.md`: deterministic property-style precise-fault side-effect checks.
 - `docs/implementation/invariant-registry.md`: invariant coverage registry for property and RTL follow-up work.
 - `docs/implementation/capability-property-generators.md`: deterministic capability derivation property case generators.
+- `docs/implementation/invariant-runner.md`: seed-stable invariant case runner and replay CLI.
