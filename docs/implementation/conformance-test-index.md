@@ -55,3 +55,4 @@ table in the same change.
 | `tests\conformance\test_i09_s03_syscall_abi.py` | `I09-S03` | `E04-S04`, `E05-S01`, `E05-S02` | `E15-S06`, `tools\software_contract_matrix.md` |
 | `tests\conformance\test_i09_s04_debug_abi.py` | `I09-S04` | `E05-S04`, `E12-S01`, `E12-S03` | `E15-S03`, `E15-S06`, `tools\software_contract_matrix.md` |
 | `tests\conformance\test_i10_s01_rtl_handoff.py` | `I10-S01` | `E13-S01`, `E13-S02`, `E13-S03`, `E13-S04`, `E15-S07` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i11_s01_program_image.py` | `I11-S01` | `E11-S01`, `E11-S02`, `E14-S02` | `E15-S03`, `E15-S05`, `E15-S06` |

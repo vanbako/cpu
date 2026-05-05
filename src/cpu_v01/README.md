@@ -39,3 +39,4 @@ Current implementation story:
 - I09-S03: baseline syscall ABI register, overflow, return, and volatility policy.
 - I09-S04: debugger register view and protected return-stack unwind profile.
 - I10-S01: RTL handoff decoder, commit-point, fault-packet, tag-path, and conformance checklist.
+- I11-S01: program-image manifest and loader boundary validation.
