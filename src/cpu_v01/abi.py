@@ -6,6 +6,7 @@ Owner stories:
 - E15-S06: software-facing ABI contract audit.
 - I09-S01: trap-frame and context-switch ABI supplement.
 - I09-S02: language ABI argument, return, and spill supplement.
+- I09-S03: baseline syscall ABI supplement.
 """
 
 from __future__ import annotations
@@ -77,6 +78,17 @@ INTEGER_SPILL_STORE = "ST48"
 INTEGER_SPILL_LOAD = "LD48"
 CAPABILITY_SPILL_STORE = "CSC"
 CAPABILITY_SPILL_LOAD = "CLC"
+
+SYSCALL_CANONICAL_MNEMONIC = "SYS"
+SYSCALL_SOURCE_SYNONYMS = ("SCALL",)
+SYSCALL_TRAP_CAUSE = "SYSCALL_TRAP"
+SYSCALL_SERVICE_REGISTER = 0
+SYSCALL_INTEGER_ARGUMENT_REGS = tuple(range(1, 6))
+SYSCALL_INTEGER_RETURN_REGS = INTEGER_RETURN_REGS
+SYSCALL_CAPABILITY_ARGUMENT_REGS = CAPABILITY_ARGUMENT_REGS
+SYSCALL_CAPABILITY_RETURN_REGS = CAPABILITY_RETURN_REGS
+SYSCALL_VOLATILE_INTEGER_REGS = INTEGER_CALLER_SAVED_REGS
+SYSCALL_VOLATILE_CAPABILITY_REGS = CAPABILITY_CALLER_SAVED_REGS
 
 
 @dataclass(frozen=True)
@@ -292,9 +304,12 @@ def _slot_alignment_cells(kind: AbiValueKind) -> int:
     return CAPABILITY_ABI_SLOT_CELLS
 
 
-def layout_language_arguments(arguments: Iterable[AbiValueKind | str]) -> AbiCallLayout:
-    """Assign mixed language ABI arguments to registers and stack slots."""
-
+def _layout_arguments(
+    arguments: Iterable[AbiValueKind | str],
+    *,
+    integer_registers: tuple[int, ...],
+    capability_registers: tuple[int, ...],
+) -> AbiCallLayout:
     locations: list[AbiArgumentLocation] = []
     integer_count = 0
     capability_count = 0
@@ -304,13 +319,13 @@ def layout_language_arguments(arguments: Iterable[AbiValueKind | str]) -> AbiCal
         kind = _value_kind(raw_kind)
         size_cells = _slot_size_cells(kind)
         alignment_cells = _slot_alignment_cells(kind)
-        if kind is AbiValueKind.INTEGER and integer_count < len(INTEGER_ARGUMENT_REGS):
+        if kind is AbiValueKind.INTEGER and integer_count < len(integer_registers):
             locations.append(
                 AbiArgumentLocation(
                     argument_index=argument_index,
                     value_kind=kind,
                     location_kind=AbiLocationKind.INTEGER_REGISTER,
-                    register_index=INTEGER_ARGUMENT_REGS[integer_count],
+                    register_index=integer_registers[integer_count],
                     offset_cells=None,
                     size_cells=size_cells,
                     alignment_cells=alignment_cells,
@@ -319,13 +334,13 @@ def layout_language_arguments(arguments: Iterable[AbiValueKind | str]) -> AbiCal
             )
             integer_count += 1
             continue
-        if kind is AbiValueKind.CAPABILITY and capability_count < len(CAPABILITY_ARGUMENT_REGS):
+        if kind is AbiValueKind.CAPABILITY and capability_count < len(capability_registers):
             locations.append(
                 AbiArgumentLocation(
                     argument_index=argument_index,
                     value_kind=kind,
                     location_kind=AbiLocationKind.CAPABILITY_REGISTER,
-                    register_index=CAPABILITY_ARGUMENT_REGS[capability_count],
+                    register_index=capability_registers[capability_count],
                     offset_cells=None,
                     size_cells=size_cells,
                     alignment_cells=alignment_cells,
@@ -357,6 +372,26 @@ def layout_language_arguments(arguments: Iterable[AbiValueKind | str]) -> AbiCal
     return AbiCallLayout(
         locations=tuple(locations),
         overflow_size_cells=_align_up(overflow_offset, PUBLIC_STACK_ALIGNMENT_CELLS),
+    )
+
+
+def layout_language_arguments(arguments: Iterable[AbiValueKind | str]) -> AbiCallLayout:
+    """Assign mixed language ABI arguments to registers and stack slots."""
+
+    return _layout_arguments(
+        arguments,
+        integer_registers=INTEGER_ARGUMENT_REGS,
+        capability_registers=CAPABILITY_ARGUMENT_REGS,
+    )
+
+
+def layout_syscall_arguments(arguments: Iterable[AbiValueKind | str]) -> AbiCallLayout:
+    """Assign mixed syscall arguments after the D0 service-number register."""
+
+    return _layout_arguments(
+        arguments,
+        integer_registers=SYSCALL_INTEGER_ARGUMENT_REGS,
+        capability_registers=SYSCALL_CAPABILITY_ARGUMENT_REGS,
     )
 
 
@@ -422,4 +457,42 @@ def validate_language_abi_profile() -> tuple[str, ...]:
         issues.append("integer overflow area must preserve public stack alignment")
     if capability_layout.overflow_size_cells % PUBLIC_STACK_ALIGNMENT_CELLS:
         issues.append("capability overflow area must preserve public stack alignment")
+    return tuple(issues)
+
+
+def validate_syscall_abi_profile() -> tuple[str, ...]:
+    issues: list[str] = []
+    if SYSCALL_CANONICAL_MNEMONIC != "SYS":
+        issues.append("SYS must be the canonical syscall mnemonic")
+    if SYSCALL_SOURCE_SYNONYMS != ("SCALL",):
+        issues.append("SCALL must remain a syscall source synonym")
+    if SYSCALL_TRAP_CAUSE != "SYSCALL_TRAP":
+        issues.append("syscall instructions must report SYSCALL_TRAP")
+    if SYSCALL_SERVICE_REGISTER != 0:
+        issues.append("syscall service number must be passed in D0")
+    if SYSCALL_INTEGER_ARGUMENT_REGS != (1, 2, 3, 4, 5):
+        issues.append("integer syscall arguments must use D1-D5 before overflow")
+    if SYSCALL_INTEGER_RETURN_REGS != INTEGER_RETURN_REGS:
+        issues.append("integer syscall returns must use D0-D1")
+    if SYSCALL_CAPABILITY_ARGUMENT_REGS != CAPABILITY_ARGUMENT_REGS:
+        issues.append("capability syscall arguments must use C0-C3 before overflow")
+    if SYSCALL_CAPABILITY_RETURN_REGS != CAPABILITY_RETURN_REGS:
+        issues.append("capability syscall returns must use C0")
+    if SYSCALL_VOLATILE_INTEGER_REGS != INTEGER_CALLER_SAVED_REGS:
+        issues.append("syscalls must treat D0-D11 as volatile")
+    if SYSCALL_VOLATILE_CAPABILITY_REGS != CAPABILITY_CALLER_SAVED_REGS:
+        issues.append("syscalls must treat C0-C5 as volatile")
+
+    integer_layout = layout_syscall_arguments([AbiValueKind.INTEGER] * 6)
+    register_locations = integer_layout.locations[:5]
+    if tuple(location.register_index for location in register_locations) != SYSCALL_INTEGER_ARGUMENT_REGS:
+        issues.append("first five integer syscall arguments must use D1-D5")
+    sixth_integer = integer_layout.location_for_argument(5)
+    if not sixth_integer.is_stack or sixth_integer.offset_cells != 0:
+        issues.append("sixth integer syscall argument must use overflow slot 0")
+
+    capability_layout = layout_syscall_arguments([AbiValueKind.CAPABILITY] * 5)
+    fifth_capability = capability_layout.location_for_argument(4)
+    if not fifth_capability.is_stack or fifth_capability.offset_cells != 0 or not fifth_capability.tag_required:
+        issues.append("fifth capability syscall argument must use a tagged overflow slot")
     return tuple(issues)
