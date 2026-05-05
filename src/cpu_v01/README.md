@@ -47,3 +47,4 @@ Current implementation story:
 - I12-S03: story index and implementation documentation drift checks.
 - I13-S01: single-issue in-order pipeline trace model.
 - I13-S02: pipeline versus semantic execution comparison.
+- I13-S03: first hazard, MDU busy, and predictor trace cases.

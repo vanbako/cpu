@@ -31,3 +31,4 @@ Current platform binding:
 - `docs/implementation/story-coverage.md`: implementation story coverage report profile.
 - `docs/implementation/pipeline-trace.md`: single-issue in-order pipeline trace model.
 - `docs/implementation/pipeline-semantic-comparison.md`: pipeline versus semantic execution comparison profile.
+- `docs/implementation/pipeline-hazards-predictor.md`: first hazard, MDU busy, and predictor trace profile.
