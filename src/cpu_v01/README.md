@@ -41,3 +41,4 @@ Current implementation story:
 - I10-S01: RTL handoff decoder, commit-point, fault-packet, tag-path, and conformance checklist.
 - I11-S01: program-image manifest and loader boundary validation.
 - I11-S02: serialized cell image loading with explicit capability sidecars.
+- I11-S03: serialized reset-to-trap smoke program execution.

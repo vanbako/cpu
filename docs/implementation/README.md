@@ -27,3 +27,4 @@ Current platform binding:
 - `docs/implementation/conformance-test-index.md`: story-derived conformance and litmus test ownership index.
 - `docs/implementation/program-image-manifest.md`: simulator program-image manifest and loader boundary profile.
 - `docs/implementation/program-image-loader.md`: serialized cell image loading and explicit capability sidecar profile.
+- `docs/implementation/reset-to-trap-smoke.md`: serialized reset-to-trap smoke fixture for the semantic simulator.
