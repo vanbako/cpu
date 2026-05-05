@@ -10,9 +10,18 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
+from typing import Iterable
 
 from . import platform, serialization
-from .cells import CAPABILITY_OBJECT_CELLS, CellRange, cell_range, require_cell_address
+from .capabilities import Capability
+from .cells import (
+    CAPABILITY_OBJECT_CELLS,
+    CellRange,
+    cell_range,
+    is_aligned,
+    require_cell_address,
+)
+from .memory import TaggedMemory
 from .state import SLOT_0, require_slot
 
 
@@ -73,6 +82,28 @@ class ProgramImageSection:
             tag_policy,
         )
 
+    @classmethod
+    def from_serialized_cells(
+        cls,
+        *,
+        name: str,
+        region_name: str,
+        base_cell: int,
+        alignment_cells: int,
+        payload_octets: bytes | bytearray | memoryview,
+        kind: ProgramImageSectionKind,
+        tag_policy: ProgramImageTagPolicy = ProgramImageTagPolicy.UNTYPED_CELLS,
+    ) -> "ProgramImageSection":
+        return cls.from_cells(
+            name=name,
+            region_name=region_name,
+            base_cell=base_cell,
+            alignment_cells=alignment_cells,
+            payload_cells=serialization.deserialize_cells(payload_octets),
+            kind=kind,
+            tag_policy=tag_policy,
+        )
+
     @property
     def name(self) -> str:
         return self.cell_section.name
@@ -127,6 +158,29 @@ class ProgramImageManifest:
         return self.entry_source is EntryCapabilitySource.RESET_PCC
 
 
+@dataclass(frozen=True)
+class CapabilitySidecarEntry:
+    """One trusted capability payload/tag installation requested by a loader."""
+
+    section_name: str
+    slot_base: int
+    capability: Capability
+
+    def __post_init__(self) -> None:
+        if not self.section_name:
+            raise ValueError("section_name must not be empty")
+        object.__setattr__(self, "slot_base", require_cell_address(self.slot_base, "slot_base"))
+        if not isinstance(self.capability, Capability):
+            raise TypeError("capability must be a Capability")
+
+
+@dataclass(frozen=True)
+class ProgramImageLoadReport:
+    sections_loaded: int
+    cells_loaded: int
+    sidecar_slots_loaded: int
+
+
 def validate_program_image_manifest(
     manifest: ProgramImageManifest,
     profile: platform.TestPlatformProfile = platform.TEST_PLATFORM_PROFILE,
@@ -171,6 +225,84 @@ def require_valid_program_image_manifest(
     if issues:
         raise ProgramImageError("; ".join(issues))
     return manifest
+
+
+def validate_program_image_load(
+    manifest: ProgramImageManifest,
+    memory: TaggedMemory,
+    profile: platform.TestPlatformProfile = platform.TEST_PLATFORM_PROFILE,
+    sidecars: Iterable[CapabilitySidecarEntry] = (),
+) -> tuple[str, ...]:
+    """Return loader acceptance issues without mutating memory."""
+    if not isinstance(memory, TaggedMemory):
+        raise TypeError("memory must be a TaggedMemory")
+    sidecar_tuple = _sidecar_tuple(sidecars)
+    issues = list(validate_program_image_manifest(manifest, profile))
+    section_by_name = {section.name: section for section in manifest.sections}
+
+    for section in manifest.sections:
+        if memory.overlaps_protected_range(section.base_cell, section.size_cells):
+            issues.append(f"section {section.name!r} overlaps protected memory")
+
+    sidecars_by_section: dict[str, list[CapabilitySidecarEntry]] = {}
+    for sidecar in sidecar_tuple:
+        section = section_by_name.get(sidecar.section_name)
+        if section is None:
+            issues.append(f"sidecar targets unknown section {sidecar.section_name!r}")
+            continue
+        sidecars_by_section.setdefault(section.name, []).append(sidecar)
+        if not section.uses_tag_sidecar:
+            issues.append(f"sidecar targets section {section.name!r} without sidecar policy")
+            continue
+        if not is_aligned(sidecar.slot_base, CAPABILITY_OBJECT_CELLS):
+            issues.append(f"sidecar slot 0x{sidecar.slot_base:X} is not capability-slot aligned")
+        sidecar_range = cell_range(sidecar.slot_base, CAPABILITY_OBJECT_CELLS)
+        if not section.range.contains_range(sidecar_range):
+            issues.append(f"sidecar slot 0x{sidecar.slot_base:X} is outside section {section.name!r}")
+
+    for section in manifest.sections:
+        if not section.uses_tag_sidecar:
+            continue
+        expected_slots = _section_capability_slots(section)
+        observed_slots = {
+            sidecar.slot_base
+            for sidecar in sidecars_by_section.get(section.name, ())
+        }
+        missing = sorted(expected_slots - observed_slots)
+        extras = sorted(observed_slots - expected_slots)
+        if missing:
+            issues.append(f"section {section.name!r} is missing sidecar slots")
+        if extras:
+            issues.append(f"section {section.name!r} has sidecar slots outside whole-slot coverage")
+
+    return tuple(issues)
+
+
+def load_program_image(
+    manifest: ProgramImageManifest,
+    memory: TaggedMemory,
+    profile: platform.TestPlatformProfile = platform.TEST_PLATFORM_PROFILE,
+    sidecars: Iterable[CapabilitySidecarEntry] = (),
+) -> ProgramImageLoadReport:
+    """Load validated ordinary cells and explicit sidecar capabilities into memory."""
+    sidecar_tuple = _sidecar_tuple(sidecars)
+    issues = validate_program_image_load(manifest, memory, profile, sidecar_tuple)
+    if issues:
+        raise ProgramImageError("; ".join(issues))
+
+    cells_loaded = 0
+    for section in manifest.sections:
+        memory.write_cells(section.base_cell, section.cell_section.payload_cells)
+        cells_loaded += section.size_cells
+
+    for sidecar in sidecar_tuple:
+        memory.csc(sidecar.slot_base, sidecar.capability)
+
+    return ProgramImageLoadReport(
+        sections_loaded=len(manifest.sections),
+        cells_loaded=cells_loaded,
+        sidecar_slots_loaded=len(sidecar_tuple),
+    )
 
 
 def _validate_section(
@@ -239,3 +371,15 @@ def _entry_text_section(
 
 def _ranges_overlap(left: CellRange, right: CellRange) -> bool:
     return left.base < right.top and right.base < left.top
+
+
+def _section_capability_slots(section: ProgramImageSection) -> set[int]:
+    return set(range(section.base_cell, section.end_cell, CAPABILITY_OBJECT_CELLS))
+
+
+def _sidecar_tuple(sidecars: Iterable[CapabilitySidecarEntry]) -> tuple[CapabilitySidecarEntry, ...]:
+    result = tuple(sidecars)
+    for sidecar in result:
+        if not isinstance(sidecar, CapabilitySidecarEntry):
+            raise TypeError("sidecars must contain CapabilitySidecarEntry values")
+    return result
