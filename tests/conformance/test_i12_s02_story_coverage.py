@@ -52,11 +52,11 @@ class StoryCoverageReportTests(unittest.TestCase):
         self.assertEqual(rows["I14-S03"].status, "tested")
         self.assertEqual(rows["I15-S01"].status, "tested")
         self.assertEqual(rows["I15-S02"].status, "tested")
-        self.assertEqual(rows["I15-S03"].status, "missing")
+        self.assertEqual(rows["I15-S03"].status, "tested")
         self.assertGreater(report.tested_count, 0)
-        self.assertGreater(report.missing_count, 0)
+        self.assertEqual(report.missing_count, 0)
 
-    def test_rendered_report_lists_artifacts_and_missing_future_work(self) -> None:
+    def test_rendered_report_lists_artifacts_and_final_story(self) -> None:
         tool = load_story_coverage_module()
 
         rendered = tool.render_report(tool.coverage_report(ROOT))
@@ -66,7 +66,7 @@ class StoryCoverageReportTests(unittest.TestCase):
         self.assertIn("test_i12_s02_story_coverage.py", rendered)
         self.assertIn("`I15-S01` | tested", rendered)
         self.assertIn("`I15-S02` | tested", rendered)
-        self.assertIn("`I15-S03` | missing", rendered)
+        self.assertIn("`I15-S03` | tested", rendered)
 
     def test_missing_only_cli_filters_report_rows(self) -> None:
         tool = load_story_coverage_module()
@@ -77,7 +77,9 @@ class StoryCoverageReportTests(unittest.TestCase):
 
         output = stream.getvalue()
         self.assertEqual(result, 0)
-        self.assertIn("`I15-S03` | missing", output)
+        self.assertIn("Stories: 0", output)
+        self.assertIn("Missing: 0", output)
+        self.assertNotIn("`I15-S03` | tested", output)
         self.assertNotIn("`I01-S01` | tested", output)
 
     def test_documentation_artifact_names_command_and_statuses(self) -> None:

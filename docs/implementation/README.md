@@ -37,3 +37,4 @@ Current platform binding:
 - `docs/implementation/secondary-core-boot-demo.md`: firmware-controlled secondary-core startup demo.
 - `docs/implementation/capability-monotonicity-properties.md`: deterministic property-style capability monotonicity checks.
 - `docs/implementation/tag-integrity-properties.md`: deterministic property-style capability tag non-forgery checks.
+- `docs/implementation/precise-fault-properties.md`: deterministic property-style precise-fault side-effect checks.

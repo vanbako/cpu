@@ -53,3 +53,4 @@ Current implementation story:
 - I14-S03: firmware-controlled secondary-core startup demo.
 - I15-S01: property-style capability monotonicity checks for derivation semantics.
 - I15-S02: property-style capability tag integrity checks across memory, DMA, CCSR, and debug surfaces.
+- I15-S03: property-style precise-fault checks for register, memory, tag, TLB, reservation, and protected-stack effects.
