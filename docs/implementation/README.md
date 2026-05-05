@@ -21,3 +21,4 @@ Current platform binding:
 - `docs/implementation/trap-context-abi.md`: trap-frame layout and context-switch save-set supplement.
 - `docs/implementation/rtl-handoff.md`: decoder, commit-point, fault-packet, tag-path, and conformance checklist for RTL.
 - `docs/implementation/cell-serialization-profile.md`: little-endian 24-bit cell serialization and section payload rules for byte-oriented host containers.
+- `docs/implementation/language-abi.md`: public call-boundary register windows, mixed overflow layout, and spill rules.

@@ -5,6 +5,7 @@ Owner stories:
 - E07-S06: nested trap-frame requirements.
 - E15-S06: software-facing ABI contract audit.
 - I09-S01: trap-frame and context-switch ABI supplement.
+- I09-S02: language ABI argument, return, and spill supplement.
 """
 
 from __future__ import annotations
@@ -57,6 +58,27 @@ class AbiFieldKind(Enum):
     CONTROL = "CONTROL"
 
 
+class AbiValueKind(Enum):
+    INTEGER = "INTEGER"
+    CAPABILITY = "CAPABILITY"
+
+
+class AbiLocationKind(Enum):
+    INTEGER_REGISTER = "INTEGER_REGISTER"
+    CAPABILITY_REGISTER = "CAPABILITY_REGISTER"
+    STACK = "STACK"
+
+
+INTEGER_ABI_SLOT_CELLS = INTEGER_OBJECT_CELLS
+CAPABILITY_ABI_SLOT_CELLS = CAPABILITY_OBJECT_CELLS
+PUBLIC_STACK_ALIGNMENT_CELLS = CAPABILITY_OBJECT_CELLS
+
+INTEGER_SPILL_STORE = "ST48"
+INTEGER_SPILL_LOAD = "LD48"
+CAPABILITY_SPILL_STORE = "CSC"
+CAPABILITY_SPILL_LOAD = "CLC"
+
+
 @dataclass(frozen=True)
 class TrapFrameField:
     name: str
@@ -82,6 +104,97 @@ class TrapFrameField:
         object.__setattr__(self, "kind", AbiFieldKind(self.kind))
         if self.offset_cells % self.alignment_cells != 0:
             raise ValueError(f"{self.name} is not aligned")
+
+
+@dataclass(frozen=True)
+class AbiArgumentLocation:
+    argument_index: int
+    value_kind: AbiValueKind
+    location_kind: AbiLocationKind
+    register_index: int | None
+    offset_cells: int | None
+    size_cells: int
+    alignment_cells: int
+    tag_required: bool
+
+    @property
+    def end_cells(self) -> int | None:
+        if self.offset_cells is None:
+            return None
+        return self.offset_cells + self.size_cells
+
+    @property
+    def is_stack(self) -> bool:
+        return self.location_kind is AbiLocationKind.STACK
+
+    def __post_init__(self) -> None:
+        if self.argument_index < 0:
+            raise ValueError("argument_index must be nonnegative")
+        object.__setattr__(self, "value_kind", AbiValueKind(self.value_kind))
+        object.__setattr__(self, "location_kind", AbiLocationKind(self.location_kind))
+        if self.size_cells <= 0:
+            raise ValueError("size_cells must be positive")
+        if self.alignment_cells <= 0:
+            raise ValueError("alignment_cells must be positive")
+        if self.location_kind is AbiLocationKind.STACK:
+            if self.register_index is not None:
+                raise ValueError("stack locations must not name a register")
+            if self.offset_cells is None or self.offset_cells < 0:
+                raise ValueError("stack locations require a nonnegative offset")
+            if self.offset_cells % self.alignment_cells:
+                raise ValueError("stack argument offset is not aligned")
+        else:
+            if self.offset_cells is not None:
+                raise ValueError("register locations must not name a stack offset")
+            if self.register_index is None:
+                raise ValueError("register locations require a register index")
+            if self.location_kind is AbiLocationKind.INTEGER_REGISTER:
+                if self.value_kind is not AbiValueKind.INTEGER:
+                    raise ValueError("integer registers can only hold integer ABI arguments")
+                if self.register_index not in INTEGER_ARGUMENT_REGS:
+                    raise ValueError("integer argument register is outside D0-D5")
+            if self.location_kind is AbiLocationKind.CAPABILITY_REGISTER:
+                if self.value_kind is not AbiValueKind.CAPABILITY:
+                    raise ValueError("capability registers can only hold capability ABI arguments")
+                if self.register_index not in CAPABILITY_ARGUMENT_REGS:
+                    raise ValueError("capability argument register is outside C0-C3")
+
+
+@dataclass(frozen=True)
+class AbiCallLayout:
+    locations: tuple[AbiArgumentLocation, ...]
+    overflow_size_cells: int
+
+    @property
+    def stack_locations(self) -> tuple[AbiArgumentLocation, ...]:
+        return tuple(location for location in self.locations if location.is_stack)
+
+    def location_for_argument(self, argument_index: int) -> AbiArgumentLocation:
+        for location in self.locations:
+            if location.argument_index == argument_index:
+                return location
+        raise KeyError(f"unknown ABI argument index {argument_index}")
+
+    def __post_init__(self) -> None:
+        if self.overflow_size_cells < 0:
+            raise ValueError("overflow_size_cells must be nonnegative")
+        if self.overflow_size_cells % PUBLIC_STACK_ALIGNMENT_CELLS:
+            raise ValueError("overflow area must preserve public stack alignment")
+        seen: set[int] = set()
+        occupied: dict[int, int] = {}
+        for location in self.locations:
+            if location.argument_index in seen:
+                raise ValueError("duplicate ABI argument location")
+            seen.add(location.argument_index)
+            if location.is_stack:
+                assert location.offset_cells is not None
+                assert location.end_cells is not None
+                for cell in range(location.offset_cells, location.end_cells):
+                    if cell in occupied:
+                        raise ValueError("overlapping ABI stack argument slots")
+                    occupied[cell] = location.argument_index
+                if location.end_cells > self.overflow_size_cells:
+                    raise ValueError("ABI stack argument exceeds overflow area")
 
 
 TRAP_FRAME_FIELDS = (
@@ -159,6 +272,94 @@ def trap_frame_field(name: str) -> TrapFrameField:
         raise KeyError(f"unknown trap-frame field {name!r}") from exc
 
 
+def _align_up(value: int, alignment_cells: int) -> int:
+    return value + ((alignment_cells - (value % alignment_cells)) % alignment_cells)
+
+
+def _value_kind(value: AbiValueKind | str) -> AbiValueKind:
+    return AbiValueKind(value)
+
+
+def _slot_size_cells(kind: AbiValueKind) -> int:
+    if kind is AbiValueKind.INTEGER:
+        return INTEGER_ABI_SLOT_CELLS
+    return CAPABILITY_ABI_SLOT_CELLS
+
+
+def _slot_alignment_cells(kind: AbiValueKind) -> int:
+    if kind is AbiValueKind.INTEGER:
+        return INTEGER_ABI_SLOT_CELLS
+    return CAPABILITY_ABI_SLOT_CELLS
+
+
+def layout_language_arguments(arguments: Iterable[AbiValueKind | str]) -> AbiCallLayout:
+    """Assign mixed language ABI arguments to registers and stack slots."""
+
+    locations: list[AbiArgumentLocation] = []
+    integer_count = 0
+    capability_count = 0
+    overflow_offset = 0
+
+    for argument_index, raw_kind in enumerate(arguments):
+        kind = _value_kind(raw_kind)
+        size_cells = _slot_size_cells(kind)
+        alignment_cells = _slot_alignment_cells(kind)
+        if kind is AbiValueKind.INTEGER and integer_count < len(INTEGER_ARGUMENT_REGS):
+            locations.append(
+                AbiArgumentLocation(
+                    argument_index=argument_index,
+                    value_kind=kind,
+                    location_kind=AbiLocationKind.INTEGER_REGISTER,
+                    register_index=INTEGER_ARGUMENT_REGS[integer_count],
+                    offset_cells=None,
+                    size_cells=size_cells,
+                    alignment_cells=alignment_cells,
+                    tag_required=False,
+                )
+            )
+            integer_count += 1
+            continue
+        if kind is AbiValueKind.CAPABILITY and capability_count < len(CAPABILITY_ARGUMENT_REGS):
+            locations.append(
+                AbiArgumentLocation(
+                    argument_index=argument_index,
+                    value_kind=kind,
+                    location_kind=AbiLocationKind.CAPABILITY_REGISTER,
+                    register_index=CAPABILITY_ARGUMENT_REGS[capability_count],
+                    offset_cells=None,
+                    size_cells=size_cells,
+                    alignment_cells=alignment_cells,
+                    tag_required=True,
+                )
+            )
+            capability_count += 1
+            continue
+
+        if kind is AbiValueKind.INTEGER:
+            integer_count += 1
+        else:
+            capability_count += 1
+        overflow_offset = _align_up(overflow_offset, alignment_cells)
+        locations.append(
+            AbiArgumentLocation(
+                argument_index=argument_index,
+                value_kind=kind,
+                location_kind=AbiLocationKind.STACK,
+                register_index=None,
+                offset_cells=overflow_offset,
+                size_cells=size_cells,
+                alignment_cells=alignment_cells,
+                tag_required=kind is AbiValueKind.CAPABILITY,
+            )
+        )
+        overflow_offset += size_cells
+
+    return AbiCallLayout(
+        locations=tuple(locations),
+        overflow_size_cells=_align_up(overflow_offset, PUBLIC_STACK_ALIGNMENT_CELLS),
+    )
+
+
 def validate_trap_frame_layout(fields: Iterable[TrapFrameField] = TRAP_FRAME_FIELDS) -> tuple[str, ...]:
     issues: list[str] = []
     field_tuple = tuple(fields)
@@ -191,4 +392,34 @@ def validate_context_switch_save_sets() -> tuple[str, ...]:
         issues.append("nested trap restore must use EPCCWR to preserve EPCC.slot")
     if "IRET" != NESTED_TRAP_RESTORE_SEQUENCE[-1]:
         issues.append("nested trap restore sequence must end with IRET")
+    return tuple(issues)
+
+
+def validate_language_abi_profile() -> tuple[str, ...]:
+    issues: list[str] = []
+    if INTEGER_ABI_SLOT_CELLS != INTEGER_OBJECT_CELLS:
+        issues.append("integer ABI slots must be 2 cells")
+    if CAPABILITY_ABI_SLOT_CELLS != CAPABILITY_OBJECT_CELLS:
+        issues.append("capability ABI slots must be 4 cells")
+    if PUBLIC_STACK_ALIGNMENT_CELLS != CAPABILITY_OBJECT_CELLS:
+        issues.append("public stack alignment must be 4 cells")
+    if CAPABILITY_SPILL_STORE != "CSC" or CAPABILITY_SPILL_LOAD != "CLC":
+        issues.append("capability spills must use CSC/CLC")
+    if INTEGER_SPILL_STORE != "ST48" or INTEGER_SPILL_LOAD != "LD48":
+        issues.append("integer spills must use ST48/LD48")
+
+    integer_layout = layout_language_arguments([AbiValueKind.INTEGER] * 7)
+    seventh_integer = integer_layout.location_for_argument(6)
+    if not seventh_integer.is_stack or seventh_integer.offset_cells != 0:
+        issues.append("seventh integer argument must start at overflow slot 0")
+
+    capability_layout = layout_language_arguments([AbiValueKind.CAPABILITY] * 5)
+    fifth_capability = capability_layout.location_for_argument(4)
+    if not fifth_capability.is_stack or fifth_capability.offset_cells != 0 or not fifth_capability.tag_required:
+        issues.append("fifth capability argument must start at a tagged overflow slot")
+
+    if integer_layout.overflow_size_cells % PUBLIC_STACK_ALIGNMENT_CELLS:
+        issues.append("integer overflow area must preserve public stack alignment")
+    if capability_layout.overflow_size_cells % PUBLIC_STACK_ALIGNMENT_CELLS:
+        issues.append("capability overflow area must preserve public stack alignment")
     return tuple(issues)

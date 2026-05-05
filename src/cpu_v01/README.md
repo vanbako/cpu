@@ -33,4 +33,5 @@ Current implementation story:
 - I08-S01: minimal test-platform profile for reset, memory map, fatal-entry, and debug policy.
 - I08-S02: secondary-core start mailbox and platform start-event binding.
 - I09-S01: trap-frame layout and context-switch ABI supplement.
+- I09-S02: language ABI register windows, mixed overflow stack layout, and spill rules.
 - I10-S01: RTL handoff decoder, commit-point, fault-packet, tag-path, and conformance checklist.
