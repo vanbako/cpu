@@ -45,3 +45,4 @@ Current implementation story:
 - I12-S01: one-command local check runner.
 - I12-S02: implementation story coverage report.
 - I12-S03: story index and implementation documentation drift checks.
+- I13-S01: single-issue in-order pipeline trace model.
