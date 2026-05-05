@@ -60,3 +60,4 @@ table in the same change.
 | `tests\conformance\test_i11_s03_reset_to_trap_smoke.py` | `I11-S03` | `E04-S02`, `E04-S03`, `E07-S04`, `E11-S01` | `E15-S03`, `E15-S04`, `E15-S06` |
 | `tests\conformance\test_i12_s01_local_checks.py` | `I12-S01` | `E15-S07` | `E15-S01`, `E15-S02`, `E15-S07` |
 | `tests\conformance\test_i12_s02_story_coverage.py` | `I12-S02` | `E15-S07` | `E15-S01`, `E15-S06`, `E15-S07` |
+| `tests\conformance\test_i12_s03_story_drift.py` | `I12-S03` | `E15-S07` | `E15-S01`, `E15-S06`, `E15-S07` |

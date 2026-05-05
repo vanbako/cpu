@@ -16,6 +16,7 @@ from typing import Sequence
 
 
 STORY_ROW_RE = re.compile(r"^\| (?P<story>I\d{2}-S\d{2}) \|")
+DOC_STORY_RE = re.compile(r"^Story: I\d{2}-S\d{2}$", re.MULTILINE)
 INDEX_ROW_RE = re.compile(
     r"^\| `(?P<path>[^`]+)` \| `(?P<story>I\d{2}-S\d{2})` \| "
     r"(?P<owners>[^|]+) \| (?P<coverage>[^|]+) \|$",
@@ -109,6 +110,61 @@ def coverage_report(root: Path | None = None) -> StoryCoverageReport:
     return StoryCoverageReport(tuple(rows))
 
 
+def drift_issues(root: Path | None = None) -> tuple[str, ...]:
+    if root is None:
+        root = repo_root()
+    artifacts = indexed_artifacts(root / "docs" / "implementation" / "conformance-test-index.md")
+    indexed_paths = [artifact.path for artifact in artifacts]
+    current_test_paths = {
+        _repo_path(path, root)
+        for directory in (root / "tests" / "conformance", root / "tests" / "litmus")
+        for path in directory.glob("test_*.py")
+    }
+    missing_artifact_paths: list[str] = []
+    for path in indexed_paths:
+        if not path.startswith(("tests\\", "docs\\", "tools\\")):
+            continue
+        if not (root / Path(path.replace("\\", "/"))).exists():
+            missing_artifact_paths.append(path)
+
+    unowned_doc_paths: list[str] = []
+    for path in sorted((root / "docs" / "implementation").glob("*.md")):
+        if path.name == "README.md":
+            continue
+        if not DOC_STORY_RE.search(path.read_text(encoding="utf-8")):
+            unowned_doc_paths.append(_repo_path(path, root))
+
+    return drift_issues_from_inventory(
+        indexed_paths=indexed_paths,
+        current_test_paths=current_test_paths,
+        missing_artifact_paths=missing_artifact_paths,
+        unowned_doc_paths=unowned_doc_paths,
+    )
+
+
+def drift_issues_from_inventory(
+    *,
+    indexed_paths: Sequence[str],
+    current_test_paths: Sequence[str] | set[str],
+    missing_artifact_paths: Sequence[str] = (),
+    unowned_doc_paths: Sequence[str] = (),
+) -> tuple[str, ...]:
+    indexed_test_paths = {path for path in indexed_paths if path.startswith("tests\\")}
+    current_test_path_set = set(current_test_paths)
+
+    issues: list[str] = []
+    for path in sorted(current_test_path_set - indexed_test_paths):
+        issues.append(f"test file is missing from conformance index: {path}")
+    for path in sorted(indexed_test_paths - current_test_path_set):
+        issues.append(f"conformance index has stale test artifact: {path}")
+    for path in sorted(missing_artifact_paths):
+        issues.append(f"conformance index artifact does not exist: {path}")
+    for path in sorted(unowned_doc_paths):
+        issues.append(f"implementation doc has no Story owner: {path}")
+
+    return tuple(issues)
+
+
 def render_report(report: StoryCoverageReport) -> str:
     lines = [
         "# Implementation Story Coverage",
@@ -134,7 +190,22 @@ def main(argv: Sequence[str] | None = None) -> int:
         action="store_true",
         help="print only missing story rows",
     )
+    parser.add_argument(
+        "--check-drift",
+        action="store_true",
+        help="fail if tests, index rows, or implementation docs drift",
+    )
     args = parser.parse_args(argv)
+
+    if args.check_drift:
+        issues = drift_issues()
+        if issues:
+            print("Story coverage drift issues:")
+            for issue in issues:
+                print(f"- {issue}")
+            return 1
+        print("Story coverage drift issues: 0")
+        return 0
 
     report = coverage_report()
     if args.missing_only:
@@ -143,6 +214,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
     print(render_report(report))
     return 0
+
+
+def _repo_path(path: Path, root: Path) -> str:
+    return path.relative_to(root).as_posix().replace("/", "\\")
 
 
 if __name__ == "__main__":

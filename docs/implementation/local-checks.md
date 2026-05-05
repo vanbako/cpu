@@ -9,6 +9,7 @@ Use these commands before implementation commits.
 ```text
 python tools\spec_reference_check.py
 python tools\spec_constants_model.py
+python tools\story_coverage.py --check-drift
 git diff --check
 ```
 

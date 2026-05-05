@@ -26,6 +26,22 @@ To print only missing stories:
 python tools\story_coverage.py --missing-only
 ```
 
+## Drift Check
+
+I12-S03 adds a check mode for local automation:
+
+```text
+python tools\story_coverage.py --check-drift
+```
+
+The drift check fails when:
+
+- a `tests\conformance\test_*.py` or `tests\litmus\test_*.py` file is missing
+  from the conformance index;
+- the conformance index names a stale artifact path;
+- an implementation document other than `docs\implementation\README.md` has no
+  `Story: Ixx-Syy` owner line.
+
 ## Status Meaning
 
 - `tested`: at least one indexed artifact is under `tests\`.

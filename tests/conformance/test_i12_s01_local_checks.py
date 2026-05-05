@@ -37,6 +37,7 @@ class LocalCheckRunnerTests(unittest.TestCase):
             (
                 "spec references",
                 "constants model",
+                "story coverage drift",
                 "conformance tests",
                 "litmus tests",
                 "whitespace",
@@ -57,6 +58,7 @@ class LocalCheckRunnerTests(unittest.TestCase):
             ),
             commands,
         )
+        self.assertIn(("python", "tools/story_coverage.py", "--check-drift"), commands)
         self.assertIn(
             (
                 "python",
@@ -82,6 +84,7 @@ class LocalCheckRunnerTests(unittest.TestCase):
         output = stream.getvalue()
         self.assertEqual(result, 0)
         self.assertIn("spec references:", output)
+        self.assertIn("story coverage drift:", output)
         self.assertIn("conformance tests:", output)
         self.assertIn("git diff --check", output)
 

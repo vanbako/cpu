@@ -44,3 +44,4 @@ Current implementation story:
 - I11-S03: serialized reset-to-trap smoke program execution.
 - I12-S01: one-command local check runner.
 - I12-S02: implementation story coverage report.
+- I12-S03: story index and implementation documentation drift checks.
