@@ -51,3 +51,4 @@ Current implementation story:
 - I14-S01: trusted tiny ROM initialization and kernel handoff fixture.
 - I14-S02: minimal trap-frame, syscall, timer, and IRET handler fixtures.
 - I14-S03: firmware-controlled secondary-core startup demo.
+- I15-S01: property-style capability monotonicity checks for derivation semantics.
