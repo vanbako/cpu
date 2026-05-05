@@ -23,3 +23,4 @@ Current platform binding:
 - `docs/implementation/cell-serialization-profile.md`: little-endian 24-bit cell serialization and section payload rules for byte-oriented host containers.
 - `docs/implementation/language-abi.md`: public call-boundary register windows, mixed overflow layout, and spill rules.
 - `docs/implementation/syscall-abi.md`: baseline syscall service register, argument registers, overflow layout, returns, and volatility.
+- `docs/implementation/debugger-abi.md`: direct halted-core register view and protected return-stack unwind rules.

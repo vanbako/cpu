@@ -107,6 +107,7 @@ Explicitly excluded from the first slice:
 | I09-S01 | P1 | M | I04-S03, E07-S06, E15-S06 | Define trap-frame and context-switch ABI supplement. | Nested trap frame, `EPCC.slot`, general register save set, special capability save set, and return tests are specified. |
 | I09-S02 | P1 | M | I09-S01, E05-S01, E05-S02, E15-S06 | Define language ABI argument, return, overflow, and spill profile. | Register windows, mixed overflow stack layout, public stack alignment, and capability spill rules have executable tests. |
 | I09-S03 | P1 | M | I09-S02, E04-S04, E05-S01, E05-S02 | Define baseline syscall ABI policy. | `SYS`/`SCALL` spelling, service number, syscall argument windows, overflow layout, returns, and volatility have executable tests. |
+| I09-S04 | P1 | M | I09-S01, I09-S03, E05-S04, E12-S01, E12-S03 | Define debugger register access and protected unwind profile. | Halted-core register inventory, tag/slot visibility, direct-access lifecycle rule, and return-stack unwind operations have executable tests. |
 | I10-S01 | P1 | L | I01-I07 | Produce RTL handoff checklist from simulator results. | RTL commit points, decoder table, fault packet interface, tag path, and conformance hooks are documented. |
 
 ## Near-term Sprint Plan

@@ -35,4 +35,5 @@ Current implementation story:
 - I09-S01: trap-frame layout and context-switch ABI supplement.
 - I09-S02: language ABI register windows, mixed overflow stack layout, and spill rules.
 - I09-S03: baseline syscall ABI register, overflow, return, and volatility policy.
+- I09-S04: debugger register view and protected return-stack unwind profile.
 - I10-S01: RTL handoff decoder, commit-point, fault-packet, tag-path, and conformance checklist.
