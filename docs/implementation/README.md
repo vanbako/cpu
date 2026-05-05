@@ -24,3 +24,4 @@ Current platform binding:
 - `docs/implementation/language-abi.md`: public call-boundary register windows, mixed overflow layout, and spill rules.
 - `docs/implementation/syscall-abi.md`: baseline syscall service register, argument registers, overflow layout, returns, and volatility.
 - `docs/implementation/debugger-abi.md`: direct halted-core register view and protected return-stack unwind rules.
+- `docs/implementation/conformance-test-index.md`: story-derived conformance and litmus test ownership index.

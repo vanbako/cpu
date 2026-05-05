@@ -51,6 +51,11 @@ Implementation principles:
 | I08 | P0 | Minimal platform profile and boot path. | Test platform memory map, reset vector, ROM hook, interrupt bindings, secondary mailbox, and debug transport model. |
 | I09 | P1 | Firmware, kernel, and debugger ABI supplements. | Trap-frame layout, context-switch save set, syscall policy, debug register access, and unwind notes. |
 | I10 | P1 | RTL/cycle-level handoff. | Simulator-backed conformance suite, decode tables, commit-point checklist, and RTL interface notes. |
+| I11 | P0 | Program image execution. | Serialized cell-image loader, ROM/RAM placement, and reset-to-program execution smoke tests. |
+| I12 | P0 | CI and story coverage. | One-command local check runner, story coverage report, and drift checks for tests/docs. |
+| I13 | P1 | Cycle-level prototype. | Pipeline trace model checked against semantic retire packets. |
+| I14 | P1 | Firmware and kernel bring-up path. | Tiny ROM, trap/syscall/timer handlers, and secondary-core boot demo in simulation. |
+| I15 | P1 | Formal and security invariants. | Property-style tests for capability monotonicity, tag integrity, and precise fault effects. |
 
 ## First Vertical Slice
 
@@ -109,6 +114,21 @@ Explicitly excluded from the first slice:
 | I09-S03 | P1 | M | I09-S02, E04-S04, E05-S01, E05-S02 | Define baseline syscall ABI policy. | `SYS`/`SCALL` spelling, service number, syscall argument windows, overflow layout, returns, and volatility have executable tests. |
 | I09-S04 | P1 | M | I09-S01, I09-S03, E05-S04, E12-S01, E12-S03 | Define debugger register access and protected unwind profile. | Halted-core register inventory, tag/slot visibility, direct-access lifecycle rule, and return-stack unwind operations have executable tests. |
 | I10-S01 | P1 | L | I01-I07 | Produce RTL handoff checklist from simulator results. | RTL commit points, decoder table, fault packet interface, tag path, and conformance hooks are documented. |
+| I11-S01 | P0 | M | I07-S03, I08-S01 | Define simulator program-image manifest and loader boundaries. | Image sections, entry capability source, RAM/ROM placement, tag-bearing data policy, and invalid-image failures are documented and tested. |
+| I11-S02 | P0 | M | I11-S01, I02-S03 | Implement serialized 24-bit cell image loading into simulator memory. | Little-endian cells load into ROM/RAM regions, capability tags remain explicit, protected regions reject ordinary image writes, and bad alignment fails. |
+| I11-S03 | P0 | L | I11-S02, I04-S03, I07-S02 | Execute a serialized reset-to-trap smoke program. | A binary fixture resets through the test platform, executes integer/load/store/control flow, takes a trap, and returns with `IRET`. |
+| I12-S01 | P0 | S | I01-S02, I01-S03 | Add one-command full local check runner. | Spec checks, conformance tests, litmus tests, and whitespace checks run through one documented command. |
+| I12-S02 | P0 | M | I01-S03 | Generate a story coverage report from tests and docs. | Current `I01-I15` story rows report indexed tests, missing tests, and intentionally documentation-only stories. |
+| I12-S03 | P1 | M | I12-S02 | Add drift checks for story IDs, test names, and implementation docs. | New test files without index rows, stale index rows, and unowned implementation docs fail the local check. |
+| I13-S01 | P1 | L | I10-S01, E13-S01 | Implement a single-issue pipeline trace model. | FE0 through RT stages emit deterministic traces for straight-line, branch, trap, and load/store programs. |
+| I13-S02 | P1 | L | I13-S01, I03-S01 | Compare cycle-level retire packets against semantic execution. | Matching programs produce identical committed architectural state, fault packets, debug events, and redirects. |
+| I13-S03 | P1 | M | I13-S02, E13-S02, E13-S03, E13-S04 | Model first hazard, MDU, and predictor cases. | Load-use interlock, busy destination, branch flush, return-stack prediction, and context flush cases match the semantic contract. |
+| I14-S01 | P1 | M | I11-S03, I08-S01 | Build a tiny ROM initialization sequence. | ROM sets initial capabilities, validates platform profile assumptions, and reaches a kernel handoff point in simulation. |
+| I14-S02 | P1 | L | I14-S01, I09-S01, I09-S03 | Add minimal trap, syscall, and timer handler fixtures. | Trap frames, syscall arguments, timer interrupt dispatch, and `IRET` paths run as executable firmware/kernel examples. |
+| I14-S03 | P1 | L | I14-S02, I08-S02 | Demonstrate secondary-core startup under firmware control. | Core 0 publishes a mailbox, starts a secondary core, observes `STARTED`, and rejects invalid or repeated startup attempts. |
+| I15-S01 | P1 | M | I03-S03, E03-S03 | Add property-style capability monotonicity tests. | Derivation, bounds, permissions, sealing, and unsealing cannot widen authority or synthesize valid tags. |
+| I15-S02 | P1 | M | I02-S03, I03-S04, E03-S04 | Add property-style tag integrity tests. | Integer stores, serialization, DMA, cache movement, CCSR copies, and debug observation cannot forge capability tags. |
+| I15-S03 | P1 | L | I04-S02, I06-S01, E15-S04 | Add precise-fault and no-side-effect property tests. | Fault-priority cases suppress partial register, memory, tag, reservation, TLB, and protected-stack effects. |
 
 ## Near-term Sprint Plan
 
@@ -189,7 +209,7 @@ Minimum local checks before each implementation commit:
 ```text
 python tools\spec_reference_check.py
 python tools\spec_constants_model.py
+python -m unittest discover -s tests/conformance -p "test_*.py"
+python -m unittest discover -s tests/litmus -p "test_*.py"
 git diff --check
 ```
-
-Once code exists, add the project test command to this list.

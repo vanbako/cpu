@@ -7,6 +7,8 @@ The first implementation target is an internal decoded-instruction semantic mode
 Current implementation story:
 
 - I01-S01: package skeleton and import smoke test.
+- I01-S02: local test commands and baseline CI-style checks.
+- I01-S03: story-derived conformance and litmus test ownership index.
 - I02-S01: 24-bit cell and 48-bit address helpers.
 - I02-S02: capability payload, tag, permission, flag, and object-type data types.
 - I02-S03: cell-addressed memory and capability-slot tag storage.

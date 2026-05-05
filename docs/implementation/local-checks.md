@@ -16,6 +16,7 @@ git diff --check
 
 ```text
 python -m unittest discover -s tests/conformance -p "test_*.py"
+python -m unittest discover -s tests/litmus -p "test_*.py"
 ```
 
 ## Full Local Check
