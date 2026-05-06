@@ -75,6 +75,8 @@ table in the same change.
 | `tests\conformance\test_i16_s03_invariant_runner.py` | `I16-S03` | `E03-S03`, `E04-S05`, `E15-S04`, `E15-S05` | `E15-S01`, `E15-S04`, `E15-S05` |
 | `docs\implementation\relocatable-object-metadata.md` | `I17-S01` | `E01-S05`, `E03-S04`, `E05-S04`, `E14-S02` | `E15-S02`, `E15-S05`, `E15-S06`, `E15-S07` |
 | `tests\conformance\test_i17_s01_object_metadata.py` | `I17-S01` | `E01-S05`, `E03-S04`, `E05-S04`, `E14-S02` | `E15-S02`, `E15-S05`, `E15-S06`, `E15-S07` |
+| `docs\implementation\linker-relocation-fixtures.md` | `I17-S02` | `E01-S05`, `E04-S01`, `E04-S04`, `E14-S02` | `E15-S02`, `E15-S06`, `E15-S07` |
+| `tests\conformance\test_i17_s02_linker_relocations.py` | `I17-S02` | `E01-S05`, `E04-S01`, `E04-S04`, `E14-S02` | `E15-S02`, `E15-S06`, `E15-S07` |
 | `docs\implementation\external-fabric-cpu-boundary.md` | `I19-S01` | `E07-S05`, `E09-S06`, `E10-S04`, `E10-S05`, `E11-S03` | `E15-S03`, `E15-S05`, `E15-S06`, `E15-S07` |
 | `docs\implementation\rtl-first-slice-contract.md` | `I20-S01` | `E07-S03`, `E13-S01`, `E13-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i20_s01_rtl_first_slice_contract.py` | `I20-S01` | `E07-S03`, `E13-S01`, `E13-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
