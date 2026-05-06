@@ -120,3 +120,6 @@ table in the same change.
 | `docs\implementation\rtl-readiness-gap-report.md` | `I20-S08` | `E13-S01`, `E15-S07` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tools\rtl_readiness_gap.py` | `I20-S08` | `E13-S01`, `E15-S07` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i20_s08_rtl_readiness_gap.py` | `I20-S08` | `E13-S01`, `E15-S07` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `docs\implementation\rtl-scalar-control-slice.md` | `I21-S01` | `E02-S04`, `E02-S05`, `E04-S02`, `E04-S04`, `E04-S06`, `E07-S03` | `E15-S02`, `E15-S03`, `E15-S04`, `E15-S07` |
+| `tools\rtl_scalar_control_slice.py` | `I21-S01` | `E02-S04`, `E02-S05`, `E04-S02`, `E04-S04`, `E04-S06`, `E07-S03` | `E15-S02`, `E15-S03`, `E15-S04`, `E15-S07` |
+| `tests\conformance\test_i21_s01_rtl_scalar_control.py` | `I21-S01` | `E02-S04`, `E02-S05`, `E04-S02`, `E04-S04`, `E04-S06`, `E07-S03` | `E15-S02`, `E15-S03`, `E15-S04`, `E15-S07` |

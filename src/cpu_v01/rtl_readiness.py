@@ -19,6 +19,7 @@ from . import (
     rtl_cap_mem,
     rtl_fault_trap,
     rtl_smoke,
+    rtl_scalar_control,
 )
 
 
@@ -30,6 +31,7 @@ RTL_SLICE_CHECK_COMMANDS = (
     "python tools\\rtl_smoke_slice.py --check",
     "python tools\\rtl_cap_mem_slice.py --check",
     "python tools\\rtl_fault_trap_slice.py --check",
+    "python tools\\rtl_scalar_control_slice.py --check",
     "python tools\\verilator_diff_harness.py",
 )
 
@@ -49,13 +51,13 @@ SUPPORTED_RTL_CASE_MNEMONICS = frozenset(
         "RET",
         "SYS",
         "IRET",
+        *rtl_scalar_control.scalar_control_mnemonics(),
     }
 )
 
 PARTIAL_SUPPORT_NOTES = (
     "RTL is fixture-slice based; there is no integrated general-purpose CPU core yet.",
-    "`ADD` is covered by the reset smoke fixture, not the full integer ALU family.",
-    "`DIV` is covered for the divide-by-zero precise fault path; normal MDU results remain deferred.",
+    "`I21-S01` expands scalar, branch, CSR, and CCSR coverage as a deterministic slice; full decode and issue remain deferred.",
     "`CALL`/`RET` cover direct protected-stack transactions; `CALLC` and broader call hazards remain deferred.",
     "`SYS`/`IRET` cover direct synchronous trap entry and restore; interrupts and debug monitor entry remain deferred.",
 )
@@ -300,6 +302,7 @@ def validate_rtl_readiness_report(root: Path | None = None) -> tuple[str, ...]:
         rtl_smoke.validate_rtl_smoke_slice,
         rtl_cap_mem.validate_rtl_cap_mem_slice,
         rtl_fault_trap.validate_rtl_fault_trap_slice,
+        rtl_scalar_control.validate_rtl_scalar_control_slice,
     ):
         issues.extend(check(root))
 
@@ -319,7 +322,7 @@ def validate_rtl_readiness_report(root: Path | None = None) -> tuple[str, ...]:
             )
 
     stories = {surface.story for surface in report.implemented_surfaces}
-    for story in ("I20-S05", "I20-S06", "I20-S07"):
+    for story in ("I20-S05", "I20-S06", "I20-S07", "I21-S01"):
         if story not in stories:
             issues.append(f"missing implemented RTL surface for {story}")
 
@@ -329,11 +332,11 @@ def validate_rtl_readiness_report(root: Path | None = None) -> tuple[str, ...]:
             issues.append(f"missing golden coverage row for {case.case_id}")
     if "integer_ops.add_mul" in coverage_by_case:
         status = coverage_by_case["integer_ops.add_mul"].rtl_status
-        if "MUL deferred" not in status:
-            issues.append("integer_ops.add_mul coverage must name MUL deferred")
+        if "I21-S01" not in status:
+            issues.append("integer_ops.add_mul coverage must name I21-S01")
 
     unsupported = set(report.unsupported_mnemonics)
-    for mnemonic in ("MUL", "CALLC", "LL48", "SC48", "SFENCE.VM", "CACHE.CLEAN"):
+    for mnemonic in ("CALLC", "WFI", "LL48", "SC48", "SFENCE.VM", "CACHE.CLEAN"):
         if mnemonic not in unsupported:
             issues.append(f"unsupported mnemonic list must include {mnemonic}")
 
@@ -358,6 +361,7 @@ def validate_rtl_readiness_report(root: Path | None = None) -> tuple[str, ...]:
         "Unsupported Instructions",
         "Unsupported Interfaces",
         "Known Deferrals",
+        "I21-S01",
     ):
         if token not in rendered:
             issues.append(f"rendered readiness report missing {token}")
@@ -365,7 +369,7 @@ def validate_rtl_readiness_report(root: Path | None = None) -> tuple[str, ...]:
     doc_path = root / RTL_READINESS_DOC
     if doc_path.exists():
         doc = doc_path.read_text(encoding="utf-8")
-        for token in ("Story: I20-S08", report.gate_command, "`I20-S07`"):
+        for token in ("Story: I20-S08", report.gate_command, "`I20-S07`", "`I21-S01`"):
             if token not in doc:
                 issues.append(f"{RTL_READINESS_DOC.as_posix()} missing {token}")
     else:
@@ -392,6 +396,11 @@ def _verilator_fixture_commands() -> tuple[VerilatorFixtureCommand, ...]:
                 "fault/trap smoke",
                 "cpu_v01_fault_trap_tb",
                 rtl_fault_trap.RTL_FAULT_TRAP_SOURCE_FILES,
+            ),
+            (
+                "scalar/control smoke",
+                "cpu_v01_scalar_control_tb",
+                rtl_scalar_control.RTL_SCALAR_CONTROL_SOURCE_FILES,
             ),
         )
     )
@@ -459,6 +468,12 @@ def _implemented_surfaces() -> tuple[RtlSurface, ...]:
             rtl_fault_trap.fault_trap_slice_case_ids(),
             ("DIV", "SYS", "IRET", "CALL", "RET"),
         ),
+        RtlSurface(
+            "I21-S01",
+            "scalar integer, branch/control, CSR, and CCSR smoke RTL",
+            tuple(path.as_posix() for path in rtl_scalar_control.RTL_SCALAR_CONTROL_SOURCE_FILES),
+            mnemonics=rtl_scalar_control.scalar_control_mnemonics(),
+        ),
     )
 
 
@@ -470,7 +485,7 @@ def _golden_coverage() -> tuple[GoldenCoverageRow, ...]:
         case_to_status[case_id] = "`I20-S06` RTL capability/memory slice"
     for case_id in rtl_fault_trap.fault_trap_slice_case_ids():
         case_to_status[case_id] = "`I20-S07` RTL fault/trap slice"
-    case_to_status["integer_ops.add_mul"] = "semantic-only; ADD smoke covered, MUL deferred"
+    case_to_status["integer_ops.add_mul"] = "`I21-S01` RTL scalar/control slice projection"
 
     return tuple(
         GoldenCoverageRow(

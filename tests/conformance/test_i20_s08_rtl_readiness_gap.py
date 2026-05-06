@@ -40,6 +40,10 @@ class RtlReadinessGapTests(unittest.TestCase):
             "python tools\\rtl_fault_trap_slice.py --check",
             report.slice_check_commands,
         )
+        self.assertIn(
+            "python tools\\rtl_scalar_control_slice.py --check",
+            report.slice_check_commands,
+        )
 
     def test_implemented_surface_lists_rtl_slices_and_artifacts(self) -> None:
         report = rtl_readiness.rtl_readiness_report()
@@ -48,9 +52,12 @@ class RtlReadinessGapTests(unittest.TestCase):
         self.assertIn("rtl/cpu_v01_smoke_core.sv", by_story["I20-S05"].artifacts)
         self.assertIn("rtl/cpu_v01_cap_mem_core.sv", by_story["I20-S06"].artifacts)
         self.assertIn("rtl/cpu_v01_fault_trap_core.sv", by_story["I20-S07"].artifacts)
+        self.assertIn("rtl/cpu_v01_scalar_control_core.sv", by_story["I21-S01"].artifacts)
         self.assertIn("ADD", by_story["I20-S05"].mnemonics)
         self.assertIn("CSETADDR", by_story["I20-S06"].mnemonics)
         self.assertIn("IRET", by_story["I20-S07"].mnemonics)
+        self.assertIn("CPY", by_story["I21-S01"].mnemonics)
+        self.assertIn("CCSRWR", by_story["I21-S01"].mnemonics)
         self.assertIn("calls_returns.direct_call_ret", by_story["I20-S07"].golden_cases)
 
     def test_verilator_fixture_commands_name_all_slice_testbenches(self) -> None:
@@ -62,7 +69,12 @@ class RtlReadinessGapTests(unittest.TestCase):
 
         self.assertEqual(
             set(by_top),
-            {"cpu_v01_smoke_tb", "cpu_v01_cap_mem_tb", "cpu_v01_fault_trap_tb"},
+            {
+                "cpu_v01_smoke_tb",
+                "cpu_v01_cap_mem_tb",
+                "cpu_v01_fault_trap_tb",
+                "cpu_v01_scalar_control_tb",
+            },
         )
         cap_mem = by_top["cpu_v01_cap_mem_tb"]
         self.assertIn("rtl/cpu_v01_pkg.sv", cap_mem.source_files)
@@ -70,6 +82,9 @@ class RtlReadinessGapTests(unittest.TestCase):
         self.assertIn("rtl/cpu_v01_cap_mem_tb.sv", cap_mem.source_files)
         self.assertIn("--binary --timing", cap_mem.command)
         self.assertIn("--top-module cpu_v01_cap_mem_tb", cap_mem.command)
+        scalar_control = by_top["cpu_v01_scalar_control_tb"]
+        self.assertIn("rtl/cpu_v01_scalar_control_core.sv", scalar_control.source_files)
+        self.assertIn("--top-module cpu_v01_scalar_control_tb", scalar_control.command)
 
     def test_golden_coverage_names_every_case_and_current_rtl_status(self) -> None:
         report = rtl_readiness.rtl_readiness_report()
@@ -88,7 +103,7 @@ class RtlReadinessGapTests(unittest.TestCase):
             coverage["traps.sys_iret_return"].rtl_status,
             "`I20-S07` RTL fault/trap slice",
         )
-        self.assertIn("MUL deferred", coverage["integer_ops.add_mul"].rtl_status)
+        self.assertIn("I21-S01", coverage["integer_ops.add_mul"].rtl_status)
 
     def test_unsupported_mnemonics_and_interfaces_are_visible(self) -> None:
         report = rtl_readiness.rtl_readiness_report()
@@ -96,7 +111,10 @@ class RtlReadinessGapTests(unittest.TestCase):
 
         self.assertGreater(len(unsupported), 0)
         self.assertLess(len(unsupported), len(opcodes.mandatory_mnemonics()))
-        for mnemonic in ("MUL", "CALLC", "LL48", "SC48", "SFENCE.VM", "CACHE.CLEAN"):
+        self.assertNotIn("MUL", unsupported)
+        self.assertNotIn("CSRRD", unsupported)
+        self.assertNotIn("CCSRWR", unsupported)
+        for mnemonic in ("CALLC", "WFI", "LL48", "SC48", "SFENCE.VM", "CACHE.CLEAN"):
             with self.subTest(mnemonic=mnemonic):
                 self.assertIn(mnemonic, unsupported)
         self.assertIn("No integrated `cpu_v01_core` top-level is implemented.", report.unsupported_interfaces)
@@ -143,11 +161,13 @@ class RtlReadinessGapTests(unittest.TestCase):
         self.assertIn("Implemented RTL Surface", text)
         self.assertIn("Verilator fixture build commands", text)
         self.assertIn("cpu_v01_cap_mem_tb", text)
+        self.assertIn("cpu_v01_scalar_control_tb", text)
         self.assertIn("Golden Corpus Coverage", text)
         self.assertIn("Unsupported Instructions", text)
         self.assertIn("Unsupported Interfaces", text)
         self.assertIn("Known Deferrals", text)
         self.assertIn("`CALLC`", text)
+        self.assertIn("`I21-S01`", text)
         self.assertIn("Multicore execution.", text)
 
 

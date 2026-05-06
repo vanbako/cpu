@@ -61,3 +61,4 @@ Current platform binding:
 - `docs/implementation/rtl-capability-memory-slice.md`: SystemVerilog capability register and memory/tag smoke slice with golden projection.
 - `docs/implementation/rtl-fault-trap-slice.md`: SystemVerilog precise fault, trap, `IRET`, and protected return-stack smoke slice with golden projection.
 - `docs/implementation/rtl-readiness-gap-report.md`: RTL readiness gap report, unsupported surface inventory, and local gate command for future RTL commits.
+- `docs/implementation/rtl-scalar-control-slice.md`: SystemVerilog scalar integer, branch/control, CSR, and CCSR coverage slice for I21 semantic closure.

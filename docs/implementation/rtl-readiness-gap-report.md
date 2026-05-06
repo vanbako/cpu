@@ -22,6 +22,7 @@ Slice-specific checks covered by the gate through conformance tests:
 - `python tools\rtl_smoke_slice.py --check`
 - `python tools\rtl_cap_mem_slice.py --check`
 - `python tools\rtl_fault_trap_slice.py --check`
+- `python tools\rtl_scalar_control_slice.py --check`
 - `python tools\verilator_diff_harness.py`
 
 Verilator fixture build commands for the current self-checking RTL slices:
@@ -31,6 +32,7 @@ Verilator fixture build commands for the current self-checking RTL slices:
 | reset/add smoke | `cpu_v01_smoke_tb` | `verilator --binary --timing --top-module cpu_v01_smoke_tb rtl/cpu_v01_pkg.sv rtl/cpu_v01_smoke_core.sv rtl/cpu_v01_smoke_tb.sv` |
 | capability/memory smoke | `cpu_v01_cap_mem_tb` | `verilator --binary --timing --top-module cpu_v01_cap_mem_tb rtl/cpu_v01_pkg.sv rtl/cpu_v01_cap_mem_core.sv rtl/cpu_v01_cap_mem_tb.sv` |
 | fault/trap smoke | `cpu_v01_fault_trap_tb` | `verilator --binary --timing --top-module cpu_v01_fault_trap_tb rtl/cpu_v01_pkg.sv rtl/cpu_v01_fault_trap_core.sv rtl/cpu_v01_fault_trap_tb.sv` |
+| scalar/control smoke | `cpu_v01_scalar_control_tb` | `verilator --binary --timing --top-module cpu_v01_scalar_control_tb rtl/cpu_v01_pkg.sv rtl/cpu_v01_scalar_control_core.sv rtl/cpu_v01_scalar_control_tb.sv` |
 
 ## Implemented RTL Surface
 
@@ -43,13 +45,14 @@ Verilator fixture build commands for the current self-checking RTL slices:
 | `I20-S05` | reset, ADD, slot, and placement-fault smoke RTL | `rtl/cpu_v01_pkg.sv`, `rtl/cpu_v01_smoke_core.sv`, `rtl/cpu_v01_smoke_tb.sv` | `reset_smoke.add_slot0`, `fault_cases.slot1_48bit_placement` | `ADD` |
 | `I20-S06` | capability register and memory/tag smoke RTL | `rtl/cpu_v01_pkg.sv`, `rtl/cpu_v01_cap_mem_core.sv`, `rtl/cpu_v01_cap_mem_tb.sv` | `capability_derivation.cmove_cgetaddr`, `capability_derivation.csetaddr_candperm`, `memory_tag_ops.csc_clc_st48_ld48`, `fault_cases.invalid_tag_csetaddr` | `CMOVE`, `CGETADDR`, `CSETADDR`, `CANDPERM`, `CSC`, `CLC`, `ST48`, `LD48` |
 | `I20-S07` | precise fault, trap, IRET, and protected-stack smoke RTL | `rtl/cpu_v01_pkg.sv`, `rtl/cpu_v01_fault_trap_core.sv`, `rtl/cpu_v01_fault_trap_tb.sv` | `fault_cases.divide_by_zero`, `traps.sys_to_tvc`, `traps.sys_iret_return`, `calls_returns.direct_call_ret` | `DIV`, `SYS`, `IRET`, `CALL`, `RET` |
+| `I21-S01` | scalar integer, branch/control, CSR, and CCSR smoke RTL | `rtl/cpu_v01_pkg.sv`, `rtl/cpu_v01_scalar_control_core.sv`, `rtl/cpu_v01_scalar_control_tb.sv` | - | `CPY`, `NEG`, `ADD`, `ADDU`, `SUB`, `SUBU`, `MUL`, `MULU`, `DIV`, `DIVU`, `MOD`, `MODU`, `NOT`, `AND`, `OR`, `XOR`, `SHL`, `SHRS`, `SHRU`, `ROL`, `ROR`, `CMP`, `CMPU`, `TST`, `SETCC`, `CMOVCC`, `BSET`, `BCLR`, `BRA`, `BCC`, `JMP`, `BRK`, `EPCCRD`, `EPCCWR`, `PAUSE`, `CSRRD`, `CSRWR`, `CSRSET`, `CSRCLR`, `CCSRRD`, `CCSRWR` |
 
 ## Golden Corpus Coverage
 
 | Case | Category | Packets | RTL status |
 | --- | --- | ---: | --- |
 | `reset_smoke.add_slot0` | `reset_smoke` | 1 | `I20-S05` RTL smoke slice |
-| `integer_ops.add_mul` | `integer_ops` | 2 | semantic-only; ADD smoke covered, MUL deferred |
+| `integer_ops.add_mul` | `integer_ops` | 2 | `I21-S01` RTL scalar/control slice projection |
 | `capability_derivation.cmove_cgetaddr` | `capability_derivation` | 2 | `I20-S06` RTL capability/memory slice |
 | `capability_derivation.csetaddr_candperm` | `capability_derivation` | 2 | `I20-S06` RTL capability/memory slice |
 | `memory_tag_ops.csc_clc_st48_ld48` | `memory_tag_ops` | 4 | `I20-S06` RTL capability/memory slice |
@@ -63,14 +66,13 @@ Verilator fixture build commands for the current self-checking RTL slices:
 ## Partial Support Notes
 
 - RTL is fixture-slice based; there is no integrated general-purpose CPU core yet.
-- `ADD` is covered by the reset smoke fixture, not the full integer ALU family.
-- `DIV` is covered for the divide-by-zero precise fault path; normal MDU results remain deferred.
+- `I21-S01` expands scalar, branch, CSR, and CCSR coverage as a deterministic slice; full decode and issue remain deferred.
 - `CALL`/`RET` cover direct protected-stack transactions; `CALLC` and broader call hazards remain deferred.
 - `SYS`/`IRET` cover direct synchronous trap entry and restore; interrupts and debug monitor entry remain deferred.
 
 ## Unsupported Instructions
 
-Mandatory mnemonics without an RTL golden-slice path: `CPY`, `NEG`, `ADDU`, `SUB`, `SUBU`, `MUL`, `MULU`, `DIVU`, `MOD`, `MODU`, `NOT`, `AND`, `OR`, `XOR`, `SHL`, `SHRS`, `SHRU`, `ROL`, `ROR`, `CMP`, `CMPU`, `TST`, `SETCC`, `CMOVCC`, `BSET`, `BCLR`, `LL48`, `SC48`, `CINCADDR`, `CSETBOUNDS`, `CSEAL`, `CUNSEAL`, `BRA`, `BCC`, `JMP`, `BRK`, `EPCCRD`, `EPCCWR`, `WFI`, `PAUSE`, `CALLC`, `FENCE`, `FENCE.I`, `SFENCE.VM`, `SFENCE.VM.ASID`, `SFENCE.VM.VA`, `SFENCE.VM.VA_ASID`, `CSRRD`, `CSRWR`, `CSRSET`, `CSRCLR`, `CCSRRD`, `CCSRWR`, `CACHE.CLEAN`, `CACHE.INVAL`, `CACHE.CLEANINVAL`.
+Mandatory mnemonics without an RTL golden-slice path: `LL48`, `SC48`, `CINCADDR`, `CSETBOUNDS`, `CSEAL`, `CUNSEAL`, `WFI`, `CALLC`, `FENCE`, `FENCE.I`, `SFENCE.VM`, `SFENCE.VM.ASID`, `SFENCE.VM.VA`, `SFENCE.VM.VA_ASID`, `CACHE.CLEAN`, `CACHE.INVAL`, `CACHE.CLEANINVAL`.
 
 ## Unsupported Interfaces
 
