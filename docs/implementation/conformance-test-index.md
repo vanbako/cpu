@@ -78,3 +78,6 @@ table in the same change.
 | `docs\implementation\golden-retire-trace-corpus.md` | `I20-S02` | `E04-S02`, `E04-S03`, `E04-S05`, `E05-S04`, `E07-S03`, `E07-S04`, `E13-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tools\golden_trace_corpus.py` | `I20-S02` | `E04-S02`, `E04-S03`, `E04-S05`, `E05-S04`, `E07-S03`, `E07-S04`, `E13-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i20_s02_golden_trace_corpus.py` | `I20-S02` | `E04-S02`, `E04-S03`, `E04-S05`, `E05-S04`, `E07-S03`, `E07-S04`, `E13-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `docs\implementation\systemverilog-interface-spec.md` | `I20-S03` | `E04-S06`, `E07-S03`, `E13-S01` | `E15-S02`, `E15-S03`, `E15-S04`, `E15-S07` |
+| `tools\sv_interface_spec.py` | `I20-S03` | `E04-S06`, `E07-S03`, `E13-S01` | `E15-S02`, `E15-S03`, `E15-S04`, `E15-S07` |
+| `tests\conformance\test_i20_s03_sv_interface_spec.py` | `I20-S03` | `E04-S06`, `E07-S03`, `E13-S01` | `E15-S02`, `E15-S03`, `E15-S04`, `E15-S07` |

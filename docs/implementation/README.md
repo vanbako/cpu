@@ -43,3 +43,4 @@ Current platform binding:
 - `docs/implementation/invariant-runner.md`: seed-stable invariant case runner and replay CLI.
 - `docs/implementation/rtl-first-slice-contract.md`: first SystemVerilog slice boundary, pipeline, retire-packet, memory/tag, and unsupported-feature contract.
 - `docs/implementation/golden-retire-trace-corpus.md`: deterministic semantic retire packet corpus for future RTL differential testing.
+- `docs/implementation/systemverilog-interface-spec.md`: generated SystemVerilog package/type/interface contract for the first RTL boundary.
