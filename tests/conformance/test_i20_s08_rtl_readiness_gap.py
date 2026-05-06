@@ -53,6 +53,24 @@ class RtlReadinessGapTests(unittest.TestCase):
         self.assertIn("IRET", by_story["I20-S07"].mnemonics)
         self.assertIn("calls_returns.direct_call_ret", by_story["I20-S07"].golden_cases)
 
+    def test_verilator_fixture_commands_name_all_slice_testbenches(self) -> None:
+        report = rtl_readiness.rtl_readiness_report()
+        by_top = {
+            fixture.top_module: fixture
+            for fixture in report.verilator_fixture_commands
+        }
+
+        self.assertEqual(
+            set(by_top),
+            {"cpu_v01_smoke_tb", "cpu_v01_cap_mem_tb", "cpu_v01_fault_trap_tb"},
+        )
+        cap_mem = by_top["cpu_v01_cap_mem_tb"]
+        self.assertIn("rtl/cpu_v01_pkg.sv", cap_mem.source_files)
+        self.assertIn("rtl/cpu_v01_cap_mem_core.sv", cap_mem.source_files)
+        self.assertIn("rtl/cpu_v01_cap_mem_tb.sv", cap_mem.source_files)
+        self.assertIn("--binary --timing", cap_mem.command)
+        self.assertIn("--top-module cpu_v01_cap_mem_tb", cap_mem.command)
+
     def test_golden_coverage_names_every_case_and_current_rtl_status(self) -> None:
         report = rtl_readiness.rtl_readiness_report()
         coverage = {row.case_id: row for row in report.golden_coverage}
@@ -113,6 +131,7 @@ class RtlReadinessGapTests(unittest.TestCase):
         parsed = json.loads(stream.getvalue())
         self.assertEqual(parsed["gate_command"], "python tools\\local_checks.py")
         self.assertIn("unsupported_mnemonics", parsed)
+        self.assertIn("verilator_fixture_commands", parsed)
 
     def test_documentation_artifact_names_required_gap_report_sections(self) -> None:
         text = (ROOT / "docs" / "implementation" / "rtl-readiness-gap-report.md").read_text(
@@ -122,6 +141,8 @@ class RtlReadinessGapTests(unittest.TestCase):
         self.assertIn("Story: I20-S08", text)
         self.assertIn("python tools\\local_checks.py", text)
         self.assertIn("Implemented RTL Surface", text)
+        self.assertIn("Verilator fixture build commands", text)
+        self.assertIn("cpu_v01_cap_mem_tb", text)
         self.assertIn("Golden Corpus Coverage", text)
         self.assertIn("Unsupported Instructions", text)
         self.assertIn("Unsupported Interfaces", text)

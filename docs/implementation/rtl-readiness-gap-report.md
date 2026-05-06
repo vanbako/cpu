@@ -24,6 +24,14 @@ Slice-specific checks covered by the gate through conformance tests:
 - `python tools\rtl_fault_trap_slice.py --check`
 - `python tools\verilator_diff_harness.py`
 
+Verilator fixture build commands for the current self-checking RTL slices:
+
+| Fixture | Top module | Command |
+| --- | --- | --- |
+| reset/add smoke | `cpu_v01_smoke_tb` | `verilator --binary --timing --top-module cpu_v01_smoke_tb rtl/cpu_v01_pkg.sv rtl/cpu_v01_smoke_core.sv rtl/cpu_v01_smoke_tb.sv` |
+| capability/memory smoke | `cpu_v01_cap_mem_tb` | `verilator --binary --timing --top-module cpu_v01_cap_mem_tb rtl/cpu_v01_pkg.sv rtl/cpu_v01_cap_mem_core.sv rtl/cpu_v01_cap_mem_tb.sv` |
+| fault/trap smoke | `cpu_v01_fault_trap_tb` | `verilator --binary --timing --top-module cpu_v01_fault_trap_tb rtl/cpu_v01_pkg.sv rtl/cpu_v01_fault_trap_core.sv rtl/cpu_v01_fault_trap_tb.sv` |
+
 ## Implemented RTL Surface
 
 | Story | Surface | Artifacts | Golden cases | Mnemonics |
@@ -92,4 +100,5 @@ Mandatory mnemonics without an RTL golden-slice path: `CPY`, `NEG`, `ADDU`, `SUB
 | Known deferrals are listed. | Met. |
 | Unsupported instructions and interfaces are listed. | Met. |
 | Golden corpus coverage is listed. | Met. |
+| Verilator fixture commands are listed. | Met. |
 | Local command gating future RTL commits is listed. | Met. |

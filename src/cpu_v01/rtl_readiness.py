@@ -116,9 +116,26 @@ class GoldenCoverageRow:
 
 
 @dataclass(frozen=True)
+class VerilatorFixtureCommand:
+    name: str
+    top_module: str
+    source_files: tuple[str, ...]
+    command: str
+
+    def as_dict(self) -> dict[str, JsonValue]:
+        return {
+            "name": self.name,
+            "top_module": self.top_module,
+            "source_files": list(self.source_files),
+            "command": self.command,
+        }
+
+
+@dataclass(frozen=True)
 class RtlReadinessReport:
     gate_command: str
     slice_check_commands: tuple[str, ...]
+    verilator_fixture_commands: tuple[VerilatorFixtureCommand, ...]
     implemented_surfaces: tuple[RtlSurface, ...]
     golden_coverage: tuple[GoldenCoverageRow, ...]
     unsupported_mnemonics: tuple[str, ...]
@@ -130,6 +147,9 @@ class RtlReadinessReport:
         return {
             "gate_command": self.gate_command,
             "slice_check_commands": list(self.slice_check_commands),
+            "verilator_fixture_commands": [
+                fixture.as_dict() for fixture in self.verilator_fixture_commands
+            ],
             "implemented_surfaces": [
                 surface.as_dict() for surface in self.implemented_surfaces
             ],
@@ -146,6 +166,7 @@ def rtl_readiness_report() -> RtlReadinessReport:
     return RtlReadinessReport(
         gate_command=RTL_GATE_COMMAND,
         slice_check_commands=RTL_SLICE_CHECK_COMMANDS,
+        verilator_fixture_commands=_verilator_fixture_commands(),
         implemented_surfaces=_implemented_surfaces(),
         golden_coverage=_golden_coverage(),
         unsupported_mnemonics=_unsupported_mnemonics(),
@@ -187,6 +208,20 @@ def render_rtl_readiness_markdown(report: RtlReadinessReport | None = None) -> s
         "",
     ]
     lines.extend(f"- `{command}`" for command in report.slice_check_commands)
+
+    lines.extend(
+        [
+            "",
+            "Verilator fixture build commands for the current self-checking RTL slices:",
+            "",
+            "| Fixture | Top module | Command |",
+            "| --- | --- | --- |",
+        ]
+    )
+    for fixture in report.verilator_fixture_commands:
+        lines.append(
+            f"| {fixture.name} | `{fixture.top_module}` | `{fixture.command}` |"
+        )
 
     lines.extend(
         [
@@ -245,6 +280,7 @@ def render_rtl_readiness_markdown(report: RtlReadinessReport | None = None) -> s
             "| Known deferrals are listed. | Met. |",
             "| Unsupported instructions and interfaces are listed. | Met. |",
             "| Golden corpus coverage is listed. | Met. |",
+            "| Verilator fixture commands are listed. | Met. |",
             "| Local command gating future RTL commits is listed. | Met. |",
         ]
     )
@@ -266,6 +302,21 @@ def validate_rtl_readiness_report(root: Path | None = None) -> tuple[str, ...]:
         rtl_fault_trap.validate_rtl_fault_trap_slice,
     ):
         issues.extend(check(root))
+
+    for fixture in report.verilator_fixture_commands:
+        for source_file in fixture.source_files:
+            if not (root / source_file).exists():
+                issues.append(
+                    f"Verilator fixture {fixture.name} references missing source {source_file}"
+                )
+            if source_file not in fixture.command:
+                issues.append(
+                    f"Verilator fixture {fixture.name} command missing {source_file}"
+                )
+        if f"--top-module {fixture.top_module}" not in fixture.command:
+            issues.append(
+                f"Verilator fixture {fixture.name} command missing top module {fixture.top_module}"
+            )
 
     stories = {surface.story for surface in report.implemented_surfaces}
     for story in ("I20-S05", "I20-S06", "I20-S07"):
@@ -302,6 +353,7 @@ def validate_rtl_readiness_report(root: Path | None = None) -> tuple[str, ...]:
         "Story: I20-S08",
         report.gate_command,
         "Implemented RTL Surface",
+        "Verilator fixture build commands",
         "Golden Corpus Coverage",
         "Unsupported Instructions",
         "Unsupported Interfaces",
@@ -320,6 +372,47 @@ def validate_rtl_readiness_report(root: Path | None = None) -> tuple[str, ...]:
         issues.append(f"missing RTL readiness doc {RTL_READINESS_DOC.as_posix()}")
 
     return tuple(issues)
+
+
+def _verilator_fixture_commands() -> tuple[VerilatorFixtureCommand, ...]:
+    return tuple(
+        _verilator_fixture_command(
+            name,
+            top_module,
+            tuple(path.as_posix() for path in source_files),
+        )
+        for name, top_module, source_files in (
+            ("reset/add smoke", "cpu_v01_smoke_tb", rtl_smoke.RTL_SMOKE_SOURCE_FILES),
+            (
+                "capability/memory smoke",
+                "cpu_v01_cap_mem_tb",
+                rtl_cap_mem.RTL_CAP_MEM_SOURCE_FILES,
+            ),
+            (
+                "fault/trap smoke",
+                "cpu_v01_fault_trap_tb",
+                rtl_fault_trap.RTL_FAULT_TRAP_SOURCE_FILES,
+            ),
+        )
+    )
+
+
+def _verilator_fixture_command(
+    name: str,
+    top_module: str,
+    source_files: tuple[str, ...],
+) -> VerilatorFixtureCommand:
+    command = " ".join(
+        (
+            "verilator",
+            "--binary",
+            "--timing",
+            "--top-module",
+            top_module,
+            *source_files,
+        )
+    )
+    return VerilatorFixtureCommand(name, top_module, source_files, command)
 
 
 def _implemented_surfaces() -> tuple[RtlSurface, ...]:
