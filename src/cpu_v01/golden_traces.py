@@ -86,11 +86,13 @@ def golden_trace_corpus() -> tuple[GoldenTraceCase, ...]:
     return (
         _reset_smoke_case(),
         _integer_ops_case(),
+        _capability_move_getaddr_case(),
         _capability_derivation_case(),
         _memory_tag_ops_case(),
         _trap_case(),
         _call_return_case(),
         _divide_by_zero_fault_case(),
+        _invalid_tag_fault_case(),
         _placement_fault_case(),
     )
 
@@ -222,6 +224,27 @@ def _capability_derivation_case() -> GoldenTraceCase:
     )
 
 
+def _capability_move_getaddr_case() -> GoldenTraceCase:
+    core = _core_at(0x1250)
+    core.write_c(1, _data_capability(cursor=0x2200))
+    decoded = program.DecodedProgram.from_layout(
+        (
+            (0x1250, state.SLOT_0, capability_ops.capability_instruction("CMOVE", (2, 1))),
+            (0x1252, state.SLOT_0, capability_ops.capability_instruction("CGETADDR", (3, 2))),
+        )
+    )
+    return _run_case(
+        "capability_derivation.cmove_cgetaddr",
+        "capability_derivation",
+        "Capability payload/tag move followed by cursor extraction.",
+        core,
+        decoded,
+        steps=2,
+        observe_d=(3,),
+        observe_c=(2,),
+    )
+
+
 def _memory_tag_ops_case() -> GoldenTraceCase:
     core = _core_at(0x1300)
     core.write_c(
@@ -321,6 +344,24 @@ def _divide_by_zero_fault_case() -> GoldenTraceCase:
         decoded,
         steps=1,
         observe_d=(2,),
+    )
+
+
+def _invalid_tag_fault_case() -> GoldenTraceCase:
+    core = _core_at(0x1650)
+    core.write_c(1, _data_capability(cursor=0x2000, tag=False))
+    core.write_d(0, 0x2080)
+    decoded = program.DecodedProgram.from_layout(
+        ((0x1650, state.SLOT_0, capability_ops.capability_instruction("CSETADDR", (2, 1, 0))),)
+    )
+    return _run_case(
+        "fault_cases.invalid_tag_csetaddr",
+        "fault_cases",
+        "Invalid capability tag faults before CSETADDR writes its destination.",
+        core,
+        decoded,
+        steps=1,
+        observe_c=(2,),
     )
 
 
@@ -620,12 +661,14 @@ def _data_capability(
         | caps.CapabilityPermission.LC
         | caps.CapabilityPermission.SC
     ),
+    tag: bool = True,
 ) -> caps.Capability:
     return _capability_with(
         cursor=cursor,
         base=0x2000,
         top=0x3000,
         permissions=permissions,
+        tag=tag,
     )
 
 

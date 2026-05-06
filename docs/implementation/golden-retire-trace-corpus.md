@@ -64,11 +64,13 @@ The initial deterministic corpus covers:
 | --- | --- | --- |
 | `reset_smoke` | `reset_smoke.add_slot0` | Cold reset into the first slot-0 retire packet. |
 | `integer_ops` | `integer_ops.add_mul` | Straight-line integer writes and dependent retire order. |
+| `capability_derivation` | `capability_derivation.cmove_cgetaddr` | Capability payload/tag move and cursor extraction. |
 | `capability_derivation` | `capability_derivation.csetaddr_candperm` | Capability cursor derivation and permission masking. |
 | `memory_tag_ops` | `memory_tag_ops.csc_clc_st48_ld48` | Capability store/load, integer store tag clear, and integer load. |
 | `traps` | `traps.sys_to_tvc` | Precise synchronous `SYS` fault and direct TVC entry. |
 | `calls_returns` | `calls_returns.direct_call_ret` | Direct `CALL`, protected return-stack push, and `RET`. |
 | `fault_cases` | `fault_cases.divide_by_zero` | Integer divide-by-zero precise fault. |
+| `fault_cases` | `fault_cases.invalid_tag_csetaddr` | Invalid-tag capability derivation fault. |
 | `fault_cases` | `fault_cases.slot1_48bit_placement` | 48-bit instruction placement fault from slot 1. |
 
 ## Determinism Rules

@@ -85,7 +85,10 @@ class VerilatorHarnessTests(unittest.TestCase):
         )
 
         self.assertEqual(result.status, verilator_harness.HarnessStatus.PASSED)
-        self.assertEqual(result.packet_count, 14)
+        self.assertEqual(
+            result.packet_count,
+            sum(len(case["packets"]) for case in expected),
+        )
         self.assertIn("matches", result.message)
 
     def test_cli_returns_success_for_skip_and_failure_for_required_missing_verilator(self) -> None:

@@ -68,6 +68,11 @@ class GoldenTraceCorpusTests(unittest.TestCase):
                     self.assertEqual(selected, 1)
 
     def test_memory_tag_case_covers_capability_transfer_and_tag_clear(self) -> None:
+        move = golden_traces.golden_trace_case_by_id("capability_derivation.cmove_cgetaddr")
+        self.assertEqual(tuple(packet["mnemonic"] for packet in move.packets), ("CMOVE", "CGETADDR"))
+        self.assertTrue(move.final_observations["capability_registers"]["C2"]["tag"])
+        self.assertEqual(move.final_observations["integer_registers"]["D3"], 0x2200)
+
         case = golden_traces.golden_trace_case_by_id("memory_tag_ops.csc_clc_st48_ld48")
         mnemonics = tuple(packet["mnemonic"] for packet in case.packets)
 
@@ -95,8 +100,12 @@ class GoldenTraceCorpusTests(unittest.TestCase):
         self.assertTrue(call_return.final_observations["memory_tags"]["0x3000"])
 
         divide = golden_traces.golden_trace_case_by_id("fault_cases.divide_by_zero")
+        invalid_tag = golden_traces.golden_trace_case_by_id("fault_cases.invalid_tag_csetaddr")
         placement = golden_traces.golden_trace_case_by_id("fault_cases.slot1_48bit_placement")
         self.assertEqual(divide.packets[0]["fault_packet"]["cause"], "DIVIDE_BY_ZERO")
+        self.assertEqual(invalid_tag.packets[0]["fault_packet"]["cause"], "CAPABILITY_TAG_FAULT")
+        self.assertEqual(invalid_tag.packets[0]["fault_packet"]["capcause"], "TAG")
+        self.assertEqual(invalid_tag.packets[0]["fault_packet"]["fault_cap_idx"], "C1")
         self.assertEqual(placement.packets[0]["fault_packet"]["cause"], "ALIGN_FAULT")
         self.assertEqual(placement.packets[0]["result_stage"], "PD")
 
