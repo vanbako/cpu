@@ -93,6 +93,8 @@ table in the same change.
 | `docs\implementation\external-fabric-cpu-boundary.md` | `I19-S01` | `E07-S05`, `E09-S06`, `E10-S04`, `E10-S05`, `E11-S03` | `E15-S03`, `E15-S05`, `E15-S06`, `E15-S07` |
 | `docs\implementation\endpoint-event-routing.md` | `I19-S02` | `E07-S05`, `E11-S03`, `I14-S03`, `I18-S04`, `I19-S01` | `E15-S03`, `E15-S05`, `E15-S06`, `E15-S07` |
 | `tests\conformance\test_i19_s02_endpoint_events.py` | `I19-S02` | `E07-S05`, `E11-S03`, `I14-S03`, `I18-S04`, `I19-S01` | `E15-S03`, `E15-S05`, `E15-S06`, `E15-S07` |
+| `docs\implementation\external-agent-transfers.md` | `I19-S03` | `E10-S03`, `E10-S04`, `E10-S05`, `I06-S04`, `I15-S02`, `I18-S02`, `I19-S01` | `E15-S03`, `E15-S05`, `E15-S06`, `E15-S07` |
+| `tests\conformance\test_i19_s03_external_transfers.py` | `I19-S03` | `E10-S03`, `E10-S04`, `E10-S05`, `I06-S04`, `I15-S02`, `I18-S02`, `I19-S01` | `E15-S03`, `E15-S05`, `E15-S06`, `E15-S07` |
 | `docs\implementation\rtl-first-slice-contract.md` | `I20-S01` | `E07-S03`, `E13-S01`, `E13-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i20_s01_rtl_first_slice_contract.py` | `I20-S01` | `E07-S03`, `E13-S01`, `E13-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `docs\implementation\golden-retire-trace-corpus.md` | `I20-S02` | `E04-S02`, `E04-S03`, `E04-S05`, `E05-S04`, `E07-S03`, `E07-S04`, `E13-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
