@@ -23,6 +23,7 @@ Slice-specific checks covered by the gate through conformance tests:
 - `python tools\rtl_cap_mem_slice.py --check`
 - `python tools\rtl_fault_trap_slice.py --check`
 - `python tools\rtl_scalar_control_slice.py --check`
+- `python tools\rtl_mmu_tlb_slice.py --check`
 - `python tools\verilator_diff_harness.py`
 
 Verilator fixture build commands for the current self-checking RTL slices:
@@ -33,6 +34,7 @@ Verilator fixture build commands for the current self-checking RTL slices:
 | capability/memory smoke | `cpu_v01_cap_mem_tb` | `verilator --binary --timing --top-module cpu_v01_cap_mem_tb rtl/cpu_v01_pkg.sv rtl/cpu_v01_cap_mem_core.sv rtl/cpu_v01_cap_mem_tb.sv` |
 | fault/trap smoke | `cpu_v01_fault_trap_tb` | `verilator --binary --timing --top-module cpu_v01_fault_trap_tb rtl/cpu_v01_pkg.sv rtl/cpu_v01_fault_trap_core.sv rtl/cpu_v01_fault_trap_tb.sv` |
 | scalar/control smoke | `cpu_v01_scalar_control_tb` | `verilator --binary --timing --top-module cpu_v01_scalar_control_tb rtl/cpu_v01_pkg.sv rtl/cpu_v01_scalar_control_core.sv rtl/cpu_v01_scalar_control_tb.sv` |
+| MMU/TLB smoke | `cpu_v01_mmu_tlb_tb` | `verilator --binary --timing --top-module cpu_v01_mmu_tlb_tb rtl/cpu_v01_pkg.sv rtl/cpu_v01_mmu_tlb_core.sv rtl/cpu_v01_mmu_tlb_tb.sv` |
 
 ## Implemented RTL Surface
 
@@ -46,6 +48,7 @@ Verilator fixture build commands for the current self-checking RTL slices:
 | `I20-S06` | capability register and memory/tag smoke RTL | `rtl/cpu_v01_pkg.sv`, `rtl/cpu_v01_cap_mem_core.sv`, `rtl/cpu_v01_cap_mem_tb.sv` | `capability_derivation.cmove_cgetaddr`, `capability_derivation.csetaddr_candperm`, `memory_tag_ops.csc_clc_st48_ld48`, `fault_cases.invalid_tag_csetaddr` | `CMOVE`, `CGETADDR`, `CSETADDR`, `CANDPERM`, `CSC`, `CLC`, `ST48`, `LD48` |
 | `I20-S07` | precise fault, trap, IRET, and protected-stack smoke RTL | `rtl/cpu_v01_pkg.sv`, `rtl/cpu_v01_fault_trap_core.sv`, `rtl/cpu_v01_fault_trap_tb.sv` | `fault_cases.divide_by_zero`, `traps.sys_to_tvc`, `traps.sys_iret_return`, `calls_returns.direct_call_ret` | `DIV`, `SYS`, `IRET`, `CALL`, `RET` |
 | `I21-S01` | scalar integer, branch/control, CSR, and CCSR smoke RTL | `rtl/cpu_v01_pkg.sv`, `rtl/cpu_v01_scalar_control_core.sv`, `rtl/cpu_v01_scalar_control_tb.sv` | - | `CPY`, `NEG`, `ADD`, `ADDU`, `SUB`, `SUBU`, `MUL`, `MULU`, `DIV`, `DIVU`, `MOD`, `MODU`, `NOT`, `AND`, `OR`, `XOR`, `SHL`, `SHRS`, `SHRU`, `ROL`, `ROR`, `CMP`, `CMPU`, `TST`, `SETCC`, `CMOVCC`, `BSET`, `BCLR`, `BRA`, `BCC`, `JMP`, `BRK`, `EPCCRD`, `EPCCWR`, `PAUSE`, `CSRRD`, `CSRWR`, `CSRSET`, `CSRCLR`, `CCSRRD`, `CCSRWR` |
+| `I21-S02` | RADIX4, TLB, SATP, ASID, page-fault, and SFENCE smoke RTL | `rtl/cpu_v01_pkg.sv`, `rtl/cpu_v01_mmu_tlb_core.sv`, `rtl/cpu_v01_mmu_tlb_tb.sv` | - | `SFENCE.VM`, `SFENCE.VM.ASID`, `SFENCE.VM.VA`, `SFENCE.VM.VA_ASID` |
 
 ## Golden Corpus Coverage
 
@@ -67,12 +70,13 @@ Verilator fixture build commands for the current self-checking RTL slices:
 
 - RTL is fixture-slice based; there is no integrated general-purpose CPU core yet.
 - `I21-S01` expands scalar, branch, CSR, and CCSR coverage as a deterministic slice; full decode and issue remain deferred.
+- `I21-S02` expands RADIX4, TLB, SATP, ASID, page-fault, and SFENCE coverage as a deterministic slice; integrated page-walker ports remain deferred.
 - `CALL`/`RET` cover direct protected-stack transactions; `CALLC` and broader call hazards remain deferred.
 - `SYS`/`IRET` cover direct synchronous trap entry and restore; interrupts and debug monitor entry remain deferred.
 
 ## Unsupported Instructions
 
-Mandatory mnemonics without an RTL golden-slice path: `LL48`, `SC48`, `CINCADDR`, `CSETBOUNDS`, `CSEAL`, `CUNSEAL`, `WFI`, `CALLC`, `FENCE`, `FENCE.I`, `SFENCE.VM`, `SFENCE.VM.ASID`, `SFENCE.VM.VA`, `SFENCE.VM.VA_ASID`, `CACHE.CLEAN`, `CACHE.INVAL`, `CACHE.CLEANINVAL`.
+Mandatory mnemonics without an RTL golden-slice path: `LL48`, `SC48`, `CINCADDR`, `CSETBOUNDS`, `CSEAL`, `CUNSEAL`, `WFI`, `CALLC`, `FENCE`, `FENCE.I`, `CACHE.CLEAN`, `CACHE.INVAL`, `CACHE.CLEANINVAL`.
 
 ## Unsupported Interfaces
 
@@ -80,13 +84,13 @@ Mandatory mnemonics without an RTL golden-slice path: `LL48`, `SC48`, `CINCADDR`
 - `cpu_v01_imem_if`, `cpu_v01_dmem_if`, and `cpu_v01_tagmem_if` are contract surfaces, not live ports in the slice RTL.
 - Verilator run/build remains a harness boundary; observed trace comparison is supported when a trace file is provided.
 - Interrupt, debug, MMIO, DMA, and secondary-core external inputs are not represented by slice RTL.
-- Cache, TLB, coherence, and page-table ports are deferred.
+- Cache, coherence, integrated page-table walker, and remote TLB shootdown ports are deferred.
 
 ## Known Deferrals
 
 - Multicore execution.
 - L1/L2 caches and noncoherent DMA.
-- Full RADIX4 page walking and TLBs.
+- Integrated page-table walker ports, remote TLB shootdown, and MMU replay timing.
 - Interrupt controller and MMIO device model.
 - Branch predictor performance behavior.
 - Firmware/kernel boot beyond fixtures needed by the golden corpus.

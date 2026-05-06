@@ -44,6 +44,10 @@ class RtlReadinessGapTests(unittest.TestCase):
             "python tools\\rtl_scalar_control_slice.py --check",
             report.slice_check_commands,
         )
+        self.assertIn(
+            "python tools\\rtl_mmu_tlb_slice.py --check",
+            report.slice_check_commands,
+        )
 
     def test_implemented_surface_lists_rtl_slices_and_artifacts(self) -> None:
         report = rtl_readiness.rtl_readiness_report()
@@ -53,11 +57,14 @@ class RtlReadinessGapTests(unittest.TestCase):
         self.assertIn("rtl/cpu_v01_cap_mem_core.sv", by_story["I20-S06"].artifacts)
         self.assertIn("rtl/cpu_v01_fault_trap_core.sv", by_story["I20-S07"].artifacts)
         self.assertIn("rtl/cpu_v01_scalar_control_core.sv", by_story["I21-S01"].artifacts)
+        self.assertIn("rtl/cpu_v01_mmu_tlb_core.sv", by_story["I21-S02"].artifacts)
         self.assertIn("ADD", by_story["I20-S05"].mnemonics)
         self.assertIn("CSETADDR", by_story["I20-S06"].mnemonics)
         self.assertIn("IRET", by_story["I20-S07"].mnemonics)
         self.assertIn("CPY", by_story["I21-S01"].mnemonics)
         self.assertIn("CCSRWR", by_story["I21-S01"].mnemonics)
+        self.assertIn("SFENCE.VM", by_story["I21-S02"].mnemonics)
+        self.assertIn("SFENCE.VM.VA_ASID", by_story["I21-S02"].mnemonics)
         self.assertIn("calls_returns.direct_call_ret", by_story["I20-S07"].golden_cases)
 
     def test_verilator_fixture_commands_name_all_slice_testbenches(self) -> None:
@@ -74,6 +81,7 @@ class RtlReadinessGapTests(unittest.TestCase):
                 "cpu_v01_cap_mem_tb",
                 "cpu_v01_fault_trap_tb",
                 "cpu_v01_scalar_control_tb",
+                "cpu_v01_mmu_tlb_tb",
             },
         )
         cap_mem = by_top["cpu_v01_cap_mem_tb"]
@@ -85,6 +93,9 @@ class RtlReadinessGapTests(unittest.TestCase):
         scalar_control = by_top["cpu_v01_scalar_control_tb"]
         self.assertIn("rtl/cpu_v01_scalar_control_core.sv", scalar_control.source_files)
         self.assertIn("--top-module cpu_v01_scalar_control_tb", scalar_control.command)
+        mmu_tlb = by_top["cpu_v01_mmu_tlb_tb"]
+        self.assertIn("rtl/cpu_v01_mmu_tlb_core.sv", mmu_tlb.source_files)
+        self.assertIn("--top-module cpu_v01_mmu_tlb_tb", mmu_tlb.command)
 
     def test_golden_coverage_names_every_case_and_current_rtl_status(self) -> None:
         report = rtl_readiness.rtl_readiness_report()
@@ -114,12 +125,14 @@ class RtlReadinessGapTests(unittest.TestCase):
         self.assertNotIn("MUL", unsupported)
         self.assertNotIn("CSRRD", unsupported)
         self.assertNotIn("CCSRWR", unsupported)
-        for mnemonic in ("CALLC", "WFI", "LL48", "SC48", "SFENCE.VM", "CACHE.CLEAN"):
+        self.assertNotIn("SFENCE.VM", unsupported)
+        self.assertNotIn("SFENCE.VM.VA_ASID", unsupported)
+        for mnemonic in ("CALLC", "WFI", "LL48", "SC48", "FENCE.I", "CACHE.CLEAN"):
             with self.subTest(mnemonic=mnemonic):
                 self.assertIn(mnemonic, unsupported)
         self.assertIn("No integrated `cpu_v01_core` top-level is implemented.", report.unsupported_interfaces)
         self.assertIn("Multicore execution.", report.known_deferrals)
-        self.assertIn("Full RADIX4 page walking and TLBs.", report.known_deferrals)
+        self.assertIn("Integrated page-table walker ports, remote TLB shootdown, and MMU replay timing.", report.known_deferrals)
 
     def test_cli_validates_and_renders_markdown_and_json(self) -> None:
         tool = load_tool_module()
@@ -162,12 +175,14 @@ class RtlReadinessGapTests(unittest.TestCase):
         self.assertIn("Verilator fixture build commands", text)
         self.assertIn("cpu_v01_cap_mem_tb", text)
         self.assertIn("cpu_v01_scalar_control_tb", text)
+        self.assertIn("cpu_v01_mmu_tlb_tb", text)
         self.assertIn("Golden Corpus Coverage", text)
         self.assertIn("Unsupported Instructions", text)
         self.assertIn("Unsupported Interfaces", text)
         self.assertIn("Known Deferrals", text)
         self.assertIn("`CALLC`", text)
         self.assertIn("`I21-S01`", text)
+        self.assertIn("`I21-S02`", text)
         self.assertIn("Multicore execution.", text)
 
 

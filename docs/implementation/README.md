@@ -62,3 +62,4 @@ Current platform binding:
 - `docs/implementation/rtl-fault-trap-slice.md`: SystemVerilog precise fault, trap, `IRET`, and protected return-stack smoke slice with golden projection.
 - `docs/implementation/rtl-readiness-gap-report.md`: RTL readiness gap report, unsupported surface inventory, and local gate command for future RTL commits.
 - `docs/implementation/rtl-scalar-control-slice.md`: SystemVerilog scalar integer, branch/control, CSR, and CCSR coverage slice for I21 semantic closure.
+- `docs/implementation/rtl-mmu-tlb-slice.md`: SystemVerilog RADIX4, TLB, SATP, ASID, page-fault, and `SFENCE.VM*` coverage slice for I21 semantic closure.

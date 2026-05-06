@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from . import capabilities as caps
-from . import cells, csrs, opcodes, state
+from . import cells, csrs, mmu, opcodes, state
 
 
 JsonValue = Any
@@ -32,6 +32,8 @@ REQUIRED_SV_SURFACES = frozenset(
         "instruction_memory",
         "data_memory",
         "tag_memory",
+        "mmu",
+        "tlb",
     }
 )
 
@@ -321,6 +323,29 @@ def _constants() -> tuple[SvConstant, ...]:
         _const("CSR_NUMBER_BITS", csrs.CSR_NUMBER_BITS, 8, ("csrs",), "Scalar CSR number width."),
         _const("CCSR_NUMBER_BITS", 8, 8, ("csrs", "capabilities"), "Special capability CSR number width."),
         _const("OPCODE_ID_BITS", 8, 8, ("decoded_opcodes",), "Decoded opcode selector width."),
+        _const("TLB_INVALIDATE_KIND_BITS", 3, 8, ("tlb",), "Local TLB invalidate selector width."),
+        _const("MEMORY_TYPE_BITS", 2, 8, ("mmu",), "RADIX4 page memory-type width."),
+        _const("SATP_MODE_BARE", csrs.SATP_MODE_BARE, 3, ("mmu", "csrs"), "Bare SATP translation mode."),
+        _const("SATP_MODE_RADIX4", csrs.SATP_MODE_RADIX4, 3, ("mmu", "csrs"), "RADIX4 SATP translation mode."),
+        _const("PTE_V_BIT", mmu.PTE_V_BIT, 8, ("mmu",), "PTE valid bit."),
+        _const("PTE_U_BIT", mmu.PTE_U_BIT, 8, ("mmu",), "PTE user bit."),
+        _const("PTE_R_BIT", mmu.PTE_R_BIT, 8, ("mmu",), "PTE read bit."),
+        _const("PTE_W_BIT", mmu.PTE_W_BIT, 8, ("mmu",), "PTE write bit."),
+        _const("PTE_X_BIT", mmu.PTE_X_BIT, 8, ("mmu",), "PTE execute bit."),
+        _const("PTE_G_BIT", mmu.PTE_G_BIT, 8, ("mmu",), "PTE global bit."),
+        _const("PTE_A_BIT", mmu.PTE_A_BIT, 8, ("mmu",), "PTE accessed bit."),
+        _const("PTE_MT_SHIFT", mmu.PTE_MT_SHIFT, 8, ("mmu",), "PTE memory-type field shift."),
+        _const("PTE_RES0_BIT", mmu.PTE_RES0_BIT, 8, ("mmu",), "PTE reserved-zero bit."),
+        _const("PTE_PPN_SHIFT", mmu.PTE_PPN_SHIFT, 8, ("mmu",), "PTE physical page number shift."),
+        _const("MEMORY_TYPE_NORMAL_COHERENT", mmu.MEMORY_TYPE_NORMAL_COHERENT, 2, ("mmu",), "Normal coherent page memory type."),
+        _const("MEMORY_TYPE_NORMAL_UNCACHEABLE", mmu.MEMORY_TYPE_NORMAL_UNCACHEABLE, 2, ("mmu",), "Normal uncacheable page memory type."),
+        _const("MEMORY_TYPE_DEVICE_ORDERED", mmu.MEMORY_TYPE_DEVICE_ORDERED, 2, ("mmu",), "Device ordered page memory type."),
+        _const("MEMORY_TYPE_RESERVED", mmu.MEMORY_TYPE_RESERVED, 2, ("mmu",), "Reserved page memory type."),
+        _const("TLB_INV_NONE", 0, 3, ("tlb",), "No local TLB invalidation."),
+        _const("TLB_INV_ALL", 1, 3, ("tlb",), "Invalidate all local TLB entries."),
+        _const("TLB_INV_ASID", 2, 3, ("tlb",), "Invalidate local non-global TLB entries by ASID."),
+        _const("TLB_INV_VA", 3, 3, ("tlb",), "Invalidate local TLB entries by virtual address."),
+        _const("TLB_INV_VA_ASID", 4, 3, ("tlb",), "Invalidate local non-global TLB entries by virtual address and ASID."),
         _const("FAULT_CAUSE_BITS", 16, 8, ("fault_packets",), "Fault cause field width."),
         _const("CAPCAUSE_BITS", 4, 8, ("fault_packets",), "Capability-specific cause field width."),
         _const("FAULT_CAP_IDX_BITS", 8, 8, ("fault_packets",), "Fault capability index field width."),
@@ -435,6 +460,19 @@ def _structs() -> tuple[SvStruct, ...]:
                 _field("trap_entry_valid", "logic", 1, ("retire_packets",), "Direct trap entry was taken for this precise fault."),
                 _field("trap_target", "cap_t", None, ("retire_packets", "capabilities", "tags"), "Direct trap-entry target capability."),
                 _field("trap_target_slot", "logic", 1, ("retire_packets",), "Direct trap-entry target slot."),
+                _field("translation_valid", "logic", 1, ("retire_packets", "mmu"), "Address translation metadata is valid."),
+                _field("effective_address", "logic", cells.ADDRESS_BITS, ("retire_packets", "mmu", "cells"), "Effective virtual address for the memory or fetch operation."),
+                _field("physical_address", "logic", cells.ADDRESS_BITS, ("retire_packets", "mmu", "cells"), "Translated physical cell address."),
+                _field("translation_memory_type", "logic", 2, ("retire_packets", "mmu"), "Translated RADIX4 page memory type."),
+                _field("translation_tlb_hit", "logic", 1, ("retire_packets", "tlb"), "Translation came from a local TLB hit."),
+                _field("tlb_fill_valid", "logic", 1, ("retire_packets", "tlb"), "A page walk fills a local TLB entry."),
+                _field("tlb_fill_global", "logic", 1, ("retire_packets", "tlb"), "The filled local TLB entry is global."),
+                _field("tlb_fill_asid", "logic", csrs.SATP_ASID_BITS, ("retire_packets", "tlb"), "ASID for a filled local TLB entry."),
+                _field("page_walk_level", "logic", 3, ("retire_packets", "mmu"), "Final RADIX4 page-walk level reached."),
+                _field("tlb_invalidate_valid", "logic", 1, ("retire_packets", "tlb"), "Local TLB invalidation effect is valid."),
+                _field("tlb_invalidate_kind", "logic", 3, ("retire_packets", "tlb"), "Local TLB invalidation selector."),
+                _field("tlb_invalidate_va", "logic", cells.ADDRESS_BITS, ("retire_packets", "tlb", "cells"), "Virtual address operand for local TLB invalidation."),
+                _field("tlb_invalidate_asid", "logic", csrs.SATP_ASID_BITS, ("retire_packets", "tlb"), "ASID operand for local TLB invalidation."),
             ),
         ),
     )

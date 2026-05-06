@@ -18,6 +18,7 @@ from . import (
     opcodes,
     rtl_cap_mem,
     rtl_fault_trap,
+    rtl_mmu_tlb,
     rtl_smoke,
     rtl_scalar_control,
 )
@@ -32,6 +33,7 @@ RTL_SLICE_CHECK_COMMANDS = (
     "python tools\\rtl_cap_mem_slice.py --check",
     "python tools\\rtl_fault_trap_slice.py --check",
     "python tools\\rtl_scalar_control_slice.py --check",
+    "python tools\\rtl_mmu_tlb_slice.py --check",
     "python tools\\verilator_diff_harness.py",
 )
 
@@ -52,12 +54,14 @@ SUPPORTED_RTL_CASE_MNEMONICS = frozenset(
         "SYS",
         "IRET",
         *rtl_scalar_control.scalar_control_mnemonics(),
+        *rtl_mmu_tlb.mmu_tlb_mnemonics(),
     }
 )
 
 PARTIAL_SUPPORT_NOTES = (
     "RTL is fixture-slice based; there is no integrated general-purpose CPU core yet.",
     "`I21-S01` expands scalar, branch, CSR, and CCSR coverage as a deterministic slice; full decode and issue remain deferred.",
+    "`I21-S02` expands RADIX4, TLB, SATP, ASID, page-fault, and SFENCE coverage as a deterministic slice; integrated page-walker ports remain deferred.",
     "`CALL`/`RET` cover direct protected-stack transactions; `CALLC` and broader call hazards remain deferred.",
     "`SYS`/`IRET` cover direct synchronous trap entry and restore; interrupts and debug monitor entry remain deferred.",
 )
@@ -65,7 +69,7 @@ PARTIAL_SUPPORT_NOTES = (
 KNOWN_DEFERRALS = (
     "Multicore execution.",
     "L1/L2 caches and noncoherent DMA.",
-    "Full RADIX4 page walking and TLBs.",
+    "Integrated page-table walker ports, remote TLB shootdown, and MMU replay timing.",
     "Interrupt controller and MMIO device model.",
     "Branch predictor performance behavior.",
     "Firmware/kernel boot beyond fixtures needed by the golden corpus.",
@@ -79,7 +83,7 @@ UNSUPPORTED_INTERFACES = (
     "`cpu_v01_imem_if`, `cpu_v01_dmem_if`, and `cpu_v01_tagmem_if` are contract surfaces, not live ports in the slice RTL.",
     "Verilator run/build remains a harness boundary; observed trace comparison is supported when a trace file is provided.",
     "Interrupt, debug, MMIO, DMA, and secondary-core external inputs are not represented by slice RTL.",
-    "Cache, TLB, coherence, and page-table ports are deferred.",
+    "Cache, coherence, integrated page-table walker, and remote TLB shootdown ports are deferred.",
 )
 
 
@@ -303,6 +307,7 @@ def validate_rtl_readiness_report(root: Path | None = None) -> tuple[str, ...]:
         rtl_cap_mem.validate_rtl_cap_mem_slice,
         rtl_fault_trap.validate_rtl_fault_trap_slice,
         rtl_scalar_control.validate_rtl_scalar_control_slice,
+        rtl_mmu_tlb.validate_rtl_mmu_tlb_slice,
     ):
         issues.extend(check(root))
 
@@ -322,7 +327,7 @@ def validate_rtl_readiness_report(root: Path | None = None) -> tuple[str, ...]:
             )
 
     stories = {surface.story for surface in report.implemented_surfaces}
-    for story in ("I20-S05", "I20-S06", "I20-S07", "I21-S01"):
+    for story in ("I20-S05", "I20-S06", "I20-S07", "I21-S01", "I21-S02"):
         if story not in stories:
             issues.append(f"missing implemented RTL surface for {story}")
 
@@ -336,14 +341,14 @@ def validate_rtl_readiness_report(root: Path | None = None) -> tuple[str, ...]:
             issues.append("integer_ops.add_mul coverage must name I21-S01")
 
     unsupported = set(report.unsupported_mnemonics)
-    for mnemonic in ("CALLC", "WFI", "LL48", "SC48", "SFENCE.VM", "CACHE.CLEAN"):
+    for mnemonic in ("CALLC", "WFI", "LL48", "SC48", "FENCE.I", "CACHE.CLEAN"):
         if mnemonic not in unsupported:
             issues.append(f"unsupported mnemonic list must include {mnemonic}")
 
     for phrase in (
         "Multicore execution.",
         "L1/L2 caches and noncoherent DMA.",
-        "Full RADIX4 page walking and TLBs.",
+        "Integrated page-table walker ports, remote TLB shootdown, and MMU replay timing.",
         "Interrupt controller and MMIO device model.",
         "Branch predictor performance behavior.",
         "Firmware/kernel boot beyond fixtures needed by the golden corpus.",
@@ -362,6 +367,7 @@ def validate_rtl_readiness_report(root: Path | None = None) -> tuple[str, ...]:
         "Unsupported Interfaces",
         "Known Deferrals",
         "I21-S01",
+        "I21-S02",
     ):
         if token not in rendered:
             issues.append(f"rendered readiness report missing {token}")
@@ -369,7 +375,13 @@ def validate_rtl_readiness_report(root: Path | None = None) -> tuple[str, ...]:
     doc_path = root / RTL_READINESS_DOC
     if doc_path.exists():
         doc = doc_path.read_text(encoding="utf-8")
-        for token in ("Story: I20-S08", report.gate_command, "`I20-S07`", "`I21-S01`"):
+        for token in (
+            "Story: I20-S08",
+            report.gate_command,
+            "`I20-S07`",
+            "`I21-S01`",
+            "`I21-S02`",
+        ):
             if token not in doc:
                 issues.append(f"{RTL_READINESS_DOC.as_posix()} missing {token}")
     else:
@@ -401,6 +413,11 @@ def _verilator_fixture_commands() -> tuple[VerilatorFixtureCommand, ...]:
                 "scalar/control smoke",
                 "cpu_v01_scalar_control_tb",
                 rtl_scalar_control.RTL_SCALAR_CONTROL_SOURCE_FILES,
+            ),
+            (
+                "MMU/TLB smoke",
+                "cpu_v01_mmu_tlb_tb",
+                rtl_mmu_tlb.RTL_MMU_TLB_SOURCE_FILES,
             ),
         )
     )
@@ -473,6 +490,12 @@ def _implemented_surfaces() -> tuple[RtlSurface, ...]:
             "scalar integer, branch/control, CSR, and CCSR smoke RTL",
             tuple(path.as_posix() for path in rtl_scalar_control.RTL_SCALAR_CONTROL_SOURCE_FILES),
             mnemonics=rtl_scalar_control.scalar_control_mnemonics(),
+        ),
+        RtlSurface(
+            "I21-S02",
+            "RADIX4, TLB, SATP, ASID, page-fault, and SFENCE smoke RTL",
+            tuple(path.as_posix() for path in rtl_mmu_tlb.RTL_MMU_TLB_SOURCE_FILES),
+            mnemonics=rtl_mmu_tlb.mmu_tlb_mnemonics(),
         ),
     )
 
