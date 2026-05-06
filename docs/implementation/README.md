@@ -42,3 +42,4 @@ Current platform binding:
 - `docs/implementation/capability-property-generators.md`: deterministic capability derivation property case generators.
 - `docs/implementation/invariant-runner.md`: seed-stable invariant case runner and replay CLI.
 - `docs/implementation/rtl-first-slice-contract.md`: first SystemVerilog slice boundary, pipeline, retire-packet, memory/tag, and unsupported-feature contract.
+- `docs/implementation/golden-retire-trace-corpus.md`: deterministic semantic retire packet corpus for future RTL differential testing.

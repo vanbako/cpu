@@ -75,3 +75,6 @@ table in the same change.
 | `tests\conformance\test_i16_s03_invariant_runner.py` | `I16-S03` | `E03-S03`, `E04-S05`, `E15-S04`, `E15-S05` | `E15-S01`, `E15-S04`, `E15-S05` |
 | `docs\implementation\rtl-first-slice-contract.md` | `I20-S01` | `E07-S03`, `E13-S01`, `E13-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i20_s01_rtl_first_slice_contract.py` | `I20-S01` | `E07-S03`, `E13-S01`, `E13-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `docs\implementation\golden-retire-trace-corpus.md` | `I20-S02` | `E04-S02`, `E04-S03`, `E04-S05`, `E05-S04`, `E07-S03`, `E07-S04`, `E13-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tools\golden_trace_corpus.py` | `I20-S02` | `E04-S02`, `E04-S03`, `E04-S05`, `E05-S04`, `E07-S03`, `E07-S04`, `E13-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i20_s02_golden_trace_corpus.py` | `I20-S02` | `E04-S02`, `E04-S03`, `E04-S05`, `E05-S04`, `E07-S03`, `E07-S04`, `E13-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
