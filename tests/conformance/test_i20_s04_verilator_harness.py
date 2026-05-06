@@ -91,6 +91,19 @@ class VerilatorHarnessTests(unittest.TestCase):
         )
         self.assertIn("matches", result.message)
 
+    def test_non_dry_run_names_integrated_top_level_boundary(self) -> None:
+        result = verilator_harness.run_harness(
+            verilator_harness.HarnessConfig(
+                build_dir=ROOT / "build" / "verilator",
+                dry_run=False,
+                verilator_executable=sys.executable,
+            )
+        )
+
+        self.assertEqual(result.status, verilator_harness.HarnessStatus.SKIPPED)
+        self.assertIn("integrated cpu_v01_core top-level", result.message)
+        self.assertNotIn("I20-S05", result.message)
+
     def test_cli_returns_success_for_skip_and_failure_for_required_missing_verilator(self) -> None:
         tool = load_tool_module()
         stream = StringIO()

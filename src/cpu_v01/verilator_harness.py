@@ -20,6 +20,10 @@ from . import golden_traces, sv_contract
 
 JsonValue = Any
 RETIRE_TRACE_FILENAME = "retire_trace.json"
+RTL_RUN_DEFERRED_MESSAGE = (
+    "RTL build/run command is intentionally deferred until an integrated "
+    "cpu_v01_core top-level is implemented"
+)
 
 
 class HarnessStatus(Enum):
@@ -149,7 +153,7 @@ def run_harness(config: HarnessConfig) -> HarnessResult:
 
     return HarnessResult(
         HarnessStatus.SKIPPED,
-        "RTL build/run command is intentionally deferred until I20-S05",
+        RTL_RUN_DEFERRED_MESSAGE,
         case_count=case_count,
         packet_count=packet_count,
         verilator_path=verilator_path,

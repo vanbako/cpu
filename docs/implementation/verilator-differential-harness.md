@@ -36,8 +36,10 @@ Attempt the future non-dry-run RTL boundary:
 python tools\verilator_diff_harness.py --run
 ```
 
-Until I20-S05 adds the first RTL smoke slice, `--run` only validates that
-Verilator is available and then reports that the build/run command is deferred.
+Until an integrated `cpu_v01_core` top-level exists, `--run` only validates
+that Verilator is available and then reports that the build/run command is
+deferred. The current I20 RTL artifacts are fixture slices consumed through the
+readiness report.
 
 ## Inputs
 
