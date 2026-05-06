@@ -60,7 +60,7 @@ Implementation principles:
 | I17 | P1 | Toolchain and binary pipeline. | Richer assembler/linker fixtures, relocations, object metadata, and debug symbols. |
 | I18 | P1 | Kernel/userland bring-up. | User process image, VM allocation, syscall demo, and minimal scheduler fixtures. |
 | I19 | P2 | Devices and multicore platform. | MMIO devices, IPI/interrupt controller model, DMA driver protocol, and multicore integration tests. |
-| I20 | P1 | RTL readiness and golden corpus. | Golden trace corpus, differential harness, CI artifacts, and RTL handoff gap report. |
+| I20 | P1 | RTL readiness and first SystemVerilog slice. | First-slice contract, golden retire corpus, SV package/interface plan, Verilator harness, and first single-core RTL gates. |
 
 ## First Vertical Slice
 
@@ -137,6 +137,35 @@ Explicitly excluded from the first slice:
 | I16-S01 | P1 | M | I15-S01, I15-S02, I15-S03, E15-S01 | Define the invariant registry and coverage matrix. | Registry entries map invariant keys to implementation stories, architecture owners, E15 coverage, artifacts, and checked surfaces. |
 | I16-S02 | P1 | M | I16-S01, I03-S03, E03-S03 | Add reusable deterministic capability property generators. | Shared generators cover authority-preserving and authority-reducing capability cases without broadening tags, bounds, or permissions. |
 | I16-S03 | P1 | L | I16-S01, I06-S01, I15-S03, E15-S04 | Add a seed-stable invariant runner. | A repeatable runner executes selected invariant families, records seed/case IDs, and reproduces failures from the command line. |
+| I20-S01 | P1 | M | I10-S01, I13-S01, I13-S03, E13-S01 | Define the first RTL slice and microarchitecture contract. | A document fixes first-slice inclusions/exclusions, pipeline boundaries, stall/flush rules, commit packet timing, memory/tag assumptions, and unsupported-feature behavior. |
+| I20-S02 | P1 | L | I13-S02, I16-S03, E07-S03, E13-S01 | Generate a semantic golden retire trace corpus. | Deterministic fixtures cover reset smoke, integer ops, capability derivation, memory/tag ops, traps, calls/returns, and selected fault cases with machine-readable expected retire packets. |
+| I20-S03 | P1 | L | I07-S01, I10-S01, I20-S01, E04-S06 | Define SystemVerilog package, constants, and top-level interfaces. | SV package/type artifacts or generated specs cover cells, capabilities, tags, CSRs, decoded opcodes, fault packets, retire packets, instruction memory, data memory, and tag-memory ports. |
+| I20-S04 | P1 | L | I20-S02, I20-S03 | Add a Verilator differential harness skeleton. | A harness builds or dry-runs the RTL/testbench boundary, feeds golden fixtures, captures retire traces, reports first mismatch by case ID, and skips cleanly when Verilator is unavailable. |
+| I20-S05 | P1 | L | I20-S01, I20-S03, I20-S04 | Implement the first single-core SystemVerilog smoke slice. | The RTL retires a tiny straight-line reset program with integer register writes, slot-0 sequencing, legal placement checks, and retire-trace comparison against the golden corpus. |
+| I20-S06 | P1 | XL | I20-S05, I02-S02, I02-S03, I03-S03, I03-S04 | Add capability register and memory/tag RTL behavior. | RTL passes golden cases for capability payload/tag registers, `CMOVE`, `CGETADDR`, `CSETADDR`, `CANDPERM`, `LD48`, `ST48`, `CLC`, `CSC`, tag clears, and invalid-tag faults. |
+| I20-S07 | P1 | L | I20-S06, I04-S02, I04-S03, I05-S01 | Add precise fault, trap, and protected-stack RTL gates. | RTL passes golden cases for fault packets, no-normal-effect faults, direct trap entry, `IRET`, direct `CALL`, protected return-stack push, and all-or-nothing commit behavior. |
+| I20-S08 | P1 | M | I20-S04, I20-S07, E15-S07 | Publish RTL readiness gap report and CI command. | A report lists implemented RTL surface, known deferrals, unsupported instructions/interfaces, golden corpus coverage, and the local command that gates future RTL commits. |
+
+## RTL Readiness Slice
+
+The first SystemVerilog implementation should not start by attempting the full CPU. The intended I20 sequence is:
+
+1. Define a narrow single-core RTL slice and interfaces.
+2. Generate semantic golden retire traces.
+3. Create SV package/interface contracts and a differential harness.
+4. Implement a tiny straight-line RTL smoke slice.
+5. Expand into capability, memory/tag, fault, trap, and protected-stack behavior.
+
+Initial RTL exclusions:
+
+- Multicore execution.
+- L1/L2 caches and noncoherent DMA.
+- Full `RADIX4` page walking and TLBs.
+- Interrupt controller/MMIO device model.
+- Branch predictor performance behavior.
+- Firmware/kernel boot beyond fixtures needed by the golden corpus.
+
+These exclusions must remain visible in the I20-S08 gap report until implemented by later stories.
 
 ## Near-term Sprint Plan
 
