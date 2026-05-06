@@ -408,6 +408,9 @@ def _structs() -> tuple[SvStruct, ...]:
                 _field("redirect_valid", "logic", 1, ("retire_packets",), "Redirect target selected."),
                 _field("redirect_target", "cap_t", None, ("retire_packets", "capabilities", "tags"), "Redirect target capability payload and tag."),
                 _field("redirect_slot", "logic", 1, ("retire_packets",), "Redirect target slot."),
+                _field("integer_write_valid", "logic", 1, ("retire_packets", "cells"), "First-slice integer write effect is valid."),
+                _field("integer_write_index", "logic", 4, ("retire_packets", "cells"), "First-slice integer destination register index."),
+                _field("integer_write_value", "logic", state.INTEGER_REGISTER_BITS, ("retire_packets", "cells"), "First-slice integer write value."),
             ),
         ),
     )

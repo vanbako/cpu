@@ -45,3 +45,4 @@ Current platform binding:
 - `docs/implementation/golden-retire-trace-corpus.md`: deterministic semantic retire packet corpus for future RTL differential testing.
 - `docs/implementation/systemverilog-interface-spec.md`: generated SystemVerilog package/type/interface contract for the first RTL boundary.
 - `docs/implementation/verilator-differential-harness.md`: dry-run and observed-trace comparator boundary for future Verilator RTL tests.
+- `docs/implementation/rtl-smoke-slice.md`: first SystemVerilog reset/ADD/placement-fault smoke slice and golden projection.
