@@ -37,6 +37,7 @@ def local_checks(python: str | None = None) -> tuple[LocalCheck, ...]:
         LocalCheck("spec references", (python, "tools/spec_reference_check.py")),
         LocalCheck("constants model", (python, "tools/spec_constants_model.py")),
         LocalCheck("story coverage drift", (python, "tools/story_coverage.py", "--check-drift")),
+        LocalCheck("toolchain corpus", (python, "tools/toolchain_corpus.py", "--check")),
         LocalCheck(
             "conformance tests",
             (

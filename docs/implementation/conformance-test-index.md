@@ -79,6 +79,9 @@ table in the same change.
 | `tests\conformance\test_i17_s02_linker_relocations.py` | `I17-S02` | `E01-S05`, `E04-S01`, `E04-S04`, `E14-S02` | `E15-S02`, `E15-S06`, `E15-S07` |
 | `docs\implementation\debug-metadata.md` | `I17-S03` | `E12-S01`, `I09-S04` | `E15-S02`, `E15-S06`, `E15-S07` |
 | `tests\conformance\test_i17_s03_debug_metadata.py` | `I17-S03` | `E12-S01`, `I09-S04` | `E15-S02`, `E15-S06`, `E15-S07` |
+| `docs\implementation\toolchain-regression-corpus.md` | `I17-S04` | `E01-S05`, `E04-S01`, `E04-S04`, `E04-S05`, `E05-S04`, `E12-S01`, `E14-S02` | `E15-S02`, `E15-S06`, `E15-S07` |
+| `tools\toolchain_corpus.py` | `I17-S04` | `E01-S05`, `E04-S01`, `E04-S04`, `E04-S05`, `E05-S04`, `E12-S01`, `E14-S02` | `E15-S02`, `E15-S06`, `E15-S07` |
+| `tests\conformance\test_i17_s04_toolchain_corpus.py` | `I17-S04` | `E01-S05`, `E04-S01`, `E04-S04`, `E04-S05`, `E05-S04`, `E12-S01`, `E14-S02` | `E15-S02`, `E15-S06`, `E15-S07` |
 | `docs\implementation\external-fabric-cpu-boundary.md` | `I19-S01` | `E07-S05`, `E09-S06`, `E10-S04`, `E10-S05`, `E11-S03` | `E15-S03`, `E15-S05`, `E15-S06`, `E15-S07` |
 | `docs\implementation\rtl-first-slice-contract.md` | `I20-S01` | `E07-S03`, `E13-S01`, `E13-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i20_s01_rtl_first_slice_contract.py` | `I20-S01` | `E07-S03`, `E13-S01`, `E13-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
