@@ -68,6 +68,7 @@ The initial deterministic corpus covers:
 | `capability_derivation` | `capability_derivation.csetaddr_candperm` | Capability cursor derivation and permission masking. |
 | `memory_tag_ops` | `memory_tag_ops.csc_clc_st48_ld48` | Capability store/load, integer store tag clear, and integer load. |
 | `traps` | `traps.sys_to_tvc` | Precise synchronous `SYS` fault and direct TVC entry. |
+| `traps` | `traps.sys_iret_return` | Direct TVC entry followed by `IRET` restoration. |
 | `calls_returns` | `calls_returns.direct_call_ret` | Direct `CALL`, protected return-stack push, and `RET`. |
 | `fault_cases` | `fault_cases.divide_by_zero` | Integer divide-by-zero precise fault. |
 | `fault_cases` | `fault_cases.invalid_tag_csetaddr` | Invalid-tag capability derivation fault. |

@@ -47,3 +47,5 @@ Current platform binding:
 - `docs/implementation/verilator-differential-harness.md`: dry-run and observed-trace comparator boundary for future Verilator RTL tests.
 - `docs/implementation/rtl-smoke-slice.md`: first SystemVerilog reset/ADD/placement-fault smoke slice and golden projection.
 - `docs/implementation/rtl-capability-memory-slice.md`: SystemVerilog capability register and memory/tag smoke slice with golden projection.
+- `docs/implementation/rtl-fault-trap-slice.md`: SystemVerilog precise fault, trap, `IRET`, and protected return-stack smoke slice with golden projection.
+- `docs/implementation/rtl-readiness-gap-report.md`: RTL readiness gap report, unsupported surface inventory, and local gate command for future RTL commits.

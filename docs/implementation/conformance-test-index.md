@@ -90,3 +90,9 @@ table in the same change.
 | `docs\implementation\rtl-capability-memory-slice.md` | `I20-S06` | `E03-S01`, `E03-S03`, `E03-S04`, `E04-S03`, `E04-S05`, `E07-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tools\rtl_cap_mem_slice.py` | `I20-S06` | `E03-S01`, `E03-S03`, `E03-S04`, `E04-S03`, `E04-S05`, `E07-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i20_s06_rtl_cap_mem_slice.py` | `I20-S06` | `E03-S01`, `E03-S03`, `E03-S04`, `E04-S03`, `E04-S05`, `E07-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `docs\implementation\rtl-fault-trap-slice.md` | `I20-S07` | `E04-S04`, `E05-S04`, `E06-S04`, `E07-S03`, `E07-S04`, `E07-S06` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tools\rtl_fault_trap_slice.py` | `I20-S07` | `E04-S04`, `E05-S04`, `E06-S04`, `E07-S03`, `E07-S04`, `E07-S06` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i20_s07_rtl_fault_trap_slice.py` | `I20-S07` | `E04-S04`, `E05-S04`, `E06-S04`, `E07-S03`, `E07-S04`, `E07-S06` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `docs\implementation\rtl-readiness-gap-report.md` | `I20-S08` | `E13-S01`, `E15-S07` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tools\rtl_readiness_gap.py` | `I20-S08` | `E13-S01`, `E15-S07` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i20_s08_rtl_readiness_gap.py` | `I20-S08` | `E13-S01`, `E15-S07` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |

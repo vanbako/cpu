@@ -90,6 +90,15 @@ class GoldenTraceCorpusTests(unittest.TestCase):
         self.assertTrue(trap.packets[0]["trap_entry"]["entered"])
         self.assertEqual(trap.final_observations["pcc"]["payload"]["cursor"], 0x9000)
 
+        trap_iret = golden_traces.golden_trace_case_by_id("traps.sys_iret_return")
+        self.assertEqual(tuple(packet["mnemonic"] for packet in trap_iret.packets), ("SYS", "IRET"))
+        self.assertTrue(trap_iret.packets[0]["trap_entry"]["entered"])
+        self.assertEqual(
+            trap_iret.packets[1]["normal_effects"]["pcc_update"]["payload"]["cursor"],
+            0x1750,
+        )
+        self.assertEqual(trap_iret.final_observations["pcc"]["payload"]["cursor"], 0x1750)
+
         call_return = golden_traces.golden_trace_case_by_id("calls_returns.direct_call_ret")
         self.assertEqual(tuple(packet["mnemonic"] for packet in call_return.packets), ("CALL", "RET"))
         self.assertEqual(

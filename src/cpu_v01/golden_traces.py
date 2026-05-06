@@ -90,6 +90,7 @@ def golden_trace_corpus() -> tuple[GoldenTraceCase, ...]:
         _capability_derivation_case(),
         _memory_tag_ops_case(),
         _trap_case(),
+        _trap_iret_case(),
         _call_return_case(),
         _divide_by_zero_fault_case(),
         _invalid_tag_fault_case(),
@@ -301,6 +302,27 @@ def _trap_case() -> GoldenTraceCase:
         steps=1,
         enter_traps=True,
         observe_csrs=(csrs.CSR_CAUSE, csrs.CSR_TVAL, csrs.CSR_CAPCAUSE, csrs.CSR_FAULTCAPIDX),
+    )
+
+
+def _trap_iret_case() -> GoldenTraceCase:
+    core = _core_at(0x1750)
+    core.write_ccsr(state.SPECIAL_NAME_TO_CCSR_INDEX["TVC"], _executable_capability(0x9000))
+    decoded = program.DecodedProgram.from_layout(
+        (
+            (0x1750, state.SLOT_0, DecodedInstruction("SYS", InstructionSize.BITS_12)),
+            (0x9000, state.SLOT_0, control_ops.control_instruction("IRET")),
+        )
+    )
+    return _run_case(
+        "traps.sys_iret_return",
+        "traps",
+        "Synchronous SYS trap enters TVC and IRET restores EPCC.",
+        core,
+        decoded,
+        steps=2,
+        enter_traps=True,
+        observe_csrs=(csrs.CSR_CAUSE, csrs.CSR_SR),
     )
 
 
