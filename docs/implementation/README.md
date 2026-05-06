@@ -31,6 +31,7 @@ Current platform binding:
 - `docs/implementation/minimal-scheduler.md`: timer preemption and two-task context-switch fixture.
 - `docs/implementation/endpoint-event-routing.md`: topology-neutral endpoint event, IPI, and interrupt routing fixture.
 - `docs/implementation/external-agent-transfers.md`: noncoherent external-agent ownership and cache-maintenance fixture.
+- `docs/implementation/point-to-point-fabric-litmus.md`: four-core point-to-point fabric integration litmus suite.
 - `docs/implementation/language-abi.md`: public call-boundary register windows, mixed overflow layout, and spill rules.
 - `docs/implementation/syscall-abi.md`: baseline syscall service register, argument registers, overflow layout, returns, and volatility.
 - `docs/implementation/debugger-abi.md`: direct halted-core register view and protected return-stack unwind rules.
