@@ -81,3 +81,6 @@ table in the same change.
 | `docs\implementation\systemverilog-interface-spec.md` | `I20-S03` | `E04-S06`, `E07-S03`, `E13-S01` | `E15-S02`, `E15-S03`, `E15-S04`, `E15-S07` |
 | `tools\sv_interface_spec.py` | `I20-S03` | `E04-S06`, `E07-S03`, `E13-S01` | `E15-S02`, `E15-S03`, `E15-S04`, `E15-S07` |
 | `tests\conformance\test_i20_s03_sv_interface_spec.py` | `I20-S03` | `E04-S06`, `E07-S03`, `E13-S01` | `E15-S02`, `E15-S03`, `E15-S04`, `E15-S07` |
+| `docs\implementation\verilator-differential-harness.md` | `I20-S04` | `E07-S03`, `E13-S01`, `E15-S07` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tools\verilator_diff_harness.py` | `I20-S04` | `E07-S03`, `E13-S01`, `E15-S07` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i20_s04_verilator_harness.py` | `I20-S04` | `E07-S03`, `E13-S01`, `E15-S07` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |

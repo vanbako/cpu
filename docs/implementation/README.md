@@ -44,3 +44,4 @@ Current platform binding:
 - `docs/implementation/rtl-first-slice-contract.md`: first SystemVerilog slice boundary, pipeline, retire-packet, memory/tag, and unsupported-feature contract.
 - `docs/implementation/golden-retire-trace-corpus.md`: deterministic semantic retire packet corpus for future RTL differential testing.
 - `docs/implementation/systemverilog-interface-spec.md`: generated SystemVerilog package/type/interface contract for the first RTL boundary.
+- `docs/implementation/verilator-differential-harness.md`: dry-run and observed-trace comparator boundary for future Verilator RTL tests.
