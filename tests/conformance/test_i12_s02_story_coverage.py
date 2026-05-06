@@ -34,6 +34,9 @@ class StoryCoverageReportTests(unittest.TestCase):
         self.assertIn("I12-S02", stories)
         self.assertIn("I15-S03", stories)
         self.assertIn("I16-S03", stories)
+        self.assertIn("I17-S01", stories)
+        self.assertIn("I18-S04", stories)
+        self.assertIn("I19-S04", stories)
         self.assertIn("I20-S08", stories)
         self.assertEqual(len(stories), len(set(stories)))
 
@@ -58,6 +61,21 @@ class StoryCoverageReportTests(unittest.TestCase):
         self.assertEqual(rows["I16-S01"].status, "tested")
         self.assertEqual(rows["I16-S02"].status, "tested")
         self.assertEqual(rows["I16-S03"].status, "tested")
+        for story in (
+            "I17-S01",
+            "I17-S02",
+            "I17-S03",
+            "I17-S04",
+            "I18-S01",
+            "I18-S02",
+            "I18-S03",
+            "I18-S04",
+            "I19-S02",
+            "I19-S03",
+            "I19-S04",
+        ):
+            self.assertEqual(rows[story].status, "missing")
+        self.assertEqual(rows["I19-S01"].status, "docs/tool")
         self.assertEqual(rows["I20-S01"].status, "tested")
         self.assertEqual(rows["I20-S02"].status, "tested")
         self.assertEqual(rows["I20-S03"].status, "tested")
@@ -67,7 +85,7 @@ class StoryCoverageReportTests(unittest.TestCase):
         self.assertEqual(rows["I20-S07"].status, "tested")
         self.assertEqual(rows["I20-S08"].status, "tested")
         self.assertGreater(report.tested_count, 0)
-        self.assertEqual(report.missing_count, 0)
+        self.assertEqual(report.missing_count, 11)
 
     def test_rendered_report_lists_artifacts_and_next_rtl_story(self) -> None:
         tool = load_story_coverage_module()
@@ -83,6 +101,10 @@ class StoryCoverageReportTests(unittest.TestCase):
         self.assertIn("`I16-S01` | tested", rendered)
         self.assertIn("`I16-S02` | tested", rendered)
         self.assertIn("`I16-S03` | tested", rendered)
+        self.assertIn("`I17-S01` | missing", rendered)
+        self.assertIn("`I18-S01` | missing", rendered)
+        self.assertIn("`I19-S01` | docs/tool", rendered)
+        self.assertIn("external-fabric-cpu-boundary.md", rendered)
         self.assertIn("`I20-S01` | tested", rendered)
         self.assertIn("rtl-first-slice-contract.md", rendered)
         self.assertIn("`I20-S02` | tested", rendered)
@@ -109,8 +131,12 @@ class StoryCoverageReportTests(unittest.TestCase):
 
         output = stream.getvalue()
         self.assertEqual(result, 0)
-        self.assertIn("Stories: 0", output)
-        self.assertIn("Missing: 0", output)
+        self.assertIn("Stories: 11", output)
+        self.assertIn("Missing: 11", output)
+        self.assertIn("`I17-S01` | missing", output)
+        self.assertIn("`I18-S04` | missing", output)
+        self.assertIn("`I19-S04` | missing", output)
+        self.assertNotIn("`I19-S01` | docs/tool", output)
         self.assertNotIn("`I20-S01` | tested", output)
         self.assertNotIn("`I20-S02` | tested", output)
         self.assertNotIn("`I20-S03` | tested", output)

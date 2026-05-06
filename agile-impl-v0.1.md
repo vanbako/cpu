@@ -137,6 +137,18 @@ Explicitly excluded from the first slice:
 | I16-S01 | P1 | M | I15-S01, I15-S02, I15-S03, E15-S01 | Define the invariant registry and coverage matrix. | Registry entries map invariant keys to implementation stories, architecture owners, E15 coverage, artifacts, and checked surfaces. |
 | I16-S02 | P1 | M | I16-S01, I03-S03, E03-S03 | Add reusable deterministic capability property generators. | Shared generators cover authority-preserving and authority-reducing capability cases without broadening tags, bounds, or permissions. |
 | I16-S03 | P1 | L | I16-S01, I06-S01, I15-S03, E15-S04 | Add a seed-stable invariant runner. | A repeatable runner executes selected invariant families, records seed/case IDs, and reproduces failures from the command line. |
+| I17-S01 | P1 | M | I07-S02, I07-S03, I11-S01, E14-S02, E15-S06 | Define relocatable object and symbol metadata profile. | Object metadata distinguishes cell-addressed text, data, and capability-data sections, slot-aware symbols, capability sidecar provenance, ABI attributes, and deterministic validation errors. |
+| I17-S02 | P1 | L | I17-S01, I07-S02, I11-S02, E04-S01, E04-S06 | Implement linker relocation fixtures. | Assembler/linker fixtures resolve cell and slot labels, section placement, branch/call/data relocations, alignment constraints, duplicate or undefined symbols, and relocation overflow failures. |
+| I17-S03 | P1 | M | I17-S01, I09-S04, I12-S01, E12-S01, E15-S06 | Emit debug line, symbol, and register metadata. | Debug metadata maps `PCC` cell plus slot to source lines, functions, ABI registers, capability tag visibility, and protected return-stack unwind hints; disassembly prints matching symbolic locations. |
+| I17-S04 | P1 | L | I17-S02, I17-S03, I11-S03, I14-S02 | Publish executable toolchain regression corpus. | Golden object and binary fixtures cover reset smoke, call/return, syscall/trap, capability memory, relocation, debug metadata, and bad-object cases through the local check command. |
+| I18-S01 | P1 | L | I11-S03, I14-S02, I09-S03, I06-S01, E07-S01 | Build user process image and entry-context fixture. | Kernel fixture installs user `PCC`, `DSC`, `RSC`, `SATP`, ABI arguments, and privilege state, enters user mode, and rejects invalid image or context setup without partial state. |
+| I18-S02 | P1 | L | I18-S01, I06-S01, I06-S02, E09-S07 | Add VM allocation and page-mapping fixtures. | Map, unmap, permission, ASID/TLB invalidation, memory-type, and capability/page fault-priority cases run as executable kernel fixtures. |
+| I18-S03 | P1 | M | I18-S01, I09-S03, I14-S02, E04-S04 | Implement syscall demo across the user/kernel boundary. | User `SYS` preserves trap-frame state, validates service numbers and arguments, returns scalar and capability results, and rejects bad user pointers or invalid tags. |
+| I18-S04 | P1 | L | I18-S02, I18-S03, I06-S03, E07-S05, E07-S06 | Add minimal scheduler and context-switch fixtures. | Timer preemption switches two runnable tasks, saves and restores ABI and trap context including capabilities, tags, `SATP`, and `ASID`, clears LL/SC reservations, and resumes with `IRET`. |
+| I19-S01 | P2 | M | I08-S01, I06-S04, E09-S06, E10-S05 | Define CPU external endpoint and fabric attachment boundary. | CPU-side profile separates abstract endpoint windows, link events, external interrupt ingress, noncoherent external-agent memory effects, and tag-clearing rules from the out-of-repo computer architecture topology. |
+| I19-S02 | P2 | L | I14-S03, I18-S04, I19-S01, E07-S05, E11-S03 | Implement endpoint event, IPI, and interrupt routing fixtures. | Timer, software IPI, fabric-delivered external events, pending/enable/priority, delivery, and acknowledgement paths run across boot and secondary cores without assuming a shared bus. |
+| I19-S03 | P2 | L | I19-S01, I18-S02, I06-S04, I15-S02, E10-S04 | Add noncoherent external-agent transfer and cache-maintenance fixtures. | External-agent read/write fixtures enforce ownership handoff, fences, cache clean/invalidate ordering, memory-type policy, and capability tag clear/non-forgery behavior. |
+| I19-S04 | P2 | XL | I19-S02, I19-S03, I06-S04, E08-S03, E10-S03 | Add point-to-point fabric integration litmus suite. | Four-core startup, fabric event delivery, shared-memory, LL/SC contention, coherence/tag visibility, and external-agent ordering litmus cases run deterministically. |
 | I20-S01 | P1 | M | I10-S01, I13-S01, I13-S03, E13-S01 | Define the first RTL slice and microarchitecture contract. | A document fixes first-slice inclusions/exclusions, pipeline boundaries, stall/flush rules, commit packet timing, memory/tag assumptions, and unsupported-feature behavior. |
 | I20-S02 | P1 | L | I13-S02, I16-S03, E07-S03, E13-S01 | Generate a semantic golden retire trace corpus. | Deterministic fixtures cover reset smoke, integer ops, capability derivation, memory/tag ops, traps, calls/returns, and selected fault cases with machine-readable expected retire packets. |
 | I20-S03 | P1 | L | I07-S01, I10-S01, I20-S01, E04-S06 | Define SystemVerilog package, constants, and top-level interfaces. | SV package/type artifacts or generated specs cover cells, capabilities, tags, CSRs, decoded opcodes, fault packets, retire packets, instruction memory, data memory, and tag-memory ports. |
@@ -166,6 +178,22 @@ Initial RTL exclusions:
 - Firmware/kernel boot beyond fixtures needed by the golden corpus.
 
 These exclusions must remain visible in the I20-S08 gap report until implemented by later stories.
+
+## Post-I20 Story Refinement
+
+I17 turns the current assembler, serialization, and program-image pieces into a
+toolchain pipeline. The order is object metadata, relocation/linking, debug
+metadata, then a regression corpus that can be used by firmware and kernel
+stories.
+
+I18 uses the existing ROM, trap, syscall, MMU, and ABI fixtures to model a
+minimal user process. The order is user entry context, VM mapping, syscall
+round-trip, then timer-driven scheduling and context switching.
+
+I19 extends the platform beyond single-core fixtures without freezing the
+computer interconnect in this CPU repository. The order is CPU endpoint/fabric
+attachment boundary, event/IPI routing, external-agent cache-maintenance
+protocol, then point-to-point fabric litmus integration.
 
 ## Near-term Sprint Plan
 

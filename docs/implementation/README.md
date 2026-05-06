@@ -35,6 +35,7 @@ Current platform binding:
 - `docs/implementation/tiny-rom.md`: trusted tiny ROM initialization and kernel handoff fixture.
 - `docs/implementation/minimal-kernel-handlers.md`: trap-frame, syscall, timer, and `IRET` handler fixtures.
 - `docs/implementation/secondary-core-boot-demo.md`: firmware-controlled secondary-core startup demo.
+- `docs/implementation/external-fabric-cpu-boundary.md`: CPU-side external endpoint and future fabric attachment boundary.
 - `docs/implementation/capability-monotonicity-properties.md`: deterministic property-style capability monotonicity checks.
 - `docs/implementation/tag-integrity-properties.md`: deterministic property-style capability tag non-forgery checks.
 - `docs/implementation/precise-fault-properties.md`: deterministic property-style precise-fault side-effect checks.
