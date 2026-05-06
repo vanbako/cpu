@@ -86,6 +86,8 @@ table in the same change.
 | `tests\conformance\test_i18_s01_user_process.py` | `I18-S01` | `E05-S01`, `E05-S02`, `E07-S01`, `E09-S02`, `E09-S07`, `E11-S01` | `E15-S02`, `E15-S03`, `E15-S06`, `E15-S07` |
 | `docs\implementation\vm-page-mapping.md` | `I18-S02` | `E09-S02`, `E09-S03`, `E09-S06`, `E09-S07`, `E11-S01`, `I18-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i18_s02_vm_mapping.py` | `I18-S02` | `E09-S02`, `E09-S03`, `E09-S06`, `E09-S07`, `E11-S01`, `I18-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `docs\implementation\user-syscall-demo.md` | `I18-S03` | `E04-S04`, `E05-S01`, `E05-S02`, `E07-S06`, `I09-S03`, `I14-S02`, `I18-S01`, `I18-S02` | `E15-S03`, `E15-S04`, `E15-S06`, `E15-S07` |
+| `tests\conformance\test_i18_s03_syscall_demo.py` | `I18-S03` | `E04-S04`, `E05-S01`, `E05-S02`, `E07-S06`, `I09-S03`, `I14-S02`, `I18-S01`, `I18-S02` | `E15-S03`, `E15-S04`, `E15-S06`, `E15-S07` |
 | `docs\implementation\external-fabric-cpu-boundary.md` | `I19-S01` | `E07-S05`, `E09-S06`, `E10-S04`, `E10-S05`, `E11-S03` | `E15-S03`, `E15-S05`, `E15-S06`, `E15-S07` |
 | `docs\implementation\rtl-first-slice-contract.md` | `I20-S01` | `E07-S03`, `E13-S01`, `E13-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i20_s01_rtl_first_slice_contract.py` | `I20-S01` | `E07-S03`, `E13-S01`, `E13-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |

@@ -27,6 +27,7 @@ Current platform binding:
 - `docs/implementation/toolchain-regression-corpus.md`: executable assembler/linker/debug/bad-object regression corpus.
 - `docs/implementation/user-process-entry.md`: user process image and kernel-installed entry-context fixture.
 - `docs/implementation/vm-page-mapping.md`: deterministic user VM page-table allocation and mapping fixtures.
+- `docs/implementation/user-syscall-demo.md`: user-to-kernel syscall round-trip fixture with validation and returns.
 - `docs/implementation/language-abi.md`: public call-boundary register windows, mixed overflow layout, and spill rules.
 - `docs/implementation/syscall-abi.md`: baseline syscall service register, argument registers, overflow layout, returns, and volatility.
 - `docs/implementation/debugger-abi.md`: direct halted-core register view and protected return-stack unwind rules.
