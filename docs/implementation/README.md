@@ -23,6 +23,7 @@ Current platform binding:
 - `docs/implementation/cell-serialization-profile.md`: little-endian 24-bit cell serialization and section payload rules for byte-oriented host containers.
 - `docs/implementation/relocatable-object-metadata.md`: relocatable object sections, slot-aware symbols, capability sidecar provenance, and ABI attributes.
 - `docs/implementation/linker-relocation-fixtures.md`: section placement, symbol resolution, and first relocation fixture profile.
+- `docs/implementation/debug-metadata.md`: source-line, symbol, ABI register, unwind, and symbolic disassembly metadata fixtures.
 - `docs/implementation/language-abi.md`: public call-boundary register windows, mixed overflow layout, and spill rules.
 - `docs/implementation/syscall-abi.md`: baseline syscall service register, argument registers, overflow layout, returns, and volatility.
 - `docs/implementation/debugger-abi.md`: direct halted-core register view and protected return-stack unwind rules.
