@@ -61,6 +61,7 @@ Implementation principles:
 | I18 | P1 | Kernel/userland bring-up. | User process image, VM allocation, syscall demo, and minimal scheduler fixtures. |
 | I19 | P2 | Devices and multicore platform. | MMIO devices, IPI/interrupt controller model, DMA driver protocol, and multicore integration tests. |
 | I20 | P1 | RTL readiness and first SystemVerilog slice. | First-slice contract, golden retire corpus, SV package/interface plan, Verilator harness, and first single-core RTL gates. |
+| I21 | P1 | Single-core RTL semantic closure. | Expand the first RTL slice to mandatory single-core instruction, trap, MMU, atomic, and differential-gate coverage. |
 
 ## First Vertical Slice
 
@@ -157,6 +158,12 @@ Explicitly excluded from the first slice:
 | I20-S06 | P1 | XL | I20-S05, I02-S02, I02-S03, I03-S03, I03-S04 | Add capability register and memory/tag RTL behavior. | RTL passes golden cases for capability payload/tag registers, `CMOVE`, `CGETADDR`, `CSETADDR`, `CANDPERM`, `LD48`, `ST48`, `CLC`, `CSC`, tag clears, and invalid-tag faults. |
 | I20-S07 | P1 | L | I20-S06, I04-S02, I04-S03, I05-S01 | Add precise fault, trap, and protected-stack RTL gates. | RTL passes golden cases for fault packets, no-normal-effect faults, direct trap entry, `IRET`, direct `CALL`, protected return-stack push, and all-or-nothing commit behavior. |
 | I20-S08 | P1 | M | I20-S04, I20-S07, E15-S07 | Publish RTL readiness gap report and CI command. | A report lists implemented RTL surface, known deferrals, unsupported instructions/interfaces, golden corpus coverage, and the local command that gates future RTL commits. |
+| I21-S01 | P1 | L | I20-S07, I20-S08, I07-S01, I20-S02 | Expand RTL scalar, branch, CSR, and CCSR instruction coverage. | Verilator/golden cases pass for remaining mandatory integer, branch, CSR, CCSR, `EPCCRD`, `EPCCWR`, `PAUSE`, and `BRK` forms that do not require MMU, atomics, or cache maintenance. |
+| I21-S02 | P1 | XL | I21-S01, I06-S01, I06-S02, I18-S02, E09-S02, E09-S07 | Add RTL `RADIX4` page walk, TLB, `SATP`, ASID, and page-fault behavior. | RTL passes golden VM fixtures for bare mode, page walks, permission faults, memory-type faults, stale TLB behavior, and `SFENCE.VM*` invalidation effects. |
+| I21-S03 | P1 | L | I21-S02, I06-S03, I06-S04, E08-S01, E08-S02 | Add RTL `LL48`/`SC48`, reservation, fence, and cache-maintenance architectural effects. | RTL passes golden and litmus-derived cases for LL/SC success/failure, conflict clears, trap/CSR/fence reservation clears, `FENCE`, `FENCE.I`, and `CACHE.*` access checks. |
+| I21-S04 | P1 | XL | I21-S01, I21-S02, I20-S07, I14-S02, I18-S03 | Expand RTL control-transfer and trap coverage to syscall and protected call/return paths. | RTL passes golden cases for `CALLC`, `RET`, protected return-stack pop faults, `SYS`/`SCALL`, syscall trap-frame save/restore, and `IRET` back to user mode. |
+| I21-S05 | P1 | L | I21-S01, I21-S02, I21-S03, I21-S04, I20-S04, I17-S04 | Promote the Verilator differential harness to a regression-suite gate. | The harness runs generated golden/toolchain cases by case ID, partitions slow and fast suites, emits first-mismatch diagnostics, and preserves clean skip behavior when Verilator is unavailable. |
+| I21-S06 | P1 | M | I21-S05, I16-S01, I20-S08, E15-S07 | Publish single-core RTL semantic closure report. | A report maps mandatory v0.1 instruction families, golden cases, invariants, unsupported deferrals, and local gate commands, with explicit readiness criteria for starting multicore/fabric RTL. |
 
 ## RTL Readiness Slice
 
@@ -194,6 +201,12 @@ I19 extends the platform beyond single-core fixtures without freezing the
 computer interconnect in this CPU repository. The order is CPU endpoint/fabric
 attachment boundary, event/IPI routing, external-agent cache-maintenance
 protocol, then point-to-point fabric litmus integration.
+
+I21 should follow I20 by closing the single-core RTL semantic gap before moving
+to multicore RTL. The order is scalar/control coverage, MMU/TLB behavior,
+atomics and maintenance effects, syscall/protected-control paths, differential
+suite promotion, then a closure report that decides whether multicore/fabric
+RTL is ready to start.
 
 ## Near-term Sprint Plan
 
