@@ -129,3 +129,6 @@ table in the same change.
 | `docs\implementation\rtl-atomic-cache-slice.md` | `I21-S03` | `E08-S01`, `E08-S02`, `E08-S04`, `E10-S05`, `I06-S03`, `I06-S04`, `I21-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tools\rtl_atomic_cache_slice.py` | `I21-S03` | `E08-S01`, `E08-S02`, `E08-S04`, `E10-S05`, `I06-S03`, `I06-S04`, `I21-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i21_s03_rtl_atomic_cache.py` | `I21-S03` | `E08-S01`, `E08-S02`, `E08-S04`, `E10-S05`, `I06-S03`, `I06-S04`, `I21-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `docs\implementation\rtl-control-trap-slice.md` | `I21-S04` | `E04-S04`, `E05-S04`, `E06-S02`, `E06-S04`, `E07-S06`, `I14-S02`, `I18-S03`, `I21-S01`, `I21-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S06`, `E15-S07` |
+| `tools\rtl_control_trap_slice.py` | `I21-S04` | `E04-S04`, `E05-S04`, `E06-S02`, `E06-S04`, `E07-S06`, `I14-S02`, `I18-S03`, `I21-S01`, `I21-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S06`, `E15-S07` |
+| `tests\conformance\test_i21_s04_rtl_control_trap.py` | `I21-S04` | `E04-S04`, `E05-S04`, `E06-S02`, `E06-S04`, `E07-S06`, `I14-S02`, `I18-S03`, `I21-S01`, `I21-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S06`, `E15-S07` |

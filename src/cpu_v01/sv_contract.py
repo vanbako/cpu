@@ -37,6 +37,8 @@ REQUIRED_SV_SURFACES = frozenset(
         "reservations",
         "ordering",
         "cache_maintenance",
+        "trap_frames",
+        "syscalls",
     }
 )
 
@@ -468,6 +470,18 @@ def _structs() -> tuple[SvStruct, ...]:
                 _field("trap_entry_valid", "logic", 1, ("retire_packets",), "Direct trap entry was taken for this precise fault."),
                 _field("trap_target", "cap_t", None, ("retire_packets", "capabilities", "tags"), "Direct trap-entry target capability."),
                 _field("trap_target_slot", "logic", 1, ("retire_packets",), "Direct trap-entry target slot."),
+                _field("trap_frame_save_valid", "logic", 1, ("retire_packets", "trap_frames"), "Software trap-frame save is represented for this retire point."),
+                _field("trap_frame_restore_valid", "logic", 1, ("retire_packets", "trap_frames"), "Software trap-frame restore is represented for this retire point."),
+                _field("trap_frame_epcc_value", "cap_t", None, ("retire_packets", "trap_frames", "capabilities", "tags"), "Saved or restored EPCC payload and tag."),
+                _field("trap_frame_epcc_slot", "logic", 1, ("retire_packets", "trap_frames"), "Saved or restored EPCC hidden slot."),
+                _field("trap_frame_sr_value", "logic", state.INTEGER_REGISTER_BITS, ("retire_packets", "trap_frames", "csrs", "cells"), "Saved or restored SR value."),
+                _field("syscall_service_valid", "logic", 1, ("retire_packets", "syscalls"), "Syscall service metadata is valid."),
+                _field("syscall_service_number", "logic", state.INTEGER_REGISTER_BITS, ("retire_packets", "syscalls", "cells"), "Syscall service number from D0."),
+                _field("syscall_status", "logic", state.INTEGER_REGISTER_BITS, ("retire_packets", "syscalls", "cells"), "Syscall handler status code."),
+                _field("syscall_return_valid", "logic", 1, ("retire_packets", "syscalls"), "Syscall return values are valid."),
+                _field("syscall_return_d0", "logic", state.INTEGER_REGISTER_BITS, ("retire_packets", "syscalls", "cells"), "Syscall scalar return register D0."),
+                _field("syscall_return_d1", "logic", state.INTEGER_REGISTER_BITS, ("retire_packets", "syscalls", "cells"), "Syscall scalar return register D1."),
+                _field("syscall_return_c0", "cap_t", None, ("retire_packets", "syscalls", "capabilities", "tags"), "Syscall capability return register C0."),
                 _field("translation_valid", "logic", 1, ("retire_packets", "mmu"), "Address translation metadata is valid."),
                 _field("effective_address", "logic", cells.ADDRESS_BITS, ("retire_packets", "mmu", "cells"), "Effective virtual address for the memory or fetch operation."),
                 _field("physical_address", "logic", cells.ADDRESS_BITS, ("retire_packets", "mmu", "cells"), "Translated physical cell address."),

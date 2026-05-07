@@ -25,6 +25,7 @@ Slice-specific checks covered by the gate through conformance tests:
 - `python tools\rtl_scalar_control_slice.py --check`
 - `python tools\rtl_mmu_tlb_slice.py --check`
 - `python tools\rtl_atomic_cache_slice.py --check`
+- `python tools\rtl_control_trap_slice.py --check`
 - `python tools\verilator_diff_harness.py`
 
 Verilator fixture build commands for the current self-checking RTL slices:
@@ -37,6 +38,7 @@ Verilator fixture build commands for the current self-checking RTL slices:
 | scalar/control smoke | `cpu_v01_scalar_control_tb` | `verilator --binary --timing --top-module cpu_v01_scalar_control_tb rtl/cpu_v01_pkg.sv rtl/cpu_v01_scalar_control_core.sv rtl/cpu_v01_scalar_control_tb.sv` |
 | MMU/TLB smoke | `cpu_v01_mmu_tlb_tb` | `verilator --binary --timing --top-module cpu_v01_mmu_tlb_tb rtl/cpu_v01_pkg.sv rtl/cpu_v01_mmu_tlb_core.sv rtl/cpu_v01_mmu_tlb_tb.sv` |
 | atomic/cache smoke | `cpu_v01_atomic_cache_tb` | `verilator --binary --timing --top-module cpu_v01_atomic_cache_tb rtl/cpu_v01_pkg.sv rtl/cpu_v01_atomic_cache_core.sv rtl/cpu_v01_atomic_cache_tb.sv` |
+| control/trap smoke | `cpu_v01_control_trap_tb` | `verilator --binary --timing --top-module cpu_v01_control_trap_tb rtl/cpu_v01_pkg.sv rtl/cpu_v01_control_trap_core.sv rtl/cpu_v01_control_trap_tb.sv` |
 
 ## Implemented RTL Surface
 
@@ -52,6 +54,7 @@ Verilator fixture build commands for the current self-checking RTL slices:
 | `I21-S01` | scalar integer, branch/control, CSR, and CCSR smoke RTL | `rtl/cpu_v01_pkg.sv`, `rtl/cpu_v01_scalar_control_core.sv`, `rtl/cpu_v01_scalar_control_tb.sv` | - | `CPY`, `NEG`, `ADD`, `ADDU`, `SUB`, `SUBU`, `MUL`, `MULU`, `DIV`, `DIVU`, `MOD`, `MODU`, `NOT`, `AND`, `OR`, `XOR`, `SHL`, `SHRS`, `SHRU`, `ROL`, `ROR`, `CMP`, `CMPU`, `TST`, `SETCC`, `CMOVCC`, `BSET`, `BCLR`, `BRA`, `BCC`, `JMP`, `BRK`, `EPCCRD`, `EPCCWR`, `PAUSE`, `CSRRD`, `CSRWR`, `CSRSET`, `CSRCLR`, `CCSRRD`, `CCSRWR` |
 | `I21-S02` | RADIX4, TLB, SATP, ASID, page-fault, and SFENCE smoke RTL | `rtl/cpu_v01_pkg.sv`, `rtl/cpu_v01_mmu_tlb_core.sv`, `rtl/cpu_v01_mmu_tlb_tb.sv` | - | `SFENCE.VM`, `SFENCE.VM.ASID`, `SFENCE.VM.VA`, `SFENCE.VM.VA_ASID` |
 | `I21-S03` | LL/SC, reservation, fence, and cache-maintenance smoke RTL | `rtl/cpu_v01_pkg.sv`, `rtl/cpu_v01_atomic_cache_core.sv`, `rtl/cpu_v01_atomic_cache_tb.sv` | - | `LL48`, `SC48`, `FENCE`, `FENCE.I`, `CACHE.CLEAN`, `CACHE.INVAL`, `CACHE.CLEANINVAL` |
+| `I21-S04` | CALLC, RET pop faults, SYS/SCALL, syscall frame, and IRET smoke RTL | `rtl/cpu_v01_pkg.sv`, `rtl/cpu_v01_control_trap_core.sv`, `rtl/cpu_v01_control_trap_tb.sv` | `callc.entry_success`, `callc.entry_tag_fault`, `ret.pop_success`, `ret.pop_underflow_tag`, `ret.unprotected_permission_fault`, `sys.sys_trap_frame_save`, `sys.scall_alias_trap_frame_save`, `syscall.ok_frame_restore_iret` | `CALLC`, `RET`, `SYS`, `SCALL`, `IRET` |
 
 ## Golden Corpus Coverage
 
@@ -75,12 +78,13 @@ Verilator fixture build commands for the current self-checking RTL slices:
 - `I21-S01` expands scalar, branch, CSR, and CCSR coverage as a deterministic slice; full decode and issue remain deferred.
 - `I21-S02` expands RADIX4, TLB, SATP, ASID, page-fault, and SFENCE coverage as a deterministic slice; integrated page-walker ports remain deferred.
 - `I21-S03` expands LL/SC, reservation, fence, and cache-maintenance coverage as a deterministic slice; integrated cache hierarchy behavior remains deferred.
-- `CALL`/`RET` cover direct protected-stack transactions; `CALLC` and broader call hazards remain deferred.
-- `SYS`/`IRET` cover direct synchronous trap entry and restore; interrupts and debug monitor entry remain deferred.
+- `I21-S04` expands `CALLC`, `RET` pop faults, `SYS`/`SCALL`, syscall frame save/restore, and `IRET` user return as a deterministic slice.
+- `CALL`/`RET`/`CALLC` cover protected-stack transactions; broader call hazards remain deferred.
+- `SYS`/`SCALL`/`IRET` cover direct synchronous trap entry and restore; interrupts and debug monitor entry remain deferred.
 
 ## Unsupported Instructions
 
-Mandatory mnemonics without an RTL golden-slice path: `CINCADDR`, `CSETBOUNDS`, `CSEAL`, `CUNSEAL`, `WFI`, `CALLC`.
+Mandatory mnemonics without an RTL golden-slice path: `CINCADDR`, `CSETBOUNDS`, `CSEAL`, `CUNSEAL`, `WFI`.
 
 ## Unsupported Interfaces
 
