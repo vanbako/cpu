@@ -56,6 +56,10 @@ class RtlReadinessGapTests(unittest.TestCase):
             "python tools\\rtl_control_trap_slice.py --check",
             report.slice_check_commands,
         )
+        self.assertIn(
+            "python tools\\verilator_diff_harness.py --suite fast",
+            report.slice_check_commands,
+        )
 
     def test_implemented_surface_lists_rtl_slices_and_artifacts(self) -> None:
         report = rtl_readiness.rtl_readiness_report()
@@ -68,6 +72,7 @@ class RtlReadinessGapTests(unittest.TestCase):
         self.assertIn("rtl/cpu_v01_mmu_tlb_core.sv", by_story["I21-S02"].artifacts)
         self.assertIn("rtl/cpu_v01_atomic_cache_core.sv", by_story["I21-S03"].artifacts)
         self.assertIn("rtl/cpu_v01_control_trap_core.sv", by_story["I21-S04"].artifacts)
+        self.assertIn("tools/verilator_diff_harness.py", by_story["I21-S05"].artifacts)
         self.assertIn("ADD", by_story["I20-S05"].mnemonics)
         self.assertIn("CSETADDR", by_story["I20-S06"].mnemonics)
         self.assertIn("IRET", by_story["I20-S07"].mnemonics)
@@ -214,6 +219,7 @@ class RtlReadinessGapTests(unittest.TestCase):
         self.assertIn("`I21-S02`", text)
         self.assertIn("`I21-S03`", text)
         self.assertIn("`I21-S04`", text)
+        self.assertIn("`I21-S05`", text)
         self.assertIn("Multicore execution.", text)
 
 

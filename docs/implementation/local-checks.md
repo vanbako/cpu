@@ -11,6 +11,7 @@ python tools\spec_reference_check.py
 python tools\spec_constants_model.py
 python tools\story_coverage.py --check-drift
 python tools\toolchain_corpus.py --check
+python tools\verilator_diff_harness.py --suite fast
 git diff --check
 ```
 

@@ -18,6 +18,18 @@ Dry-run the harness boundary:
 python tools\verilator_diff_harness.py
 ```
 
+Run the fast regression partition explicitly:
+
+```text
+python tools\verilator_diff_harness.py --suite fast
+```
+
+Select a single generated case ID:
+
+```text
+python tools\verilator_diff_harness.py --case-id integer_ops.add_mul
+```
+
 Compare an observed trace JSON file:
 
 ```text
@@ -44,6 +56,8 @@ readiness report.
 ## Inputs
 
 - Golden expected packets come from `cpu_v01.golden_traces`.
+- Toolchain-backed case IDs come from `cpu_v01.toolchain_corpus` when a case
+  names a golden retire trace.
 - Package and interface prerequisites come from `cpu_v01.sv_contract`.
 - Observed packets are read from `retire_trace.json` using the same case and
   packet shape as `python tools\golden_trace_corpus.py`.

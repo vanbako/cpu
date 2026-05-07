@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run or dry-run the I20-S04 Verilator differential harness skeleton."""
+"""Run or dry-run the Verilator differential regression harness."""
 
 from __future__ import annotations
 
@@ -28,6 +28,23 @@ def main(argv: list[str] | None = None) -> int:
         help="compare an existing observed retire_trace.json against the golden corpus",
     )
     parser.add_argument(
+        "--suite",
+        choices=("fast", "slow", "all"),
+        default="fast",
+        help="regression suite partition to select when no --case-id is provided",
+    )
+    parser.add_argument(
+        "--case-id",
+        action="append",
+        default=[],
+        help="run or compare one regression case ID; may be repeated",
+    )
+    parser.add_argument(
+        "--list-cases",
+        action="store_true",
+        help="list selected regression case IDs and exit",
+    )
+    parser.add_argument(
         "--run",
         action="store_true",
         help="attempt a non-dry-run RTL boundary if Verilator is available",
@@ -43,11 +60,39 @@ def main(argv: list[str] | None = None) -> int:
         help="Verilator executable name or path",
     )
     args = parser.parse_args(argv)
+    suite = verilator_harness.HarnessSuite(args.suite)
+
+    if args.list_cases:
+        selected = (
+            tuple(
+                case
+                for case in verilator_harness.regression_cases(
+                    verilator_harness.HarnessSuite.ALL
+                )
+                if case.case_id in args.case_id
+            )
+            if args.case_id
+            else verilator_harness.regression_cases(suite)
+        )
+        for case in selected:
+            print(
+                "\t".join(
+                    (
+                        case.case_id,
+                        case.source,
+                        case.suite.value,
+                        case.golden_trace_case_id or "-",
+                    )
+                )
+            )
+        return 0
 
     result = verilator_harness.run_harness(
         verilator_harness.HarnessConfig(
             build_dir=Path(args.build_dir),
             observed_trace=Path(args.observed_trace) if args.observed_trace else None,
+            case_ids=tuple(args.case_id),
+            suite=suite,
             dry_run=not args.run,
             verilator_executable=args.verilator,
             require_verilator=args.require_verilator,

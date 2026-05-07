@@ -39,6 +39,10 @@ def local_checks(python: str | None = None) -> tuple[LocalCheck, ...]:
         LocalCheck("story coverage drift", (python, "tools/story_coverage.py", "--check-drift")),
         LocalCheck("toolchain corpus", (python, "tools/toolchain_corpus.py", "--check")),
         LocalCheck(
+            "verilator regression gate",
+            (python, "tools/verilator_diff_harness.py", "--suite", "fast"),
+        ),
+        LocalCheck(
             "conformance tests",
             (
                 python,

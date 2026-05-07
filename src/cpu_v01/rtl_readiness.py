@@ -38,7 +38,7 @@ RTL_SLICE_CHECK_COMMANDS = (
     "python tools\\rtl_mmu_tlb_slice.py --check",
     "python tools\\rtl_atomic_cache_slice.py --check",
     "python tools\\rtl_control_trap_slice.py --check",
-    "python tools\\verilator_diff_harness.py",
+    "python tools\\verilator_diff_harness.py --suite fast",
 )
 
 SUPPORTED_RTL_CASE_MNEMONICS = frozenset(
@@ -345,6 +345,7 @@ def validate_rtl_readiness_report(root: Path | None = None) -> tuple[str, ...]:
         "I21-S02",
         "I21-S03",
         "I21-S04",
+        "I21-S05",
     ):
         if story not in stories:
             issues.append(f"missing implemented RTL surface for {story}")
@@ -388,6 +389,7 @@ def validate_rtl_readiness_report(root: Path | None = None) -> tuple[str, ...]:
         "I21-S02",
         "I21-S03",
         "I21-S04",
+        "I21-S05",
     ):
         if token not in rendered:
             issues.append(f"rendered readiness report missing {token}")
@@ -403,6 +405,7 @@ def validate_rtl_readiness_report(root: Path | None = None) -> tuple[str, ...]:
             "`I21-S02`",
             "`I21-S03`",
             "`I21-S04`",
+            "`I21-S05`",
         ):
             if token not in doc:
                 issues.append(f"{RTL_READINESS_DOC.as_posix()} missing {token}")
@@ -541,6 +544,11 @@ def _implemented_surfaces() -> tuple[RtlSurface, ...]:
             tuple(path.as_posix() for path in rtl_control_trap.RTL_CONTROL_TRAP_SOURCE_FILES),
             rtl_control_trap.control_trap_case_ids(),
             rtl_control_trap.control_trap_mnemonics(),
+        ),
+        RtlSurface(
+            "I21-S05",
+            "Verilator fast/slow regression-suite gate",
+            ("src/cpu_v01/verilator_harness.py", "tools/verilator_diff_harness.py"),
         ),
     )
 

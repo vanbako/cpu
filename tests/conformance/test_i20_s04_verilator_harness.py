@@ -74,7 +74,9 @@ class VerilatorHarnessTests(unittest.TestCase):
         self.assertIn("integer_ops.add_mul packet 0", mismatch.message())
 
     def test_observed_trace_comparison_passes_for_matching_json(self) -> None:
-        expected = golden_traces.golden_trace_corpus_as_dicts()
+        expected = verilator_harness.expected_retire_cases(
+            suite=verilator_harness.HarnessSuite.ALL
+        )
 
         result = verilator_harness.run_harness(
             verilator_harness.HarnessConfig(
@@ -113,6 +115,7 @@ class VerilatorHarnessTests(unittest.TestCase):
 
         self.assertEqual(result, 0)
         self.assertIn("Status: SKIPPED", stream.getvalue())
+        self.assertIn("Suite: fast", stream.getvalue())
 
         stream = StringIO()
         with contextlib.redirect_stdout(stream):
@@ -135,6 +138,8 @@ class VerilatorHarnessTests(unittest.TestCase):
         self.assertIn("Story: I20-S04", text)
         self.assertIn("python tools\\verilator_diff_harness.py", text)
         self.assertIn("retire_trace.json", text)
+        self.assertIn("--suite fast", text)
+        self.assertIn("--case-id", text)
         self.assertIn("first mismatch by case ID", text)
         self.assertIn("skips cleanly", text)
 

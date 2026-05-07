@@ -132,3 +132,6 @@ table in the same change.
 | `docs\implementation\rtl-control-trap-slice.md` | `I21-S04` | `E04-S04`, `E05-S04`, `E06-S02`, `E06-S04`, `E07-S06`, `I14-S02`, `I18-S03`, `I21-S01`, `I21-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S06`, `E15-S07` |
 | `tools\rtl_control_trap_slice.py` | `I21-S04` | `E04-S04`, `E05-S04`, `E06-S02`, `E06-S04`, `E07-S06`, `I14-S02`, `I18-S03`, `I21-S01`, `I21-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S06`, `E15-S07` |
 | `tests\conformance\test_i21_s04_rtl_control_trap.py` | `I21-S04` | `E04-S04`, `E05-S04`, `E06-S02`, `E06-S04`, `E07-S06`, `I14-S02`, `I18-S03`, `I21-S01`, `I21-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S06`, `E15-S07` |
+| `docs\implementation\verilator-regression-gate.md` | `I21-S05` | `E07-S03`, `E13-S01`, `E15-S07`, `I17-S04`, `I20-S02`, `I20-S04`, `I21-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tools\verilator_diff_harness.py` | `I21-S05` | `E07-S03`, `E13-S01`, `E15-S07`, `I17-S04`, `I20-S02`, `I20-S04`, `I21-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i21_s05_verilator_regression_gate.py` | `I21-S05` | `E07-S03`, `E13-S01`, `E15-S07`, `I17-S04`, `I20-S02`, `I20-S04`, `I21-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |

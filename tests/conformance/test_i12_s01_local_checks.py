@@ -39,6 +39,7 @@ class LocalCheckRunnerTests(unittest.TestCase):
                 "constants model",
                 "story coverage drift",
                 "toolchain corpus",
+                "verilator regression gate",
                 "conformance tests",
                 "litmus tests",
                 "whitespace",
@@ -61,6 +62,10 @@ class LocalCheckRunnerTests(unittest.TestCase):
         )
         self.assertIn(("python", "tools/story_coverage.py", "--check-drift"), commands)
         self.assertIn(("python", "tools/toolchain_corpus.py", "--check"), commands)
+        self.assertIn(
+            ("python", "tools/verilator_diff_harness.py", "--suite", "fast"),
+            commands,
+        )
         self.assertIn(
             (
                 "python",
@@ -88,6 +93,7 @@ class LocalCheckRunnerTests(unittest.TestCase):
         self.assertIn("spec references:", output)
         self.assertIn("story coverage drift:", output)
         self.assertIn("toolchain corpus:", output)
+        self.assertIn("verilator regression gate:", output)
         self.assertIn("conformance tests:", output)
         self.assertIn("git diff --check", output)
 

@@ -26,7 +26,7 @@ Slice-specific checks covered by the gate through conformance tests:
 - `python tools\rtl_mmu_tlb_slice.py --check`
 - `python tools\rtl_atomic_cache_slice.py --check`
 - `python tools\rtl_control_trap_slice.py --check`
-- `python tools\verilator_diff_harness.py`
+- `python tools\verilator_diff_harness.py --suite fast`
 
 Verilator fixture build commands for the current self-checking RTL slices:
 
@@ -55,6 +55,7 @@ Verilator fixture build commands for the current self-checking RTL slices:
 | `I21-S02` | RADIX4, TLB, SATP, ASID, page-fault, and SFENCE smoke RTL | `rtl/cpu_v01_pkg.sv`, `rtl/cpu_v01_mmu_tlb_core.sv`, `rtl/cpu_v01_mmu_tlb_tb.sv` | - | `SFENCE.VM`, `SFENCE.VM.ASID`, `SFENCE.VM.VA`, `SFENCE.VM.VA_ASID` |
 | `I21-S03` | LL/SC, reservation, fence, and cache-maintenance smoke RTL | `rtl/cpu_v01_pkg.sv`, `rtl/cpu_v01_atomic_cache_core.sv`, `rtl/cpu_v01_atomic_cache_tb.sv` | - | `LL48`, `SC48`, `FENCE`, `FENCE.I`, `CACHE.CLEAN`, `CACHE.INVAL`, `CACHE.CLEANINVAL` |
 | `I21-S04` | CALLC, RET pop faults, SYS/SCALL, syscall frame, and IRET smoke RTL | `rtl/cpu_v01_pkg.sv`, `rtl/cpu_v01_control_trap_core.sv`, `rtl/cpu_v01_control_trap_tb.sv` | `callc.entry_success`, `callc.entry_tag_fault`, `ret.pop_success`, `ret.pop_underflow_tag`, `ret.unprotected_permission_fault`, `sys.sys_trap_frame_save`, `sys.scall_alias_trap_frame_save`, `syscall.ok_frame_restore_iret` | `CALLC`, `RET`, `SYS`, `SCALL`, `IRET` |
+| `I21-S05` | Verilator fast/slow regression-suite gate | `src/cpu_v01/verilator_harness.py`, `tools/verilator_diff_harness.py` | - | - |
 
 ## Golden Corpus Coverage
 
