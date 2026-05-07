@@ -59,9 +59,10 @@ Implementation principles:
 | I16 | P1 | Formal invariant expansion. | Registry, reusable generators, and seeded invariant runner for security/correctness properties. |
 | I17 | P1 | Toolchain and binary pipeline. | Richer assembler/linker fixtures, relocations, object metadata, and debug symbols. |
 | I18 | P1 | Kernel/userland bring-up. | User process image, VM allocation, syscall demo, and minimal scheduler fixtures. |
-| I19 | P2 | Devices and multicore platform. | MMIO devices, IPI/interrupt controller model, DMA driver protocol, and multicore integration tests. |
+| I19 | P2 | External endpoints and multicore platform boundary. | CPU endpoint/fabric attachment profile, event/IPI routing, external-agent transfer protocol, and point-to-point fabric litmus tests. |
 | I20 | P1 | RTL readiness and first SystemVerilog slice. | First-slice contract, golden retire corpus, SV package/interface plan, Verilator harness, and first single-core RTL gates. |
 | I21 | P1 | Single-core RTL semantic closure. | Expand the first RTL slice to mandatory single-core instruction, trap, MMU, atomic, and differential-gate coverage. |
+| I22 | P1 | Integrated single-core RTL core. | Replace fixture-only RTL slices with a real `cpu_v01_core` top level that runs golden programs through fetch, decode, execute, memory, trap, and retire paths. |
 
 ## First Vertical Slice
 
@@ -164,6 +165,14 @@ Explicitly excluded from the first slice:
 | I21-S04 | P1 | XL | I21-S01, I21-S02, I20-S07, I14-S02, I18-S03 | Expand RTL control-transfer and trap coverage to syscall and protected call/return paths. | RTL passes golden cases for `CALLC`, `RET`, protected return-stack pop faults, `SYS`/`SCALL`, syscall trap-frame save/restore, and `IRET` back to user mode. |
 | I21-S05 | P1 | L | I21-S01, I21-S02, I21-S03, I21-S04, I20-S04, I17-S04 | Promote the Verilator differential harness to a regression-suite gate. | The harness runs generated golden/toolchain cases by case ID, partitions slow and fast suites, emits first-mismatch diagnostics, and preserves clean skip behavior when Verilator is unavailable. |
 | I21-S06 | P1 | M | I21-S05, I16-S01, I20-S08, E15-S07 | Publish single-core RTL semantic closure report. | A report maps mandatory v0.1 instruction families, golden cases, invariants, unsupported deferrals, and local gate commands, with explicit readiness criteria for starting multicore/fabric RTL. |
+| I22-S01 | P1 | L | I21-S06, I20-S03, I20-S04, E13-S01 | Define and instantiate the integrated `cpu_v01_core` top-level shell. | `cpu_v01_core` exposes stable clock/reset, instruction memory, data memory, tag-memory, interrupt/event, retire, and debug-observation ports; reset state, stall/flush, and unsupported external-interface behavior are documented and lint/build clean. |
+| I22-S02 | P1 | L | I22-S01, I07-S01, I20-S02, I21-S01, E01-S05, E04-S01 | Integrate instruction fetch, slot sequencing, and 12/24/48-bit decode. | The core fetches from instruction memory, enforces slot placement and explicit slot-0 targets, decodes mandatory scalar/control encodings used by the golden corpus, and reports precise placement or illegal-instruction faults. |
+| I22-S03 | P1 | XL | I22-S02, I21-S01, E02-S04, E02-S05, E04-S02, E04-S04 | Integrate scalar, branch, CSR, CCSR, and retire execution. | Golden scalar/control programs retire through the top-level pipeline with correct register/CSR/CCSR writes, condition codes, branches, redirects, `EPCCRD`/`EPCCWR`, `BRK`, `PAUSE`, no-effect faults, and first-mismatch diagnostics. |
+| I22-S04 | P1 | XL | I22-S03, I20-S06, I03-S04, I21-S06, E03-S04, E04-S03, E04-S05 | Integrate capability registers plus data and tag-memory operations. | Top-level golden cases pass for capability derivation, capability payload/tag registers, `LD48`, `ST48`, `CLC`, `CSC`, tag clears, local/protected-storage checks, and invalid-tag or bounds faults without partial architectural effects. |
+| I22-S05 | P1 | XL | I22-S04, I21-S04, I14-S02, I18-S03, E06-S02, E06-S04, E07-S04, E07-S06 | Integrate trap, syscall, protected call, and return paths. | The core passes top-level cases for direct trap entry, `IRET`, `CALL`, `CALLC`, protected return-stack push/pop, `RET` faults, `SYS`/`SCALL`, syscall frame save/restore, privilege transitions, and trap-priority ordering. |
+| I22-S06 | P1 | XL | I22-S05, I21-S02, I18-S02, E09-S02, E09-S03, E09-S07 | Integrate MMU, TLB, SATP/ASID, page-walk, and translation faults. | Instruction and data accesses use the integrated translation path; golden VM fixtures cover bare mode, page walks, permission and memory-type faults, stale TLB behavior, ASID/global matching, and all `SFENCE.VM*` invalidation forms. |
+| I22-S07 | P1 | L | I22-S06, I21-S03, I06-S04, E08-S01, E08-S02, E08-S04, E10-S05 | Integrate LL/SC, reservation, fence, and cache-maintenance effects. | Top-level cases and litmus projections pass for `LL48`/`SC48`, conflict and trap clears, spurious failure allowance, `FENCE`, `FENCE.I`, `CACHE.*` access checks, and ordering-visible retire boundaries. |
+| I22-S08 | P1 | L | I22-S01, I22-S02, I22-S03, I22-S04, I22-S05, I22-S06, I22-S07, I21-S05, I17-S04 | Promote integrated `cpu_v01_core` simulation to the RTL regression gate. | Fast and slow Verilator suites run against `cpu_v01_core`, selected golden/toolchain cases move from slice projection to observed top-level retire traces, remaining deferrals are explicit, and the local gate fails on integrated-core mismatches. |
 
 ## RTL Readiness Slice
 
@@ -207,6 +216,14 @@ to multicore RTL. The order is scalar/control coverage, MMU/TLB behavior,
 atomics and maintenance effects, syscall/protected-control paths, differential
 suite promotion, then a closure report that decides whether multicore/fabric
 RTL is ready to start.
+
+I22 should follow I21 by turning the proven fixture slices into one integrated
+single-core `cpu_v01_core`. The order is top-level shell and interfaces, real
+fetch/decode, scalar/control retire, capability and tag-memory integration,
+trap/syscall/protected control flow, MMU/TLB integration, atomic and maintenance
+effects, then promotion of the integrated core into the Verilator regression
+gate. Multicore execution, fabric links, coherence, and external module
+topology remain outside I22.
 
 ## Near-term Sprint Plan
 

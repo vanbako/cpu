@@ -67,3 +67,4 @@ Current platform binding:
 - `docs/implementation/rtl-atomic-cache-slice.md`: SystemVerilog LL/SC, reservation, fence, and cache-maintenance coverage slice for I21 semantic closure.
 - `docs/implementation/rtl-control-trap-slice.md`: SystemVerilog `CALLC`, protected `RET`, `SYS`/`SCALL`, syscall frame, and `IRET` coverage slice for I21 semantic closure.
 - `docs/implementation/rtl-semantic-closure.md`: single-core RTL semantic closure report with mandatory family, invariant, deferral, and gate mapping.
+- `docs/implementation/rtl-integrated-core-plan.md`: I22 plan for replacing fixture-only RTL slices with an integrated `cpu_v01_core` top level and regression gate.

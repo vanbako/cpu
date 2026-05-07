@@ -25,7 +25,7 @@ def load_story_coverage_module():
 
 
 class StoryCoverageReportTests(unittest.TestCase):
-    def test_backlog_story_parser_covers_i01_through_i20_rows(self) -> None:
+    def test_backlog_story_parser_covers_i01_through_i22_rows(self) -> None:
         tool = load_story_coverage_module()
 
         stories = tool.implementation_story_ids(ROOT / "agile-impl-v0.1.md")
@@ -39,6 +39,7 @@ class StoryCoverageReportTests(unittest.TestCase):
         self.assertIn("I19-S04", stories)
         self.assertIn("I20-S08", stories)
         self.assertIn("I21-S06", stories)
+        self.assertIn("I22-S08", stories)
         self.assertEqual(len(stories), len(set(stories)))
 
     def test_report_classifies_tested_doc_only_and_missing_stories(self) -> None:
@@ -88,6 +89,14 @@ class StoryCoverageReportTests(unittest.TestCase):
         self.assertEqual(rows["I21-S04"].status, "tested")
         self.assertEqual(rows["I21-S05"].status, "tested")
         self.assertEqual(rows["I21-S06"].status, "tested")
+        self.assertEqual(rows["I22-S01"].status, "docs/tool")
+        self.assertEqual(rows["I22-S02"].status, "docs/tool")
+        self.assertEqual(rows["I22-S03"].status, "docs/tool")
+        self.assertEqual(rows["I22-S04"].status, "docs/tool")
+        self.assertEqual(rows["I22-S05"].status, "docs/tool")
+        self.assertEqual(rows["I22-S06"].status, "docs/tool")
+        self.assertEqual(rows["I22-S07"].status, "docs/tool")
+        self.assertEqual(rows["I22-S08"].status, "docs/tool")
         self.assertGreater(report.tested_count, 0)
         self.assertEqual(report.missing_count, 0)
 
@@ -157,6 +166,9 @@ class StoryCoverageReportTests(unittest.TestCase):
         self.assertIn("verilator-regression-gate.md", rendered)
         self.assertIn("`I21-S06` | tested", rendered)
         self.assertIn("rtl-semantic-closure.md", rendered)
+        self.assertIn("`I22-S01` | docs/tool", rendered)
+        self.assertIn("`I22-S08` | docs/tool", rendered)
+        self.assertIn("rtl-integrated-core-plan.md", rendered)
 
     def test_missing_only_cli_filters_report_rows(self) -> None:
         tool = load_story_coverage_module()
@@ -175,6 +187,8 @@ class StoryCoverageReportTests(unittest.TestCase):
         self.assertNotIn("`I21-S04` | tested", output)
         self.assertNotIn("`I21-S05` | tested", output)
         self.assertNotIn("`I21-S06` | tested", output)
+        self.assertNotIn("`I22-S01` | docs/tool", output)
+        self.assertNotIn("`I22-S08` | docs/tool", output)
         self.assertNotIn("`I18-S01` | tested", output)
         self.assertNotIn("`I18-S02` | tested", output)
         self.assertNotIn("`I18-S03` | tested", output)
