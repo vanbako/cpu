@@ -147,6 +147,9 @@ table in the same change.
 | `tools\rtl_core_fetch_decode.py` | `I22-S02` | `E01-S05`, `E04-S01`, `E04-S06`, `E07-S03`, `I20-S02`, `I22-S01` | `E15-S02`, `E15-S03`, `E15-S04`, `E15-S07` |
 | `tests\conformance\test_i22_s02_rtl_core_fetch_decode.py` | `I22-S02` | `E01-S05`, `E04-S01`, `E04-S06`, `E07-S03`, `I20-S02`, `I22-S01` | `E15-S02`, `E15-S03`, `E15-S04`, `E15-S07` |
 | `docs\implementation\rtl-integrated-core-plan.md` | `I22-S03` | `E02-S04`, `E02-S05`, `E04-S02`, `E04-S04`, `E07-S03`, `I21-S01` | `E15-S02`, `E15-S03`, `E15-S04`, `E15-S07` |
+| `docs\implementation\rtl-integrated-core-scalar-control.md` | `I22-S03` | `E02-S04`, `E02-S05`, `E04-S02`, `E04-S04`, `I21-S01`, `I22-S02` | `E15-S02`, `E15-S03`, `E15-S04`, `E15-S07` |
+| `tools\rtl_core_scalar_control.py` | `I22-S03` | `E02-S04`, `E02-S05`, `E04-S02`, `E04-S04`, `I21-S01`, `I22-S02` | `E15-S02`, `E15-S03`, `E15-S04`, `E15-S07` |
+| `tests\conformance\test_i22_s03_rtl_core_scalar_control.py` | `I22-S03` | `E02-S04`, `E02-S05`, `E04-S02`, `E04-S04`, `I21-S01`, `I22-S02` | `E15-S02`, `E15-S03`, `E15-S04`, `E15-S07` |
 | `docs\implementation\rtl-integrated-core-plan.md` | `I22-S04` | `E03-S01`, `E03-S04`, `E04-S03`, `E04-S05`, `E09-S07`, `I20-S06` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `docs\implementation\rtl-integrated-core-plan.md` | `I22-S05` | `E04-S04`, `E05-S04`, `E06-S02`, `E06-S04`, `E07-S04`, `E07-S06`, `I21-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S06`, `E15-S07` |
 | `docs\implementation\rtl-integrated-core-plan.md` | `I22-S06` | `E08-S04`, `E09-S02`, `E09-S03`, `E09-S05`, `E09-S07`, `I21-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |

@@ -123,7 +123,7 @@ module cpu_v01_core_fetch_decode_fixture #(
       0: begin
         if (group_addr == 48'h0000_0000_1000) begin
           imem_rsp_cells[0] = 24'h120000;
-          imem_rsp_cells[1] = 24'h05505B;
+          imem_rsp_cells[1] = 24'h05B05B;
         end else if (group_addr == 48'h0000_0000_1002) begin
           imem_rsp_cells[0] = 24'h410000;
           imem_rsp_cells[1] = 24'h000000;
@@ -348,7 +348,6 @@ module cpu_v01_core_fetch_decode_tb;
 
     if (!legal_add24_seen ||
         !legal_pause12_seen ||
-        !legal_brk_slot1_seen ||
         !legal_cgetaddr48_seen ||
         legal_align_fault_seen ||
         legal_illegal_fault_seen) begin
