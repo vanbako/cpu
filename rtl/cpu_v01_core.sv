@@ -61,14 +61,31 @@ module cpu_v01_core #(
   localparam logic [2:0] WIDTH_W24 = 3'd2;
   localparam logic [2:0] WIDTH_W32 = 3'd3;
   localparam logic [2:0] WIDTH_W48 = 3'd5;
+  localparam logic [7:0] CAP_PERM_LD = 8'h01;
+  localparam logic [7:0] CAP_PERM_ST = 8'h02;
+  localparam logic [7:0] CAP_PERM_LC = 8'h08;
+  localparam logic [7:0] CAP_PERM_SC = 8'h10;
+  localparam logic [7:0] CAP_PERM_SL = 8'h20;
 
-  typedef enum logic [2:0] {
+  typedef enum logic [3:0] {
     ST_RESET,
     ST_IDLE,
     ST_FETCH_REQ,
     ST_FETCH_WAIT,
-    ST_DECODE
+    ST_DECODE,
+    ST_MEM_DREQ,
+    ST_MEM_DWAIT,
+    ST_MEM_TAG_REQ,
+    ST_MEM_TAG_WAIT
   } core_state_t;
+
+  typedef struct packed {
+    logic fault;
+    logic [15:0] cause;
+    logic [3:0] capcause;
+    logic [7:0] fault_cap_idx;
+    addr_t tval;
+  } access_check_t;
 
   core_state_t state_q;
   cap_t pcc_q;
@@ -92,6 +109,18 @@ module cpu_v01_core #(
   fault_packet_t fetch_fault_q;
   addr_t fetch_pc_q;
   logic fetch_slot_q;
+  logic [OPCODE_ID_BITS-1:0] mem_opcode_q;
+  logic [7:0] mem_size_bits_q;
+  logic [1:0] mem_instruction_length_q;
+  logic [RETIRE_SEQUENCE_BITS-1:0] mem_sequence_q;
+  addr_t mem_pc_q;
+  logic mem_slot_q;
+  addr_t mem_address_q;
+  logic [3:0] mem_integer_index_q;
+  logic [2:0] mem_capability_index_q;
+  int_reg_t mem_integer_value_q;
+  cap_t mem_capability_value_q;
+  cell_t mem_rdata_q [CAPABILITY_OBJECT_CELLS];
 
   wire logic fetch_enabled = ENABLE_FETCH;
   wire addr_t fetch_group_base = {pcc_q.payload.cursor[ADDR_BITS-1:1], 1'b0};
@@ -100,15 +129,17 @@ module cpu_v01_core #(
   assign imem_req_addr = fetch_group_base;
   assign imem_rsp_ready = fetch_enabled && state_q == ST_FETCH_WAIT;
 
-  assign dmem_req_valid = 1'b0;
-  assign dmem_req_write = 1'b0;
-  assign dmem_req_addr = '0;
-  assign dmem_req_len_cells = '0;
+  assign dmem_req_valid = state_q == ST_MEM_DREQ;
+  assign dmem_req_write = mem_opcode_q == OPC_ST48_24 || mem_opcode_q == OPC_CSC_24;
+  assign dmem_req_addr = mem_address_q;
+  assign dmem_req_len_cells =
+      (mem_opcode_q == OPC_CLC_24 || mem_opcode_q == OPC_CSC_24) ? 3'd4 : 3'd2;
 
-  assign tagmem_req_valid = 1'b0;
-  assign tagmem_req_write = 1'b0;
-  assign tagmem_req_slot_addr = '0;
-  assign tagmem_req_wtag = 1'b0;
+  assign tagmem_req_valid = state_q == ST_MEM_TAG_REQ;
+  assign tagmem_req_write = mem_opcode_q == OPC_ST48_24 || mem_opcode_q == OPC_CSC_24;
+  assign tagmem_req_slot_addr =
+      mem_opcode_q == OPC_ST48_24 ? capability_slot_base(mem_address_q) : mem_address_q;
+  assign tagmem_req_wtag = mem_opcode_q == OPC_CSC_24 ? mem_capability_value_q.tag : 1'b0;
 
   assign retire_packet = retire_packet_q;
   assign retire_valid = retire_packet_q.valid;
@@ -123,6 +154,14 @@ module cpu_v01_core #(
   always_comb begin
     for (int i = 0; i < CAPABILITY_OBJECT_CELLS; i++) begin
       dmem_req_wdata[i] = '0;
+    end
+    if (mem_opcode_q == OPC_ST48_24) begin
+      dmem_req_wdata[0] = mem_integer_value_q[23:0];
+      dmem_req_wdata[1] = mem_integer_value_q[47:24];
+    end else if (mem_opcode_q == OPC_CSC_24) begin
+      for (int i = 0; i < CAPABILITY_OBJECT_CELLS; i++) begin
+        dmem_req_wdata[i] = cap_payload_cell(mem_capability_value_q, i);
+      end
     end
   end
 
@@ -292,6 +331,165 @@ module cpu_v01_core #(
     endcase
   endfunction
 
+  function automatic cell_t cap_payload_cell(input cap_t value, input int index);
+    logic [CAP_PAYLOAD_BITS-1:0] packed_payload;
+    packed_payload = value.payload;
+    return packed_payload[CELL_BITS * index +: CELL_BITS];
+  endfunction
+
+  function automatic cap_t cap_from_cells(
+    input cell_t cells [CAPABILITY_OBJECT_CELLS],
+    input logic tag
+  );
+    logic [CAP_PAYLOAD_BITS-1:0] packed_payload;
+    cap_t value;
+    packed_payload = {cells[3], cells[2], cells[1], cells[0]};
+    value.payload = cap_payload_t'(packed_payload);
+    value.tag = tag;
+    return value;
+  endfunction
+
+  function automatic addr_t capability_slot_base(input addr_t address);
+    return {address[ADDR_BITS-1:2], 2'b00};
+  endfunction
+
+  function automatic logic [7:0] fault_cap_idx_for_c(input logic [2:0] index);
+    return FAULT_CAP_IDX_C0 + {5'd0, index};
+  endfunction
+
+  function automatic logic cap_is_sealed(input cap_t value);
+    return value.payload.otype != 8'd0;
+  endfunction
+
+  function automatic logic cap_is_local(input cap_t value);
+    return value.tag && !value.payload.flags[0];
+  endfunction
+
+  function automatic logic cap_has_permissions(input cap_t value, input logic [7:0] required);
+    return (value.payload.permissions & required) == required;
+  endfunction
+
+  function automatic logic cap_contains_cursor(input cap_t value, input addr_t cursor);
+    logic [63:0] base;
+    logic [63:0] top;
+    logic [63:0] cursor64;
+    logic [5:0] exponent;
+
+    if (value.payload.bounds_metadata == '0) begin
+      return 1'b1;
+    end
+
+    exponent = value.payload.bounds_metadata[29:24];
+    base = {52'd0, value.payload.bounds_metadata[11:0]} << exponent;
+    top = {52'd0, value.payload.bounds_metadata[23:12]} << exponent;
+    cursor64 = {16'd0, cursor};
+    return cursor64 >= base && cursor64 < top;
+  endfunction
+
+  function automatic logic cap_contains_range(
+    input cap_t value,
+    input addr_t base_address,
+    input int unsigned length_cells
+  );
+    logic [63:0] base;
+    logic [63:0] top;
+    logic [63:0] access_base;
+    logic [63:0] access_top;
+    logic [5:0] exponent;
+
+    access_base = {16'd0, base_address};
+    access_top = access_base + length_cells;
+    if (access_top > 64'h0001_0000_0000_0000) begin
+      return 1'b0;
+    end
+    if (value.payload.bounds_metadata == '0) begin
+      return 1'b1;
+    end
+
+    exponent = value.payload.bounds_metadata[29:24];
+    base = {52'd0, value.payload.bounds_metadata[11:0]} << exponent;
+    top = {52'd0, value.payload.bounds_metadata[23:12]} << exponent;
+    return access_base >= base && access_top <= top;
+  endfunction
+
+  function automatic addr_t effective_address(input cap_t authority, input int_reg_t offset);
+    logic signed [48:0] signed_offset;
+    logic signed [49:0] signed_cursor;
+    signed_offset = {offset[47], offset};
+    signed_cursor = {1'b0, authority.payload.cursor};
+    return addr_t'(signed_cursor + signed_offset);
+  endfunction
+
+  function automatic logic address_aligned(input addr_t address, input int unsigned alignment_cells);
+    return (address % alignment_cells) == 0;
+  endfunction
+
+  function automatic access_check_t access_ok();
+    access_check_t check;
+    check = '0;
+    return check;
+  endfunction
+
+  function automatic access_check_t cap_source_check(input logic [2:0] source_index);
+    access_check_t check;
+    check = access_ok();
+    if (!c_regs[source_index].tag) begin
+      check.fault = 1'b1;
+      check.cause = EXC_CAPABILITY_TAG_FAULT;
+      check.capcause = CAPCAUSE_TAG;
+      check.fault_cap_idx = fault_cap_idx_for_c(source_index);
+    end else if (cap_is_sealed(c_regs[source_index])) begin
+      check.fault = 1'b1;
+      check.cause = EXC_CAPABILITY_SEAL_TYPE_FAULT;
+      check.capcause = CAPCAUSE_SEAL_TYPE;
+      check.fault_cap_idx = fault_cap_idx_for_c(source_index);
+    end
+    return check;
+  endfunction
+
+  function automatic access_check_t memory_access_check(
+    input logic [2:0] authority_index,
+    input addr_t address,
+    input int unsigned object_cells,
+    input int unsigned alignment_cells,
+    input logic [7:0] required_permissions,
+    input logic local_store_check
+  );
+    access_check_t check;
+    check = cap_source_check(authority_index);
+    if (check.fault) begin
+      return check;
+    end
+
+    if (!address_aligned(address, alignment_cells)) begin
+      check.fault = 1'b1;
+      check.cause = EXC_ALIGN_FAULT;
+      check.tval = address;
+      return check;
+    end
+
+    if (!cap_contains_range(c_regs[authority_index], address, object_cells)) begin
+      check.fault = 1'b1;
+      check.cause = EXC_CAPABILITY_BOUNDS_FAULT;
+      check.capcause = CAPCAUSE_BOUNDS;
+      check.fault_cap_idx = fault_cap_idx_for_c(authority_index);
+      check.tval = address;
+      return check;
+    end
+
+    if (!cap_has_permissions(c_regs[authority_index], required_permissions)) begin
+      check.fault = 1'b1;
+      check.cause = local_store_check ? EXC_CAPABILITY_LOCAL_STORE_FAULT
+                                      : EXC_CAPABILITY_PERMISSION_FAULT;
+      check.capcause = local_store_check ? CAPCAUSE_LOCAL_STORE : CAPCAUSE_PERMISSION;
+      check.fault_cap_idx = fault_cap_idx_for_c(authority_index);
+      check.tval = local_store_check ? address : '0;
+      return check;
+    end
+
+    return check;
+  endfunction
+
   task automatic start_decoded_packet(
     input logic [OPCODE_ID_BITS-1:0] opcode_id,
     input logic [7:0] size_bits,
@@ -338,6 +536,17 @@ module cpu_v01_core #(
     retire_packet_q.fault.pc_cell <= fetch_pc_q;
     retire_packet_q.fault.slot <= fetch_slot_q;
     retire_packet_q.fault.tval <= tval;
+  endtask
+
+  task automatic mark_capability_fault(input access_check_t check);
+    retire_packet_q.normal_valid <= 1'b0;
+    retire_packet_q.fault.valid <= 1'b1;
+    retire_packet_q.fault.cause <= check.cause;
+    retire_packet_q.fault.pc_cell <= fetch_pc_q;
+    retire_packet_q.fault.slot <= fetch_slot_q;
+    retire_packet_q.fault.tval <= check.tval;
+    retire_packet_q.fault.capcause <= check.capcause;
+    retire_packet_q.fault.fault_cap_idx <= check.fault_cap_idx;
   endtask
 
   task automatic commit_integer_write(
@@ -426,34 +635,85 @@ module cpu_v01_core #(
     retire_packet_q.ccsr_write_value <= value;
   endtask
 
+  task automatic prepare_memory_op(
+    input logic [OPCODE_ID_BITS-1:0] opcode_id,
+    input logic [7:0] size_bits,
+    input logic [1:0] instruction_length,
+    input addr_t address,
+    input logic [3:0] integer_index,
+    input logic [2:0] capability_index,
+    input int_reg_t integer_value,
+    input cap_t capability_value
+  );
+    retire_packet_q <= '0;
+    mem_opcode_q <= opcode_id;
+    mem_size_bits_q <= size_bits;
+    mem_instruction_length_q <= instruction_length;
+    mem_sequence_q <= retire_sequence_q;
+    mem_pc_q <= fetch_pc_q;
+    mem_slot_q <= fetch_slot_q;
+    mem_address_q <= address;
+    mem_integer_index_q <= integer_index;
+    mem_capability_index_q <= capability_index;
+    mem_integer_value_q <= integer_value;
+    mem_capability_value_q <= capability_value;
+    state_q <= ST_MEM_DREQ;
+  endtask
+
+  task automatic start_pending_packet();
+    retire_packet_q <= '0;
+    retire_packet_q.valid <= 1'b1;
+    retire_packet_q.\sequence  <= mem_sequence_q;
+    retire_packet_q.pc_cell <= mem_pc_q;
+    retire_packet_q.slot <= mem_slot_q;
+    retire_packet_q.instruction_length <= mem_instruction_length_q;
+    retire_packet_q.decoded.valid <= 1'b1;
+    retire_packet_q.decoded.opcode_id <= mem_opcode_q;
+    retire_packet_q.decoded.size_bits <= mem_size_bits_q;
+    retire_packet_q.decoded.privileged <= is_kernel_opcode(mem_opcode_q);
+    retire_packet_q.normal_valid <= 1'b1;
+  endtask
+
   task automatic execute_decoded_packet(
     input logic [OPCODE_ID_BITS-1:0] opcode_id,
     input logic [7:0] size_bits,
     input logic [1:0] instruction_length,
-    input logic [39:0] operands
+    input logic [39:0] operands,
+    output logic deferred_retire
   );
     logic [3:0] rd;
     logic [3:0] ra;
     logic [3:0] rb;
+    logic [2:0] cd;
+    logic [2:0] ca;
+    logic [2:0] cs;
     logic [3:0] cc;
     logic [2:0] width_code;
     logic [5:0] shift_amount;
     logic [CSR_NUMBER_BITS-1:0] csr_index;
     logic [CCSR_NUMBER_BITS-1:0] ccsr_index;
+    addr_t memory_address;
     int_reg_t lhs;
     int_reg_t rhs;
     int_reg_t result;
     int_reg_t old_csr;
     cap_t cap_value;
+    access_check_t access_check;
 
+    deferred_retire = 1'b0;
     start_decoded_packet(opcode_id, size_bits, instruction_length);
     rd = operands[15:12];
     ra = operands[11:8];
     rb = operands[7:4];
+    cd = operands[38:36];
+    ca = operands[34:32];
+    cs = operands[30:28];
     width_code = operands[3:1];
     lhs = d_regs[ra];
     rhs = d_regs[rb];
     result = '0;
+    memory_address = '0;
+    access_check = access_ok();
 
     unique case (opcode_id)
       OPC_CPY_24: begin
@@ -602,6 +862,118 @@ module cpu_v01_core #(
         shift_amount = rhs[5:0] % 6'd48;
         commit_integer_write(rd, apply_width(lhs & ~(48'd1 << shift_amount), width_code));
         advance_pc(size_bits);
+      end
+
+      OPC_LD48_24: begin
+        rd = operands[15:12];
+        ca = operands[10:8];
+        ra = operands[7:4];
+        memory_address = effective_address(c_regs[ca], d_regs[ra]);
+        access_check = memory_access_check(
+            ca, memory_address, INTEGER_OBJECT_CELLS, INTEGER_OBJECT_CELLS, CAP_PERM_LD, 1'b0);
+        if (access_check.fault) begin
+          mark_capability_fault(access_check);
+        end else begin
+          prepare_memory_op(opcode_id, size_bits, instruction_length, memory_address, rd, '0, '0, '0);
+          deferred_retire = 1'b1;
+        end
+      end
+
+      OPC_ST48_24: begin
+        ca = operands[14:12];
+        ra = operands[11:8];
+        rb = operands[7:4];
+        memory_address = effective_address(c_regs[ca], d_regs[ra]);
+        access_check = memory_access_check(
+            ca, memory_address, INTEGER_OBJECT_CELLS, INTEGER_OBJECT_CELLS, CAP_PERM_ST, 1'b0);
+        if (access_check.fault) begin
+          mark_capability_fault(access_check);
+        end else begin
+          prepare_memory_op(opcode_id, size_bits, instruction_length, memory_address, '0, '0, d_regs[rb], '0);
+          deferred_retire = 1'b1;
+        end
+      end
+
+      OPC_CLC_24: begin
+        cd = operands[14:12];
+        ca = operands[10:8];
+        ra = operands[7:4];
+        memory_address = effective_address(c_regs[ca], d_regs[ra]);
+        access_check = memory_access_check(
+            ca,
+            memory_address,
+            CAPABILITY_OBJECT_CELLS,
+            CAPABILITY_OBJECT_CELLS,
+            CAP_PERM_LD | CAP_PERM_LC,
+            1'b0);
+        if (access_check.fault) begin
+          mark_capability_fault(access_check);
+        end else begin
+          prepare_memory_op(opcode_id, size_bits, instruction_length, memory_address, '0, cd, '0, '0);
+          deferred_retire = 1'b1;
+        end
+      end
+
+      OPC_CSC_24: begin
+        ca = operands[14:12];
+        ra = operands[11:8];
+        cs = operands[6:4];
+        memory_address = effective_address(c_regs[ca], d_regs[ra]);
+        access_check = memory_access_check(
+            ca,
+            memory_address,
+            CAPABILITY_OBJECT_CELLS,
+            CAPABILITY_OBJECT_CELLS,
+            (cap_is_local(c_regs[cs]) ? (CAP_PERM_ST | CAP_PERM_SC | CAP_PERM_SL)
+                                      : (CAP_PERM_ST | CAP_PERM_SC)),
+            cap_is_local(c_regs[cs]));
+        if (access_check.fault) begin
+          mark_capability_fault(access_check);
+        end else begin
+          prepare_memory_op(opcode_id, size_bits, instruction_length, memory_address, '0, cs, '0, c_regs[cs]);
+          deferred_retire = 1'b1;
+        end
+      end
+
+      OPC_CMOVE_48: begin
+        commit_capability_write(cd, c_regs[ca]);
+        advance_pc(size_bits);
+      end
+
+      OPC_CGETADDR_48: begin
+        commit_integer_write(operands[39:36], c_regs[ca].payload.cursor);
+        advance_pc(size_bits);
+      end
+
+      OPC_CSETADDR_48: begin
+        access_check = cap_source_check(ca);
+        if (access_check.fault) begin
+          mark_capability_fault(access_check);
+        end else if (!cap_contains_cursor(c_regs[ca], d_regs[operands[31:28]])) begin
+          access_check.fault = 1'b1;
+          access_check.cause = EXC_CAPABILITY_BOUNDS_FAULT;
+          access_check.capcause = CAPCAUSE_BOUNDS;
+          access_check.fault_cap_idx = fault_cap_idx_for_c(ca);
+          access_check.tval = d_regs[operands[31:28]];
+          mark_capability_fault(access_check);
+        end else begin
+          cap_value = c_regs[ca];
+          cap_value.payload.cursor = d_regs[operands[31:28]];
+          commit_capability_write(cd, cap_value);
+          advance_pc(size_bits);
+        end
+      end
+
+      OPC_CANDPERM_48: begin
+        access_check = cap_source_check(ca);
+        if (access_check.fault) begin
+          mark_capability_fault(access_check);
+        end else begin
+          cap_value = c_regs[ca];
+          cap_value.payload.permissions = c_regs[ca].payload.permissions & d_regs[operands[31:28]][7:0];
+          commit_capability_write(cd, cap_value);
+          advance_pc(size_bits);
+        end
       end
 
       OPC_BRA_24: begin
@@ -767,8 +1139,22 @@ module cpu_v01_core #(
       fetch_fault_q <= '0;
       fetch_pc_q <= RESET_VECTOR;
       fetch_slot_q <= SLOT_0;
+      mem_opcode_q <= '0;
+      mem_size_bits_q <= '0;
+      mem_instruction_length_q <= '0;
+      mem_sequence_q <= '0;
+      mem_pc_q <= '0;
+      mem_slot_q <= SLOT_0;
+      mem_address_q <= '0;
+      mem_integer_index_q <= '0;
+      mem_capability_index_q <= '0;
+      mem_integer_value_q <= '0;
+      mem_capability_value_q <= '0;
       for (int i = 0; i < FETCH_GROUP_CELLS; i++) begin
         fetch_cells_q[i] <= '0;
+      end
+      for (int i = 0; i < CAPABILITY_OBJECT_CELLS; i++) begin
+        mem_rdata_q[i] <= '0;
       end
     end else begin
       retire_packet_q <= '0;
@@ -807,9 +1193,11 @@ module cpu_v01_core #(
           automatic cell_t selected_cell;
           automatic logic [7:0] major;
           automatic logic [11:0] selected_half;
+          automatic logic deferred_retire;
           selected_cell = fetch_cells_q[fetch_pc_q[0]];
           major = selected_cell[23:16];
           selected_half = fetch_slot_q == SLOT_0 ? selected_cell[11:0] : selected_cell[23:12];
+          deferred_retire = 1'b0;
 
           if (fetch_fault_q.valid) begin
             retire_packet_q <= '0;
@@ -824,17 +1212,88 @@ module cpu_v01_core #(
           end else if (fetch_slot_q == SLOT_0 && is_48_major(major) && fetch_pc_q[0]) begin
             start_fault_packet(EXC_ALIGN_FAULT, fetch_pc_q);
           end else if (fetch_slot_q == SLOT_0 && is_48_major(major)) begin
-            execute_decoded_packet(major, 8'd48, 2'd2, operands_48(selected_cell, fetch_cells_q[1]));
+            execute_decoded_packet(
+                major, 8'd48, 2'd2, operands_48(selected_cell, fetch_cells_q[1]), deferred_retire);
           end else if (fetch_slot_q == SLOT_0 && is_24_major(major)) begin
-            execute_decoded_packet(major, 8'd24, 2'd1, operands_24(selected_cell));
+            execute_decoded_packet(major, 8'd24, 2'd1, operands_24(selected_cell), deferred_retire);
           end else if (is_12_opcode(selected_half)) begin
-            execute_decoded_packet(opcode_id_for_12(selected_half), 8'd12, 2'd1, {28'd0, selected_half});
+            execute_decoded_packet(
+                opcode_id_for_12(selected_half), 8'd12, 2'd1, {28'd0, selected_half}, deferred_retire);
           end else begin
             start_fault_packet(EXC_ILLEGAL_INSTRUCTION, '0);
           end
 
-          retire_sequence_q <= retire_sequence_q + 64'd1;
-          state_q <= ST_FETCH_REQ;
+          if (!deferred_retire) begin
+            retire_sequence_q <= retire_sequence_q + 64'd1;
+            state_q <= ST_FETCH_REQ;
+          end
+        end
+
+        ST_MEM_DREQ: begin
+          if (dmem_req_ready) begin
+            if (dmem_req_write) begin
+              state_q <= ST_MEM_TAG_REQ;
+            end else begin
+              state_q <= ST_MEM_DWAIT;
+            end
+          end
+        end
+
+        ST_MEM_DWAIT: begin
+          if (dmem_rsp_valid) begin
+            if (dmem_rsp_fault.valid) begin
+              start_pending_packet();
+              retire_packet_q.normal_valid <= 1'b0;
+              retire_packet_q.fault <= dmem_rsp_fault;
+              retire_sequence_q <= retire_sequence_q + 64'd1;
+              state_q <= ST_FETCH_REQ;
+            end else if (mem_opcode_q == OPC_LD48_24) begin
+              start_pending_packet();
+              commit_integer_write(mem_integer_index_q, {dmem_rsp_rdata[1], dmem_rsp_rdata[0]});
+              advance_pc(mem_size_bits_q);
+              retire_sequence_q <= retire_sequence_q + 64'd1;
+              state_q <= ST_FETCH_REQ;
+            end else begin
+              for (int i = 0; i < CAPABILITY_OBJECT_CELLS; i++) begin
+                mem_rdata_q[i] <= dmem_rsp_rdata[i];
+              end
+              state_q <= ST_MEM_TAG_REQ;
+            end
+          end
+        end
+
+        ST_MEM_TAG_REQ: begin
+          if (tagmem_req_ready) begin
+            if (tagmem_req_write) begin
+              start_pending_packet();
+              retire_packet_q.memory_effect_address <= mem_address_q;
+              retire_packet_q.tag_write_valid <= 1'b1;
+              retire_packet_q.tag_write_value <= tagmem_req_wtag;
+              if (mem_opcode_q == OPC_ST48_24) begin
+                retire_packet_q.memory_effect_kind <= MEM_EFFECT_ST48;
+                retire_packet_q.memory_integer_value <= mem_integer_value_q;
+              end else begin
+                retire_packet_q.memory_effect_kind <= MEM_EFFECT_CSC;
+                retire_packet_q.memory_capability_value <= mem_capability_value_q;
+              end
+              advance_pc(mem_size_bits_q);
+              retire_sequence_q <= retire_sequence_q + 64'd1;
+              state_q <= ST_FETCH_REQ;
+            end else begin
+              state_q <= ST_MEM_TAG_WAIT;
+            end
+          end
+        end
+
+        ST_MEM_TAG_WAIT: begin
+          if (tagmem_rsp_valid) begin
+            start_pending_packet();
+            commit_capability_write(
+                mem_capability_index_q, cap_from_cells(mem_rdata_q, tagmem_rsp_rtag));
+            advance_pc(mem_size_bits_q);
+            retire_sequence_q <= retire_sequence_q + 64'd1;
+            state_q <= ST_FETCH_REQ;
+          end
         end
 
         default: begin
@@ -846,12 +1305,6 @@ module cpu_v01_core #(
 
   // verilator lint_off UNUSEDSIGNAL
   wire logic unused_inputs = &{
-    dmem_req_ready,
-    dmem_rsp_valid,
-    dmem_rsp_fault.valid,
-    tagmem_req_ready,
-    tagmem_rsp_valid,
-    tagmem_rsp_rtag,
     timer_interrupt_pending,
     software_interrupt_pending,
     external_interrupt_pending,
@@ -859,14 +1312,6 @@ module cpu_v01_core #(
     external_event_cause[0],
     debug_halt_request,
     retire_ready
-  };
-
-  wire logic unused_payload_inputs = ^{
-    dmem_rsp_rdata[0],
-    dmem_rsp_rdata[1],
-    dmem_rsp_rdata[2],
-    dmem_rsp_rdata[3],
-    unused_inputs
   };
   // verilator lint_on UNUSEDSIGNAL
 endmodule

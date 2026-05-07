@@ -71,3 +71,4 @@ Current platform binding:
 - `docs/implementation/rtl-integrated-core-shell.md`: I22-S01 `cpu_v01_core` top-level shell, no-program smoke boundary, and port projection.
 - `docs/implementation/rtl-integrated-core-fetch-decode.md`: I22-S02 integrated instruction fetch, slot sequencing, 12/24/48-bit decode, and front-end fault projection.
 - `docs/implementation/rtl-integrated-core-scalar-control.md`: I22-S03 integrated scalar, branch, CSR, CCSR, EPCC, PAUSE, and BRK retire effects in `cpu_v01_core`.
+- `docs/implementation/rtl-integrated-core-cap-mem.md`: I22-S04 integrated capability derivation, data-memory, and tag-memory retire effects in `cpu_v01_core`.
