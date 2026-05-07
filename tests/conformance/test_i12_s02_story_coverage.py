@@ -87,12 +87,9 @@ class StoryCoverageReportTests(unittest.TestCase):
         self.assertEqual(rows["I21-S03"].status, "tested")
         self.assertEqual(rows["I21-S04"].status, "tested")
         self.assertEqual(rows["I21-S05"].status, "tested")
-        for story in (
-            "I21-S06",
-        ):
-            self.assertEqual(rows[story].status, "missing")
+        self.assertEqual(rows["I21-S06"].status, "tested")
         self.assertGreater(report.tested_count, 0)
-        self.assertEqual(report.missing_count, 1)
+        self.assertEqual(report.missing_count, 0)
 
     def test_rendered_report_lists_artifacts_and_next_rtl_story(self) -> None:
         tool = load_story_coverage_module()
@@ -158,7 +155,8 @@ class StoryCoverageReportTests(unittest.TestCase):
         self.assertIn("rtl-control-trap-slice.md", rendered)
         self.assertIn("`I21-S05` | tested", rendered)
         self.assertIn("verilator-regression-gate.md", rendered)
-        self.assertIn("`I21-S06` | missing", rendered)
+        self.assertIn("`I21-S06` | tested", rendered)
+        self.assertIn("rtl-semantic-closure.md", rendered)
 
     def test_missing_only_cli_filters_report_rows(self) -> None:
         tool = load_story_coverage_module()
@@ -169,14 +167,14 @@ class StoryCoverageReportTests(unittest.TestCase):
 
         output = stream.getvalue()
         self.assertEqual(result, 0)
-        self.assertIn("Stories: 1", output)
-        self.assertIn("Missing: 1", output)
-        self.assertIn("`I21-S06` | missing", output)
+        self.assertIn("Stories: 0", output)
+        self.assertIn("Missing: 0", output)
         self.assertNotIn("`I21-S01` | tested", output)
         self.assertNotIn("`I21-S02` | tested", output)
         self.assertNotIn("`I21-S03` | tested", output)
         self.assertNotIn("`I21-S04` | tested", output)
         self.assertNotIn("`I21-S05` | tested", output)
+        self.assertNotIn("`I21-S06` | tested", output)
         self.assertNotIn("`I18-S01` | tested", output)
         self.assertNotIn("`I18-S02` | tested", output)
         self.assertNotIn("`I18-S03` | tested", output)

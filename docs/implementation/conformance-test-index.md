@@ -135,3 +135,6 @@ table in the same change.
 | `docs\implementation\verilator-regression-gate.md` | `I21-S05` | `E07-S03`, `E13-S01`, `E15-S07`, `I17-S04`, `I20-S02`, `I20-S04`, `I21-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tools\verilator_diff_harness.py` | `I21-S05` | `E07-S03`, `E13-S01`, `E15-S07`, `I17-S04`, `I20-S02`, `I20-S04`, `I21-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i21_s05_verilator_regression_gate.py` | `I21-S05` | `E07-S03`, `E13-S01`, `E15-S07`, `I17-S04`, `I20-S02`, `I20-S04`, `I21-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `docs\implementation\rtl-semantic-closure.md` | `I21-S06` | `E04-S06`, `E07-S03`, `E13-S01`, `E15-S01`, `E15-S04`, `E15-S05`, `E15-S07`, `I16-S01`, `I20-S08`, `I21-S05` | `E15-S01`, `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tools\rtl_semantic_closure.py` | `I21-S06` | `E04-S06`, `E07-S03`, `E13-S01`, `E15-S01`, `E15-S04`, `E15-S05`, `E15-S07`, `I16-S01`, `I20-S08`, `I21-S05` | `E15-S01`, `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i21_s06_rtl_semantic_closure.py` | `I21-S06` | `E04-S06`, `E07-S03`, `E13-S01`, `E15-S01`, `E15-S04`, `E15-S05`, `E15-S07`, `I16-S01`, `I20-S08`, `I21-S05` | `E15-S01`, `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |

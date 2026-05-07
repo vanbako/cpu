@@ -12,6 +12,7 @@ python tools\spec_constants_model.py
 python tools\story_coverage.py --check-drift
 python tools\toolchain_corpus.py --check
 python tools\verilator_diff_harness.py --suite fast
+python tools\rtl_semantic_closure.py --check
 git diff --check
 ```
 

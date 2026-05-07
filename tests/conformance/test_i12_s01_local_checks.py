@@ -40,6 +40,7 @@ class LocalCheckRunnerTests(unittest.TestCase):
                 "story coverage drift",
                 "toolchain corpus",
                 "verilator regression gate",
+                "rtl semantic closure",
                 "conformance tests",
                 "litmus tests",
                 "whitespace",
@@ -64,6 +65,10 @@ class LocalCheckRunnerTests(unittest.TestCase):
         self.assertIn(("python", "tools/toolchain_corpus.py", "--check"), commands)
         self.assertIn(
             ("python", "tools/verilator_diff_harness.py", "--suite", "fast"),
+            commands,
+        )
+        self.assertIn(
+            ("python", "tools/rtl_semantic_closure.py", "--check"),
             commands,
         )
         self.assertIn(
@@ -94,6 +99,7 @@ class LocalCheckRunnerTests(unittest.TestCase):
         self.assertIn("story coverage drift:", output)
         self.assertIn("toolchain corpus:", output)
         self.assertIn("verilator regression gate:", output)
+        self.assertIn("rtl semantic closure:", output)
         self.assertIn("conformance tests:", output)
         self.assertIn("git diff --check", output)
 

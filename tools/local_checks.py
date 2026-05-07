@@ -43,6 +43,10 @@ def local_checks(python: str | None = None) -> tuple[LocalCheck, ...]:
             (python, "tools/verilator_diff_harness.py", "--suite", "fast"),
         ),
         LocalCheck(
+            "rtl semantic closure",
+            (python, "tools/rtl_semantic_closure.py", "--check"),
+        ),
+        LocalCheck(
             "conformance tests",
             (
                 python,

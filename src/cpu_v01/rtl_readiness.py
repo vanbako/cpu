@@ -39,6 +39,7 @@ RTL_SLICE_CHECK_COMMANDS = (
     "python tools\\rtl_atomic_cache_slice.py --check",
     "python tools\\rtl_control_trap_slice.py --check",
     "python tools\\verilator_diff_harness.py --suite fast",
+    "python tools\\rtl_semantic_closure.py --check",
 )
 
 SUPPORTED_RTL_CASE_MNEMONICS = frozenset(
@@ -346,6 +347,7 @@ def validate_rtl_readiness_report(root: Path | None = None) -> tuple[str, ...]:
         "I21-S03",
         "I21-S04",
         "I21-S05",
+        "I21-S06",
     ):
         if story not in stories:
             issues.append(f"missing implemented RTL surface for {story}")
@@ -390,6 +392,7 @@ def validate_rtl_readiness_report(root: Path | None = None) -> tuple[str, ...]:
         "I21-S03",
         "I21-S04",
         "I21-S05",
+        "I21-S06",
     ):
         if token not in rendered:
             issues.append(f"rendered readiness report missing {token}")
@@ -406,6 +409,7 @@ def validate_rtl_readiness_report(root: Path | None = None) -> tuple[str, ...]:
             "`I21-S03`",
             "`I21-S04`",
             "`I21-S05`",
+            "`I21-S06`",
         ):
             if token not in doc:
                 issues.append(f"{RTL_READINESS_DOC.as_posix()} missing {token}")
@@ -549,6 +553,11 @@ def _implemented_surfaces() -> tuple[RtlSurface, ...]:
             "I21-S05",
             "Verilator fast/slow regression-suite gate",
             ("src/cpu_v01/verilator_harness.py", "tools/verilator_diff_harness.py"),
+        ),
+        RtlSurface(
+            "I21-S06",
+            "single-core RTL semantic closure report",
+            ("docs/implementation/rtl-semantic-closure.md", "tools/rtl_semantic_closure.py"),
         ),
     )
 
