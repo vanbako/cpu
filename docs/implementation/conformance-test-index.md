@@ -126,3 +126,6 @@ table in the same change.
 | `docs\implementation\rtl-mmu-tlb-slice.md` | `I21-S02` | `E08-S04`, `E09-S02`, `E09-S03`, `E09-S05`, `E09-S07`, `I06-S01`, `I06-S02`, `I18-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tools\rtl_mmu_tlb_slice.py` | `I21-S02` | `E08-S04`, `E09-S02`, `E09-S03`, `E09-S05`, `E09-S07`, `I06-S01`, `I06-S02`, `I18-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i21_s02_rtl_mmu_tlb.py` | `I21-S02` | `E08-S04`, `E09-S02`, `E09-S03`, `E09-S05`, `E09-S07`, `I06-S01`, `I06-S02`, `I18-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `docs\implementation\rtl-atomic-cache-slice.md` | `I21-S03` | `E08-S01`, `E08-S02`, `E08-S04`, `E10-S05`, `I06-S03`, `I06-S04`, `I21-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tools\rtl_atomic_cache_slice.py` | `I21-S03` | `E08-S01`, `E08-S02`, `E08-S04`, `E10-S05`, `I06-S03`, `I06-S04`, `I21-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i21_s03_rtl_atomic_cache.py` | `I21-S03` | `E08-S01`, `E08-S02`, `E08-S04`, `E10-S05`, `I06-S03`, `I06-S04`, `I21-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |

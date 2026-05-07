@@ -16,6 +16,7 @@ from typing import Any
 from . import (
     golden_traces,
     opcodes,
+    rtl_atomic_cache,
     rtl_cap_mem,
     rtl_fault_trap,
     rtl_mmu_tlb,
@@ -34,6 +35,7 @@ RTL_SLICE_CHECK_COMMANDS = (
     "python tools\\rtl_fault_trap_slice.py --check",
     "python tools\\rtl_scalar_control_slice.py --check",
     "python tools\\rtl_mmu_tlb_slice.py --check",
+    "python tools\\rtl_atomic_cache_slice.py --check",
     "python tools\\verilator_diff_harness.py",
 )
 
@@ -55,6 +57,7 @@ SUPPORTED_RTL_CASE_MNEMONICS = frozenset(
         "IRET",
         *rtl_scalar_control.scalar_control_mnemonics(),
         *rtl_mmu_tlb.mmu_tlb_mnemonics(),
+        *rtl_atomic_cache.atomic_cache_mnemonics(),
     }
 )
 
@@ -62,18 +65,19 @@ PARTIAL_SUPPORT_NOTES = (
     "RTL is fixture-slice based; there is no integrated general-purpose CPU core yet.",
     "`I21-S01` expands scalar, branch, CSR, and CCSR coverage as a deterministic slice; full decode and issue remain deferred.",
     "`I21-S02` expands RADIX4, TLB, SATP, ASID, page-fault, and SFENCE coverage as a deterministic slice; integrated page-walker ports remain deferred.",
+    "`I21-S03` expands LL/SC, reservation, fence, and cache-maintenance coverage as a deterministic slice; integrated cache hierarchy behavior remains deferred.",
     "`CALL`/`RET` cover direct protected-stack transactions; `CALLC` and broader call hazards remain deferred.",
     "`SYS`/`IRET` cover direct synchronous trap entry and restore; interrupts and debug monitor entry remain deferred.",
 )
 
 KNOWN_DEFERRALS = (
     "Multicore execution.",
-    "L1/L2 caches and noncoherent DMA.",
+    "L1/L2 cache hierarchy and noncoherent DMA.",
     "Integrated page-table walker ports, remote TLB shootdown, and MMU replay timing.",
     "Interrupt controller and MMIO device model.",
     "Branch predictor performance behavior.",
     "Firmware/kernel boot beyond fixtures needed by the golden corpus.",
-    "Atomics, LL/SC reservations, fences, and cache-maintenance execution.",
+    "Integrated cache hierarchy, store-buffer timing, and multicore coherence.",
     "Debug halt, single-step, and debug-monitor RTL entry.",
     "Full binary decoder, issue, hazard, replay, and external memory integration.",
 )
@@ -83,7 +87,7 @@ UNSUPPORTED_INTERFACES = (
     "`cpu_v01_imem_if`, `cpu_v01_dmem_if`, and `cpu_v01_tagmem_if` are contract surfaces, not live ports in the slice RTL.",
     "Verilator run/build remains a harness boundary; observed trace comparison is supported when a trace file is provided.",
     "Interrupt, debug, MMIO, DMA, and secondary-core external inputs are not represented by slice RTL.",
-    "Cache, coherence, integrated page-table walker, and remote TLB shootdown ports are deferred.",
+    "Integrated cache hierarchy, coherence, integrated page-table walker, and remote TLB shootdown ports are deferred.",
 )
 
 
@@ -308,6 +312,7 @@ def validate_rtl_readiness_report(root: Path | None = None) -> tuple[str, ...]:
         rtl_fault_trap.validate_rtl_fault_trap_slice,
         rtl_scalar_control.validate_rtl_scalar_control_slice,
         rtl_mmu_tlb.validate_rtl_mmu_tlb_slice,
+        rtl_atomic_cache.validate_rtl_atomic_cache_slice,
     ):
         issues.extend(check(root))
 
@@ -327,7 +332,7 @@ def validate_rtl_readiness_report(root: Path | None = None) -> tuple[str, ...]:
             )
 
     stories = {surface.story for surface in report.implemented_surfaces}
-    for story in ("I20-S05", "I20-S06", "I20-S07", "I21-S01", "I21-S02"):
+    for story in ("I20-S05", "I20-S06", "I20-S07", "I21-S01", "I21-S02", "I21-S03"):
         if story not in stories:
             issues.append(f"missing implemented RTL surface for {story}")
 
@@ -341,13 +346,13 @@ def validate_rtl_readiness_report(root: Path | None = None) -> tuple[str, ...]:
             issues.append("integer_ops.add_mul coverage must name I21-S01")
 
     unsupported = set(report.unsupported_mnemonics)
-    for mnemonic in ("CALLC", "WFI", "LL48", "SC48", "FENCE.I", "CACHE.CLEAN"):
+    for mnemonic in ("CALLC", "WFI", "CINCADDR", "CSETBOUNDS", "CSEAL", "CUNSEAL"):
         if mnemonic not in unsupported:
             issues.append(f"unsupported mnemonic list must include {mnemonic}")
 
     for phrase in (
         "Multicore execution.",
-        "L1/L2 caches and noncoherent DMA.",
+        "L1/L2 cache hierarchy and noncoherent DMA.",
         "Integrated page-table walker ports, remote TLB shootdown, and MMU replay timing.",
         "Interrupt controller and MMIO device model.",
         "Branch predictor performance behavior.",
@@ -368,6 +373,7 @@ def validate_rtl_readiness_report(root: Path | None = None) -> tuple[str, ...]:
         "Known Deferrals",
         "I21-S01",
         "I21-S02",
+        "I21-S03",
     ):
         if token not in rendered:
             issues.append(f"rendered readiness report missing {token}")
@@ -381,6 +387,7 @@ def validate_rtl_readiness_report(root: Path | None = None) -> tuple[str, ...]:
             "`I20-S07`",
             "`I21-S01`",
             "`I21-S02`",
+            "`I21-S03`",
         ):
             if token not in doc:
                 issues.append(f"{RTL_READINESS_DOC.as_posix()} missing {token}")
@@ -418,6 +425,11 @@ def _verilator_fixture_commands() -> tuple[VerilatorFixtureCommand, ...]:
                 "MMU/TLB smoke",
                 "cpu_v01_mmu_tlb_tb",
                 rtl_mmu_tlb.RTL_MMU_TLB_SOURCE_FILES,
+            ),
+            (
+                "atomic/cache smoke",
+                "cpu_v01_atomic_cache_tb",
+                rtl_atomic_cache.RTL_ATOMIC_CACHE_SOURCE_FILES,
             ),
         )
     )
@@ -496,6 +508,12 @@ def _implemented_surfaces() -> tuple[RtlSurface, ...]:
             "RADIX4, TLB, SATP, ASID, page-fault, and SFENCE smoke RTL",
             tuple(path.as_posix() for path in rtl_mmu_tlb.RTL_MMU_TLB_SOURCE_FILES),
             mnemonics=rtl_mmu_tlb.mmu_tlb_mnemonics(),
+        ),
+        RtlSurface(
+            "I21-S03",
+            "LL/SC, reservation, fence, and cache-maintenance smoke RTL",
+            tuple(path.as_posix() for path in rtl_atomic_cache.RTL_ATOMIC_CACHE_SOURCE_FILES),
+            mnemonics=rtl_atomic_cache.atomic_cache_mnemonics(),
         ),
     )
 
