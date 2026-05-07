@@ -76,12 +76,9 @@ class RtlCoreShellTests(unittest.TestCase):
             "retire_packet_t",
             "debug_pcc",
             "debug_retire_sequence",
+            "ENABLE_FETCH",
             "SR_RESET_VALUE = 48'h0000_0000_00C0",
-            "assign imem_req_valid = 1'b0",
-            "assign imem_rsp_ready = 1'b0",
-            "assign dmem_req_valid = 1'b0",
-            "assign tagmem_req_valid = 1'b0",
-            "assign imem_req_addr = pcc_q.payload.cursor",
+            "assign imem_req_addr = fetch_group_base",
             "pcc_q <= reset_pcc(RESET_VECTOR)",
             "retire_packet_q <= '0",
         ):
@@ -96,6 +93,7 @@ class RtlCoreShellTests(unittest.TestCase):
         self.assertIn("integrated core shell did not expose idle reset observation", tb)
         self.assertIn("integrated core shell did not keep all request and retire ports idle", tb)
         self.assertIn("integrated core shell reset PCC/SR observation mismatch", tb)
+        self.assertIn(".ENABLE_FETCH(1'b0)", tb)
         self.assertIn("imem_req_addr != 48'h0000_0000_1000", tb)
         self.assertIn("debug_pcc.payload.permissions != 8'd4", tb)
         self.assertIn("debug_sr != 48'h0000_0000_00C0", tb)

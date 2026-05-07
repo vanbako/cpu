@@ -72,6 +72,7 @@ package cpu_v01_pkg;
   localparam logic [OPCODE_ID_BITS-1:0] OPC_IRET_24 = 8'h57;
   localparam logic [OPCODE_ID_BITS-1:0] OPC_EPCCRD_24 = 8'h58;
   localparam logic [OPCODE_ID_BITS-1:0] OPC_EPCCWR_24 = 8'h59;
+  localparam logic [OPCODE_ID_BITS-1:0] OPC_WFI_12 = 8'h5A;
   localparam logic [OPCODE_ID_BITS-1:0] OPC_PAUSE_12 = 8'h5B;
   localparam logic [OPCODE_ID_BITS-1:0] OPC_CALLC_24 = 8'h5C;
   localparam logic [OPCODE_ID_BITS-1:0] OPC_FENCE_24 = 8'h60;

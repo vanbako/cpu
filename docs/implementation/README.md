@@ -69,3 +69,4 @@ Current platform binding:
 - `docs/implementation/rtl-semantic-closure.md`: single-core RTL semantic closure report with mandatory family, invariant, deferral, and gate mapping.
 - `docs/implementation/rtl-integrated-core-plan.md`: I22 plan for replacing fixture-only RTL slices with an integrated `cpu_v01_core` top level and regression gate.
 - `docs/implementation/rtl-integrated-core-shell.md`: I22-S01 `cpu_v01_core` top-level shell, no-program smoke boundary, and port projection.
+- `docs/implementation/rtl-integrated-core-fetch-decode.md`: I22-S02 integrated instruction fetch, slot sequencing, 12/24/48-bit decode, and front-end fault projection.

@@ -52,9 +52,10 @@ The shell exposes the CPU-owned top-level boundary:
 - debug observation for idle state, reset completion, reset `PCC`, reset slot,
   reset `SR`, and next retire sequence.
 
-I22-S01 keeps every request valid low, every response ready low, and every
-retire packet invalid. `imem_req_addr` mirrors the reset `PCC.cursor` so the
-first fetch story can begin without renaming the port.
+With `ENABLE_FETCH=0`, the I22-S01 no-program shell keeps every request valid
+low, every response ready low, and every retire packet invalid. `imem_req_addr`
+mirrors the reset `PCC.cursor` so the fetch story can begin without renaming the
+port.
 
 ## Reset Observation
 

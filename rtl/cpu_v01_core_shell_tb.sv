@@ -49,7 +49,8 @@ module cpu_v01_core_shell_tb;
   logic [RETIRE_SEQUENCE_BITS-1:0] debug_retire_sequence;
 
   cpu_v01_core #(
-    .RESET_VECTOR(48'h0000_0000_1000)
+    .RESET_VECTOR(48'h0000_0000_1000),
+    .ENABLE_FETCH(1'b0)
   ) core (
     .clk(clk),
     .rst_n(rst_n),

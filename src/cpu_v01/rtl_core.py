@@ -120,6 +120,7 @@ def validate_rtl_core_shell(root: Path | None = None) -> tuple[str, ...]:
         "module cpu_v01_core",
         "RESET_VECTOR",
         "RESET_PCC_PERMISSIONS",
+        "ENABLE_FETCH",
         "imem_req_valid",
         "imem_rsp_ready",
         "dmem_req_valid",
@@ -135,9 +136,6 @@ def validate_rtl_core_shell(root: Path | None = None) -> tuple[str, ...]:
         "debug_pcc",
         "debug_sr",
         "SR_RESET_VALUE = 48'h0000_0000_00C0",
-        "assign imem_req_valid = 1'b0",
-        "assign dmem_req_valid = 1'b0",
-        "assign tagmem_req_valid = 1'b0",
         "assign retire_valid = retire_packet_q.valid",
         "reset_pcc(RESET_VECTOR)",
     ):
@@ -149,6 +147,7 @@ def validate_rtl_core_shell(root: Path | None = None) -> tuple[str, ...]:
         "integrated core shell did not expose idle reset observation",
         "integrated core shell did not keep all request and retire ports idle",
         "integrated core shell reset PCC/SR observation mismatch",
+        ".ENABLE_FETCH(1'b0)",
         "debug_pcc.payload.permissions != 8'd4",
         "debug_sr != 48'h0000_0000_00C0",
     ):
