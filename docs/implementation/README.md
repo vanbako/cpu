@@ -68,3 +68,4 @@ Current platform binding:
 - `docs/implementation/rtl-control-trap-slice.md`: SystemVerilog `CALLC`, protected `RET`, `SYS`/`SCALL`, syscall frame, and `IRET` coverage slice for I21 semantic closure.
 - `docs/implementation/rtl-semantic-closure.md`: single-core RTL semantic closure report with mandatory family, invariant, deferral, and gate mapping.
 - `docs/implementation/rtl-integrated-core-plan.md`: I22 plan for replacing fixture-only RTL slices with an integrated `cpu_v01_core` top level and regression gate.
+- `docs/implementation/rtl-integrated-core-shell.md`: I22-S01 `cpu_v01_core` top-level shell, no-program smoke boundary, and port projection.

@@ -55,10 +55,10 @@ Each story should leave one of these concrete artifacts:
 - a litmus projection under `tests/litmus/` for ordering-heavy cases;
 - an implementation note when behavior is intentionally deferred.
 
-The first executable I22 story should introduce `rtl/cpu_v01_core.sv` and a
-dedicated top-level testbench or harness path. Existing slice RTL should remain
-available as small regression fixtures until the integrated core fully covers
-their golden cases.
+I22-S01 introduces `rtl/cpu_v01_core.sv` and the
+`rtl/cpu_v01_core_shell_tb.sv` no-program smoke boundary. Existing slice RTL
+should remain available as small regression fixtures until the integrated core
+fully covers their golden cases.
 
 ## Deferrals
 

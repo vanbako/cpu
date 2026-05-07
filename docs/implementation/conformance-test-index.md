@@ -139,6 +139,9 @@ table in the same change.
 | `tools\rtl_semantic_closure.py` | `I21-S06` | `E04-S06`, `E07-S03`, `E13-S01`, `E15-S01`, `E15-S04`, `E15-S05`, `E15-S07`, `I16-S01`, `I20-S08`, `I21-S05` | `E15-S01`, `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i21_s06_rtl_semantic_closure.py` | `I21-S06` | `E04-S06`, `E07-S03`, `E13-S01`, `E15-S01`, `E15-S04`, `E15-S05`, `E15-S07`, `I16-S01`, `I20-S08`, `I21-S05` | `E15-S01`, `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `docs\implementation\rtl-integrated-core-plan.md` | `I22-S01` | `E07-S03`, `E13-S01`, `E15-S07`, `I20-S03`, `I21-S06` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `docs\implementation\rtl-integrated-core-shell.md` | `I22-S01` | `E11-S01`, `E11-S02`, `E13-S01`, `I20-S03`, `I21-S06` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tools\rtl_core_shell.py` | `I22-S01` | `E11-S01`, `E11-S02`, `E13-S01`, `I20-S03`, `I21-S06` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i22_s01_rtl_core_shell.py` | `I22-S01` | `E11-S01`, `E11-S02`, `E13-S01`, `I20-S03`, `I21-S06` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `docs\implementation\rtl-integrated-core-plan.md` | `I22-S02` | `E01-S05`, `E04-S01`, `E04-S06`, `E07-S03`, `I20-S02`, `I21-S01` | `E15-S02`, `E15-S03`, `E15-S04`, `E15-S07` |
 | `docs\implementation\rtl-integrated-core-plan.md` | `I22-S03` | `E02-S04`, `E02-S05`, `E04-S02`, `E04-S04`, `E07-S03`, `I21-S01` | `E15-S02`, `E15-S03`, `E15-S04`, `E15-S07` |
 | `docs\implementation\rtl-integrated-core-plan.md` | `I22-S04` | `E03-S01`, `E03-S04`, `E04-S03`, `E04-S05`, `E09-S07`, `I20-S06` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
