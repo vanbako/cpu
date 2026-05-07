@@ -50,7 +50,7 @@ module cpu_v01_smoke_tb;
     if (!normal_retire_valid || !normal_packet.normal_valid) begin
       $fatal(1, "normal smoke core did not produce a normal retire packet");
     end
-    if (normal_packet.sequence != 64'd0 ||
+    if (normal_packet.\sequence  != 64'd0 ||
         normal_packet.pc_cell != 48'h0000_0000_1000 ||
         normal_packet.slot != SLOT_0 ||
         normal_packet.decoded.opcode_id != OPC_ADD_24 ||

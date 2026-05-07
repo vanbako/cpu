@@ -79,7 +79,7 @@ module cpu_v01_cap_mem_core (
   task automatic start_packet(input logic [OPCODE_ID_BITS-1:0] opcode_id, input logic [7:0] size_bits);
     retire_packet_q <= '0;
     retire_packet_q.valid <= 1'b1;
-    retire_packet_q.sequence <= sequence_q;
+    retire_packet_q.\sequence  <= sequence_q;
     retire_packet_q.pc_cell <= pc_q;
     retire_packet_q.slot <= SLOT_0;
     retire_packet_q.instruction_length <= size_bits == 8'd48 ? 2'd2 : 2'd1;
@@ -218,7 +218,7 @@ module cpu_v01_cap_mem_core (
         ST_INVALID_TAG_FAULT: begin
           retire_packet_q <= '0;
           retire_packet_q.valid <= 1'b1;
-          retire_packet_q.sequence <= sequence_q;
+          retire_packet_q.\sequence  <= sequence_q;
           retire_packet_q.pc_cell <= pc_q;
           retire_packet_q.slot <= SLOT_0;
           retire_packet_q.instruction_length <= 2'd2;

@@ -221,7 +221,7 @@ package cpu_v01_pkg;
 
   typedef struct packed {
     logic valid;
-    logic [RETIRE_SEQUENCE_BITS-1:0] sequence;
+    logic [RETIRE_SEQUENCE_BITS-1:0] \sequence ;
     addr_t pc_cell;
     logic slot;
     logic [1:0] instruction_length;

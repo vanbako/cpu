@@ -56,7 +56,7 @@ module cpu_v01_smoke_core #(
 
         ST_RETIRE: begin
           retire_packet_q.valid <= 1'b1;
-          retire_packet_q.sequence <= sequence_q;
+          retire_packet_q.\sequence  <= sequence_q;
           retire_packet_q.pc_cell <= pc_q;
           retire_packet_q.slot <= slot_q;
           retire_packet_q.instruction_length <= 2'd1;

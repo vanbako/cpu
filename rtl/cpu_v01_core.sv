@@ -192,7 +192,7 @@ module cpu_v01_core #(
   );
     retire_packet_q <= '0;
     retire_packet_q.valid <= 1'b1;
-    retire_packet_q.sequence <= retire_sequence_q;
+    retire_packet_q.\sequence  <= retire_sequence_q;
     retire_packet_q.pc_cell <= fetch_pc_q;
     retire_packet_q.slot <= fetch_slot_q;
     retire_packet_q.instruction_length <= instruction_length;
@@ -209,7 +209,7 @@ module cpu_v01_core #(
   );
     retire_packet_q <= '0;
     retire_packet_q.valid <= 1'b1;
-    retire_packet_q.sequence <= retire_sequence_q;
+    retire_packet_q.\sequence  <= retire_sequence_q;
     retire_packet_q.pc_cell <= fetch_pc_q;
     retire_packet_q.slot <= fetch_slot_q;
     retire_packet_q.instruction_length <= 2'd1;
@@ -295,7 +295,7 @@ module cpu_v01_core #(
           if (fetch_fault_q.valid) begin
             retire_packet_q <= '0;
             retire_packet_q.valid <= 1'b1;
-            retire_packet_q.sequence <= retire_sequence_q;
+            retire_packet_q.\sequence  <= retire_sequence_q;
             retire_packet_q.pc_cell <= fetch_pc_q;
             retire_packet_q.slot <= fetch_slot_q;
             retire_packet_q.instruction_length <= 2'd1;
