@@ -398,7 +398,7 @@ module cpu_v01_core #(
     logic [5:0] exponent;
 
     access_base = {16'd0, base_address};
-    access_top = access_base + length_cells;
+    access_top = access_base + {32'd0, length_cells};
     if (access_top > 64'h0001_0000_0000_0000) begin
       return 1'b0;
     end
@@ -413,15 +413,17 @@ module cpu_v01_core #(
   endfunction
 
   function automatic addr_t effective_address(input cap_t authority, input int_reg_t offset);
-    logic signed [48:0] signed_offset;
+    logic signed [49:0] signed_offset;
     logic signed [49:0] signed_cursor;
-    signed_offset = {offset[47], offset};
-    signed_cursor = {1'b0, authority.payload.cursor};
+    signed_offset = {{2{offset[47]}}, offset};
+    signed_cursor = {2'b00, authority.payload.cursor};
     return addr_t'(signed_cursor + signed_offset);
   endfunction
 
   function automatic logic address_aligned(input addr_t address, input int unsigned alignment_cells);
-    return (address % alignment_cells) == 0;
+    addr_t alignment;
+    alignment = addr_t'(alignment_cells);
+    return (address % alignment) == 0;
   endfunction
 
   function automatic access_check_t access_ok();
