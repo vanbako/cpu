@@ -98,6 +98,8 @@ module cpu_v01_core #(
   cap_t tvc_q;
   cap_t ksc_q;
   cap_t krc_q;
+  cap_t return_stack_slot_q;
+  logic return_stack_slot_slot_q;
   int_reg_t sr_q;
   int_reg_t d_regs [INT_REG_COUNT];
   cap_t c_regs [CAP_REG_COUNT];
@@ -176,6 +178,33 @@ module cpu_v01_core #(
     return value;
   endfunction
 
+  function automatic cap_t return_stack_cap(input addr_t cursor);
+    cap_t value;
+    value.payload.cursor = cursor;
+    value.payload.bounds_metadata = 30'd0;
+    value.payload.permissions = CAP_PERM_ST | CAP_PERM_LD | CAP_PERM_LC | CAP_PERM_SC | CAP_PERM_SL;
+    value.payload.otype = 8'd0;
+    value.payload.flags = 2'd0;
+    value.tag = 1'b1;
+    return value;
+  endfunction
+
+  function automatic cap_t return_capability(input cap_t source);
+    cap_t value;
+    value = source;
+    value.payload.otype = 8'hFF;
+    value.payload.flags = 2'd0;
+    value.tag = 1'b1;
+    return value;
+  endfunction
+
+  function automatic cap_t unsealed_capability(input cap_t source);
+    cap_t value;
+    value = source;
+    value.payload.otype = 8'd0;
+    return value;
+  endfunction
+
   function automatic logic is_12_opcode(input logic [11:0] opcode);
     unique case (opcode)
       12'h053,
@@ -247,6 +276,26 @@ module cpu_v01_core #(
 
   function automatic logic [39:0] operands_48(input cell_t low_cell, input cell_t high_cell);
     return {high_cell, low_cell[15:0]};
+  endfunction
+
+  function automatic logic next_slot(input logic [7:0] size_bits);
+    if (size_bits == 8'd12 && fetch_slot_q == SLOT_0) begin
+      return SLOT_1;
+    end
+    return SLOT_0;
+  endfunction
+
+  function automatic cap_t next_pcc(input logic [7:0] size_bits);
+    cap_t value;
+    value = pcc_q;
+    if (size_bits == 8'd12 && fetch_slot_q == SLOT_0) begin
+      value.payload.cursor = fetch_pc_q;
+    end else if (size_bits == 8'd48) begin
+      value.payload.cursor = fetch_pc_q + 48'd2;
+    end else begin
+      value.payload.cursor = fetch_pc_q + 48'd1;
+    end
+    return value;
   endfunction
 
   function automatic int_reg_t width_mask(input logic [2:0] width_code);
@@ -700,6 +749,8 @@ module cpu_v01_core #(
     int_reg_t result;
     int_reg_t old_csr;
     cap_t cap_value;
+    cap_t return_value;
+    logic return_slot;
     access_check_t access_check;
 
     deferred_retire = 1'b0;
@@ -714,6 +765,8 @@ module cpu_v01_core #(
     lhs = d_regs[ra];
     rhs = d_regs[rb];
     result = '0;
+    return_value = '0;
+    return_slot = SLOT_0;
     memory_address = '0;
     access_check = access_ok();
 
@@ -995,9 +1048,69 @@ module cpu_v01_core #(
         end
       end
 
+      OPC_CALL_24: begin
+        return_value = return_capability(next_pcc(size_bits));
+        return_slot = next_slot(size_bits);
+        return_stack_slot_q <= return_value;
+        return_stack_slot_slot_q <= return_slot;
+        cap_value = rsc_q;
+        cap_value.payload.cursor = rsc_q.payload.cursor - 48'd4;
+        commit_ccsr_write(CCSR_RSC, cap_value);
+        retire_packet_q.memory_effect_kind <= MEM_EFFECT_RETURN_STACK_PUSH;
+        retire_packet_q.memory_effect_address <= cap_value.payload.cursor;
+        retire_packet_q.memory_capability_value <= return_value;
+        retire_packet_q.tag_write_valid <= 1'b1;
+        retire_packet_q.tag_write_value <= 1'b1;
+        cap_value = pcc_q;
+        cap_value.payload.cursor = {32'd0, operands[15:0]};
+        commit_pcc_update(cap_value, SLOT_0);
+      end
+
       OPC_JMP_24: begin
         cap_value = c_regs[operands[14:12]];
         commit_pcc_update(cap_value, SLOT_0);
+      end
+
+      OPC_RET_12: begin
+        if (!return_stack_slot_q.tag) begin
+          access_check.fault = 1'b1;
+          access_check.cause = EXC_RETURN_STACK_UNDERFLOW;
+          access_check.capcause = CAPCAUSE_TAG;
+          access_check.fault_cap_idx = FAULT_CAP_IDX_RSC;
+          access_check.tval = rsc_q.payload.cursor;
+          mark_capability_fault(access_check);
+        end else begin
+          cap_value = rsc_q;
+          cap_value.payload.cursor = rsc_q.payload.cursor + 48'd4;
+          commit_ccsr_write(CCSR_RSC, cap_value);
+          commit_pcc_update(unsealed_capability(return_stack_slot_q), return_stack_slot_slot_q);
+          return_stack_slot_q <= '0;
+          return_stack_slot_slot_q <= SLOT_0;
+        end
+      end
+
+      OPC_SYS_12: begin
+        mark_decoded_fault(EXC_SYSCALL_TRAP, fetch_pc_q);
+        return_value = next_pcc(size_bits);
+        return_slot = next_slot(size_bits);
+        commit_epcc_update(return_value, return_slot);
+        commit_csr_write(CSR_CAUSE, {32'd0, EXC_SYSCALL_TRAP});
+        retire_packet_q.trap_entry_valid <= 1'b1;
+        retire_packet_q.trap_target <= tvc_q;
+        retire_packet_q.trap_target_slot <= SLOT_0;
+        retire_packet_q.trap_frame_save_valid <= 1'b1;
+        retire_packet_q.trap_frame_epcc_value <= return_value;
+        retire_packet_q.trap_frame_epcc_slot <= return_slot;
+        retire_packet_q.trap_frame_sr_value <= sr_q;
+        commit_pcc_update(tvc_q, SLOT_0);
+      end
+
+      OPC_IRET_24: begin
+        retire_packet_q.trap_frame_restore_valid <= 1'b1;
+        retire_packet_q.trap_frame_epcc_value <= epcc_q;
+        retire_packet_q.trap_frame_epcc_slot <= epcc_slot_q;
+        retire_packet_q.trap_frame_sr_value <= sr_q;
+        commit_pcc_update(epcc_q, epcc_slot_q);
       end
 
       OPC_EPCCRD_24: begin
@@ -1017,6 +1130,28 @@ module cpu_v01_core #(
 
       OPC_BRK_12: begin
         mark_decoded_fault(EXC_BREAKPOINT, fetch_pc_q);
+      end
+
+      OPC_CALLC_24: begin
+        ca = operands[14:12];
+        access_check = cap_source_check(ca);
+        if (access_check.fault) begin
+          mark_capability_fault(access_check);
+        end else begin
+          return_value = return_capability(next_pcc(size_bits));
+          return_slot = next_slot(size_bits);
+          return_stack_slot_q <= return_value;
+          return_stack_slot_slot_q <= return_slot;
+          cap_value = rsc_q;
+          cap_value.payload.cursor = rsc_q.payload.cursor - 48'd4;
+          commit_ccsr_write(CCSR_RSC, cap_value);
+          retire_packet_q.memory_effect_kind <= MEM_EFFECT_RETURN_STACK_PUSH;
+          retire_packet_q.memory_effect_address <= cap_value.payload.cursor;
+          retire_packet_q.memory_capability_value <= return_value;
+          retire_packet_q.tag_write_valid <= 1'b1;
+          retire_packet_q.tag_write_value <= 1'b1;
+          commit_pcc_update(unsealed_capability(c_regs[ca]), SLOT_0);
+        end
       end
 
       OPC_CSRRD_24: begin
@@ -1118,11 +1253,13 @@ module cpu_v01_core #(
       epcc_q <= reset_pcc(RESET_VECTOR);
       epcc_slot_q <= SLOT_0;
       dsc_q <= reset_pcc(48'd0);
-      rsc_q <= reset_pcc(48'd0);
+      rsc_q <= return_stack_cap(48'h0000_0000_3040);
       ddc_q <= reset_pcc(48'd0);
-      tvc_q <= reset_pcc(48'd0);
+      tvc_q <= reset_pcc(RESET_VECTOR + 48'h0000_0000_0100);
       ksc_q <= reset_pcc(48'd0);
       krc_q <= reset_pcc(48'd0);
+      return_stack_slot_q <= '0;
+      return_stack_slot_slot_q <= SLOT_0;
       sr_q <= SR_RESET_VALUE;
       for (int i = 0; i < INT_REG_COUNT; i++) begin
         d_regs[i] <= '0;
