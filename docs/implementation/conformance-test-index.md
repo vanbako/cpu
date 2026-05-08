@@ -195,4 +195,8 @@ table in the same change.
 | `tools\fpga_smoke_firmware.py` | `I23-S04` | `E04-S02`, `E07-S03`, `E11-S01`, `I14-S01`, `I17-S04`, `I22-S03`, `I23-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i23_s04_fpga_smoke_firmware.py` | `I23-S04` | `E04-S02`, `E07-S03`, `E11-S01`, `I14-S01`, `I17-S04`, `I22-S03`, `I23-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `docs\implementation\fpga-first-test-plan.md` | `I23-S05` | `E13-S01`, `E15-S07`, `I20-S04`, `I22-S08`, `I23-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `docs\implementation\fpga-synthesis-gate.md` | `I23-S05` | `E13-S01`, `E15-S07`, `I20-S04`, `I22-S08`, `I23-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `src\cpu_v01\fpga_synthesis.py` | `I23-S05` | `E13-S01`, `E15-S07`, `I20-S04`, `I22-S08`, `I23-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tools\fpga_synthesis_gate.py` | `I23-S05` | `E13-S01`, `E15-S07`, `I20-S04`, `I22-S08`, `I23-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i23_s05_fpga_synthesis_gate.py` | `I23-S05` | `E13-S01`, `E15-S07`, `I20-S04`, `I22-S08`, `I23-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `docs\implementation\fpga-first-test-plan.md` | `I23-S06` | `E11-S01`, `E12-S01`, `E15-S07`, `I23-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |

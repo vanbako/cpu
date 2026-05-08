@@ -30,6 +30,28 @@ the first physical clock/reset/memory path is trustworthy.
 The first-test design should be board-neutral at the CPU wrapper boundary and
 board-specific only at the constraint and pin overlay layer.
 
+Physical target board:
+
+- board `Sipeed Tang Mega 138K Dock`, treated as the non-Pro Tang Mega 138K
+  target for the first hardware smoke;
+- FPGA `GW5AST-LV138PG484A`, IDE package `PBG484A`, and Device Version `B/C`
+  until the actual SOM marking or JTAG scan says otherwise;
+- board resources relevant to the first smoke: 6120 Kbits B-SRAM in 340
+  blocks, 1080 Kbits distributed SRAM, 298 18x18 multipliers, 12 PLLs, 16
+  global clocks, 24 high-speed clocks, one flash device, onboard USB JTAG/UART,
+  4 battery LEDs plus 8 PMOD LEDs, 3 user keys plus one reconfig key, and 3.3 V
+  GPIO tolerance on the expansion headers;
+- first-test non-dependencies: 1 GiB DDR3, PCIe, USB3, HDMI, GbE, ADC, SD,
+  audio, and hard AE350 RISC-V resources stay outside the initial CPU smoke.
+
+Public-source package note: Sipeed's Chinese Tang Mega 138K page and FAQ name
+`GW5AST-LV138PG484A` with package `PBG484A`, while the current English
+precautions row and the openFPGALoader board table also mention
+`GW5AST-LV138FPG676A` for Tang Mega 138K. `GW5AST-LV138FPG676A` is also the
+consistent Tang Mega 138K Pro Dock device. I23-S05 must verify the actual SOM
+marking or programmer/JTAG scan before locking the build script, and must take
+clock/reset/LED pin assignments from Sipeed's `All PIN Constraints` package.
+
 Minimum assumptions:
 
 - profile name `cpu_v01_fpga_first_test_bram_smoke`;
@@ -103,13 +125,40 @@ fixture until I23-S04 replaces it with the dedicated FPGA smoke firmware.
 I23-S05 owns the board-specific scripts, but I23-S01 fixes the flow contract:
 
 1. lint or elaborate `cpu_v01_fpga_top`;
-2. synthesize the BRAM smoke design;
-3. place and route with board constraints;
+2. synthesize the BRAM smoke design for the verified Tang Mega 138K FPGA
+   package;
+3. place and route with Sipeed Tang Mega 138K board constraints;
 4. report timing and utilization.
 
 The flow must fail on a missing `cpu_v01_core` or memory black box,
 unconstrained `board_clk_i` or `board_reset_n_i`, negative slack at the
 first-test clock, or missing pass/fail observation pins.
+
+I23-S05 is tracked in `docs/implementation/fpga-synthesis-gate.md` and checked
+with:
+
+```text
+python tools\fpga_synthesis_gate.py --check
+```
+
+Official Gowin EDA is the primary synthesis/place-route/bitstream flow for the
+first board test because Gowin's tool covers code synthesis, place and route,
+bitstream generation, and download. Sipeed documents Tang Mega 138K support in
+recent Gowin EDA releases and recommends the standalone 1.9.12 SP1 Programmer
+for better flash programming compatibility. For volatile or flash programming,
+the board exposes USB JTAG/UART; openFPGALoader also lists a `tangmega138k`
+board entry, but the device/package ambiguity above must be resolved before
+using that path as an automated gate.
+
+## Target Board Source Notes
+
+| Source | Used for | Follow-up |
+| --- | --- | --- |
+| Sipeed Tang Mega 138K Dock wiki: <https://wiki.sipeed.com/hardware/en/tang/tang-mega-138k/mega-138k> | Board features, resources, USB JTAG/UART, Gowin EDA/programmer guidance, and hardware-resource links. | Verify the English-page package inconsistency against the physical SOM. |
+| Sipeed Tang Mega 138K Chinese wiki: <https://wiki.sipeed.com/hardware/zh/tang/tang-mega-138k/mega-138k> | Cross-check for `GW5AST-LV138PG484A`, `PBG484A`, Device Version `B/C`, and 3.3 V GPIO warning. | Prefer this package data for the non-Pro Dock until board scan confirms. |
+| Sipeed Tang Mega 138K examples: <https://github.com/sipeed/TangMega-138K-example> | Board examples, PMOD LED path, DDR/peripheral examples, and likely reference project structure. | Pull only pin/project details needed for the first-test overlay. |
+| Gowin EDA page: <https://www.gowinsemi.com/en/support/home/> | Official vendor flow scope for synthesis, place and route, bitstream generation, download, and GAO debug. | Install/select the supported Windows tool version before I23-S05. |
+| openFPGALoader board list: <https://trabucayre.github.io/openFPGALoader/compatibility/board.html> | Alternative programming path and board flag `tangmega138k`. | Use only after confirming package/device compatibility with this board. |
 
 ## Acceptance Review
 

@@ -80,3 +80,4 @@ Current platform binding:
 - `docs/implementation/fpga-top-wrapper.md`: I23-S02 board-neutral `cpu_v01_fpga_top` wrapper, reset synchronization, status/debug outputs, and fetch-disabled smoke attachment.
 - `docs/implementation/fpga-memory-adapters.md`: I23-S03 FPGA instruction ROM, data RAM, and tag RAM adapters plus initialization and tag-clear checks.
 - `docs/implementation/fpga-smoke-firmware.md`: I23-S04 built-in PAUSE smoke firmware, pass/fail LED contract, heartbeat, retire count, and fault observation.
+- `docs/implementation/fpga-synthesis-gate.md`: I23-S05 Tang Mega 138K synthesis, place-route, timing, bitstream, and board-constraint gate profile.

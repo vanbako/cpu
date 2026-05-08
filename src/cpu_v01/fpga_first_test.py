@@ -22,6 +22,43 @@ PROFILE_NAME = "cpu_v01_fpga_first_test_bram_smoke"
 FPGA_TOP_MODULE = "cpu_v01_fpga_top"
 CORE_TOP_MODULE = "cpu_v01_core"
 IMAGE_FORMAT_NAME = "hex24-cells-v1"
+TARGET_BOARD_NAME = "Sipeed Tang Mega 138K Dock"
+TARGET_BOARD_VENDOR = "Sipeed"
+TARGET_BOARD_VARIANT = "Tang Mega 138K Dock (non-Pro)"
+TARGET_FPGA_DEVICE = "GW5AST-LV138PG484A"
+TARGET_IDE_PACKAGE = "PBG484A"
+TARGET_DEVICE_VERSION = "B/C, verify on board or JTAG scan"
+TARGET_CONSTRAINT_SOURCE = "Sipeed All PIN Constraints package for Tang Mega 138K"
+
+
+@dataclass(frozen=True)
+class FpgaBoardTarget:
+    name: str
+    vendor: str
+    variant: str
+    fpga_device: str
+    ide_package: str
+    device_version: str
+    programming_interfaces: tuple[str, ...]
+    observation_interfaces: tuple[str, ...]
+    constraint_source: str
+    source_urls: tuple[str, ...]
+    open_items: tuple[str, ...]
+
+    def as_dict(self) -> dict[str, JsonValue]:
+        return {
+            "name": self.name,
+            "vendor": self.vendor,
+            "variant": self.variant,
+            "fpga_device": self.fpga_device,
+            "ide_package": self.ide_package,
+            "device_version": self.device_version,
+            "programming_interfaces": list(self.programming_interfaces),
+            "observation_interfaces": list(self.observation_interfaces),
+            "constraint_source": self.constraint_source,
+            "source_urls": list(self.source_urls),
+            "open_items": list(self.open_items),
+        }
 
 
 @dataclass(frozen=True)
@@ -143,6 +180,7 @@ class FpgaFirstTestProfile:
     story: str
     fpga_top_module: str
     core_top_module: str
+    target_board: FpgaBoardTarget
     clock_reset: FpgaClockResetProfile
     memories: tuple[FpgaMemoryRegion, ...]
     image_format: FpgaImageFormat
@@ -170,6 +208,7 @@ class FpgaFirstTestProfile:
             "story": self.story,
             "fpga_top_module": self.fpga_top_module,
             "core_top_module": self.core_top_module,
+            "target_board": self.target_board.as_dict(),
             "clock_reset": self.clock_reset.as_dict(),
             "memories": [memory.as_dict() for memory in self.memories],
             "image_format": self.image_format.as_dict(),
@@ -184,6 +223,36 @@ FPGA_FIRST_TEST_PROFILE = FpgaFirstTestProfile(
     story=FPGA_FIRST_TEST_STORY,
     fpga_top_module=FPGA_TOP_MODULE,
     core_top_module=CORE_TOP_MODULE,
+    target_board=FpgaBoardTarget(
+        name=TARGET_BOARD_NAME,
+        vendor=TARGET_BOARD_VENDOR,
+        variant=TARGET_BOARD_VARIANT,
+        fpga_device=TARGET_FPGA_DEVICE,
+        ide_package=TARGET_IDE_PACKAGE,
+        device_version=TARGET_DEVICE_VERSION,
+        programming_interfaces=(
+            "onboard_usb_jtag_uart",
+            "gowin_programmer_gao_bridge_5a_or_arora_v_flash",
+            "openfpgaloader_tangmega138k_pending_device_scan",
+        ),
+        observation_interfaces=(
+            "pmod_led_x8",
+            "usb_uart",
+            "gowin_gao_ila",
+        ),
+        constraint_source=TARGET_CONSTRAINT_SOURCE,
+        source_urls=(
+            "https://wiki.sipeed.com/hardware/en/tang/tang-mega-138k/mega-138k",
+            "https://wiki.sipeed.com/hardware/zh/tang/tang-mega-138k/mega-138k",
+            "https://github.com/sipeed/TangMega-138K-example",
+            "https://trabucayre.github.io/openFPGALoader/compatibility/board.html",
+        ),
+        open_items=(
+            "confirm actual SOM device/package by board marking or JTAG scan",
+            "extract board_clk_i, board_reset_n_i, and LED pins from Sipeed constraints",
+            "verify LED polarity and IO standard before first programming",
+        ),
+    ),
     clock_reset=FpgaClockResetProfile(
         board_class="single-board FPGA with one free-running clock, pushbutton reset, BRAM, and at least one LED",
         input_clock="board_clk_i",
@@ -320,6 +389,25 @@ def render_fpga_first_test_profile(profile: FpgaFirstTestProfile = FPGA_FIRST_TE
         f"FPGA top: `{profile.fpga_top_module}`",
         f"Core under test: `{profile.core_top_module}`",
         "",
+        "## Target Board",
+        "",
+        f"- Board: `{profile.target_board.name}`.",
+        f"- Vendor: `{profile.target_board.vendor}`.",
+        f"- Variant: {profile.target_board.variant}.",
+        f"- FPGA device: `{profile.target_board.fpga_device}`.",
+        f"- IDE package: `{profile.target_board.ide_package}`.",
+        f"- Device version: {profile.target_board.device_version}.",
+        f"- Constraint source: {profile.target_board.constraint_source}.",
+        "- Programming interfaces: "
+        + ", ".join(f"`{interface}`" for interface in profile.target_board.programming_interfaces)
+        + ".",
+        "- Observation interfaces: "
+        + ", ".join(f"`{interface}`" for interface in profile.target_board.observation_interfaces)
+        + ".",
+        "- Open items: "
+        + ", ".join(profile.target_board.open_items)
+        + ".",
+        "",
         "## Clock And Reset",
         "",
         f"- Board class: {profile.clock_reset.board_class}.",
@@ -410,6 +498,28 @@ def validate_fpga_first_test_profile(
         issues.append(f"FPGA top module must be {FPGA_TOP_MODULE}")
     if profile.core_top_module != CORE_TOP_MODULE:
         issues.append(f"core top module must be {CORE_TOP_MODULE}")
+
+    target_board = profile.target_board
+    if target_board.name != TARGET_BOARD_NAME:
+        issues.append(f"target board must be {TARGET_BOARD_NAME}")
+    if target_board.vendor != TARGET_BOARD_VENDOR:
+        issues.append(f"target board vendor must be {TARGET_BOARD_VENDOR}")
+    if target_board.fpga_device != TARGET_FPGA_DEVICE:
+        issues.append(f"target FPGA device must be {TARGET_FPGA_DEVICE}")
+    if target_board.ide_package != TARGET_IDE_PACKAGE:
+        issues.append(f"target IDE package must be {TARGET_IDE_PACKAGE}")
+    if "JTAG" not in target_board.device_version:
+        issues.append("target device version must require board or JTAG verification")
+    if "All PIN Constraints" not in target_board.constraint_source:
+        issues.append("target board must name the Sipeed pin-constraint source")
+    if "onboard_usb_jtag_uart" not in target_board.programming_interfaces:
+        issues.append("target board must include onboard USB JTAG/UART programming")
+    if "pmod_led_x8" not in target_board.observation_interfaces:
+        issues.append("target board must include the PMOD LED observation path")
+    if not target_board.source_urls:
+        issues.append("target board must record source URLs")
+    if not target_board.open_items:
+        issues.append("target board must record open verification items")
 
     clock_reset = profile.clock_reset
     if not clock_reset.board_class:
@@ -525,6 +635,10 @@ def validate_fpga_first_test_profile(
         FPGA_TOP_MODULE,
         CORE_TOP_MODULE,
         IMAGE_FORMAT_NAME,
+        TARGET_BOARD_NAME,
+        TARGET_FPGA_DEVICE,
+        TARGET_IDE_PACKAGE,
+        "All PIN Constraints",
         "board_clk_i",
         "board_reset_n_i",
         "instruction_rom",
