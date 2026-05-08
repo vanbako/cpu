@@ -60,10 +60,10 @@ module cpu_v01_fpga_top_tb;
       $fatal(1, "FPGA top wrapper reported an unexpected fault");
     end
     if (status_retire_valid_o || status_retire_count_o != 32'd0 || heartbeat_led_o) begin
-      $fatal(1, "FPGA top wrapper should not retire before BRAM adapters");
+      $fatal(1, "FPGA top wrapper should not retire while fetch is disabled");
     end
     if (status_core_port_activity_o) begin
-      $fatal(1, "FPGA top wrapper should stay memory idle before BRAM adapters");
+      $fatal(1, "FPGA top wrapper should stay memory idle while fetch is disabled");
     end
     if (!debug_pcc_valid_o ||
         debug_pcc_cursor_low_o != 32'h0000_1000 ||

@@ -1,6 +1,14 @@
 module cpu_v01_fpga_top #(
   parameter cpu_v01_pkg::addr_t RESET_VECTOR = 48'h0000_0000_1000,
-  parameter int RESET_SYNC_STAGES = 2
+  parameter int RESET_SYNC_STAGES = 2,
+  parameter bit ENABLE_FETCH = 1'b0,
+  parameter cpu_v01_pkg::addr_t DATA_RAM_BASE = 48'h0000_0001_0000,
+  parameter int INSTRUCTION_ROM_CELLS = 1024,
+  parameter int DATA_RAM_CELLS = 4096,
+  parameter bit USE_ROM_INIT_FILE = 1'b0,
+  parameter string ROM_INIT_FILE = "",
+  parameter bit USE_DATA_INIT_FILE = 1'b0,
+  parameter string DATA_INIT_FILE = ""
 ) (
   input  logic board_clk_i,
   input  logic board_reset_n_i,
@@ -66,14 +74,6 @@ module cpu_v01_fpga_top #(
 
   assign core_rst_n = reset_sync_q[RESET_SYNC_STAGES-1];
 
-  assign imem_req_ready = 1'b1;
-  assign imem_rsp_valid = 1'b0;
-  assign dmem_req_ready = 1'b1;
-  assign dmem_rsp_valid = 1'b0;
-  assign tagmem_req_ready = 1'b1;
-  assign tagmem_rsp_valid = 1'b0;
-  assign tagmem_rsp_rtag = 1'b0;
-
   assign pass_led_o = reset_observed && core_idle && !fault_sticky_q;
   assign fail_led_o = fault_sticky_q;
   assign heartbeat_led_o = debug_retire_sequence[0];
@@ -108,15 +108,6 @@ module cpu_v01_fpga_top #(
   end
 
   always_comb begin
-    imem_rsp_fault = '0;
-    dmem_rsp_fault = '0;
-    for (int i = 0; i < FETCH_GROUP_CELLS; i++) begin
-      imem_rsp_cells[i] = '0;
-    end
-    for (int i = 0; i < CAPABILITY_OBJECT_CELLS; i++) begin
-      dmem_rsp_rdata[i] = '0;
-    end
-
     core_port_activity =
         imem_req_valid || imem_rsp_ready || (imem_req_valid && (|imem_req_addr)) ||
         dmem_req_valid || dmem_req_write || (dmem_req_valid && (|dmem_req_addr)) ||
@@ -129,9 +120,60 @@ module cpu_v01_fpga_top #(
     end
   end
 
+  cpu_v01_fpga_imem_rom #(
+    .BASE_CELL(RESET_VECTOR),
+    .DEPTH_CELLS(INSTRUCTION_ROM_CELLS),
+    .USE_INIT_FILE(USE_ROM_INIT_FILE),
+    .INIT_FILE(ROM_INIT_FILE)
+  ) instruction_rom (
+    .clk(board_clk_i),
+    .rst_n(core_rst_n),
+    .req_valid(imem_req_valid),
+    .req_ready(imem_req_ready),
+    .req_addr(imem_req_addr),
+    .rsp_valid(imem_rsp_valid),
+    .rsp_ready(imem_rsp_ready),
+    .rsp_cells(imem_rsp_cells),
+    .rsp_fault(imem_rsp_fault)
+  );
+
+  cpu_v01_fpga_data_ram #(
+    .BASE_CELL(DATA_RAM_BASE),
+    .DEPTH_CELLS(DATA_RAM_CELLS),
+    .USE_INIT_FILE(USE_DATA_INIT_FILE),
+    .INIT_FILE(DATA_INIT_FILE)
+  ) data_ram (
+    .clk(board_clk_i),
+    .rst_n(core_rst_n),
+    .req_valid(dmem_req_valid),
+    .req_ready(dmem_req_ready),
+    .req_write(dmem_req_write),
+    .req_addr(dmem_req_addr),
+    .req_len_cells(dmem_req_len_cells),
+    .req_wdata(dmem_req_wdata),
+    .rsp_valid(dmem_rsp_valid),
+    .rsp_rdata(dmem_rsp_rdata),
+    .rsp_fault(dmem_rsp_fault)
+  );
+
+  cpu_v01_fpga_tag_ram #(
+    .BASE_CELL(DATA_RAM_BASE),
+    .DEPTH_ENTRIES(DATA_RAM_CELLS)
+  ) tag_ram (
+    .clk(board_clk_i),
+    .rst_n(core_rst_n),
+    .req_valid(tagmem_req_valid),
+    .req_ready(tagmem_req_ready),
+    .req_write(tagmem_req_write),
+    .req_slot_addr(tagmem_req_slot_addr),
+    .req_wtag(tagmem_req_wtag),
+    .rsp_valid(tagmem_rsp_valid),
+    .rsp_rtag(tagmem_rsp_rtag)
+  );
+
   cpu_v01_core #(
     .RESET_VECTOR(RESET_VECTOR),
-    .ENABLE_FETCH(1'b0)
+    .ENABLE_FETCH(ENABLE_FETCH)
   ) core (
     .clk(board_clk_i),
     .rst_n(core_rst_n),

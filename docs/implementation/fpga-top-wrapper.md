@@ -7,15 +7,15 @@ Status: Implemented board-neutral wrapper profile
 This story adds the first board-neutral FPGA wrapper around the integrated
 `cpu_v01_core`. The wrapper is intentionally a reset and observation shell: it
 synchronizes board reset, instantiates the integrated core, ties interrupts and
-events to deterministic idle values, exposes status/debug pins, and holds the
-memory side idle until I23-S03 adds BRAM adapters.
+events to deterministic idle values, exposes status/debug pins, and defaults to
+a fetch-disabled reset-smoke mode until I23-S04 adds first-test firmware.
 
 ## Artifacts
 
 | Artifact | Purpose |
 | --- | --- |
-| `rtl/cpu_v01_fpga_top.sv` | Board-neutral FPGA top wrapper around `cpu_v01_core`. |
-| `rtl/cpu_v01_fpga_top_tb.sv` | Reset-smoke testbench for synchronized reset, status outputs, and idle memory behavior. |
+| `rtl/cpu_v01_fpga_top.sv` | Board-neutral FPGA top wrapper around `cpu_v01_core` and the FPGA-local memory adapters. |
+| `rtl/cpu_v01_fpga_top_tb.sv` | Reset-smoke testbench for synchronized reset, status outputs, and fetch-disabled idle behavior. |
 | `src/cpu_v01/fpga_top.py` | Structured port projection and source/documentation validator. |
 | `tools/fpga_top_wrapper.py` | CLI wrapper for checking or rendering the FPGA top projection. |
 | `tests/conformance/test_i23_s02_fpga_top_wrapper.py` | I23-S02 conformance coverage. |
@@ -29,7 +29,7 @@ python tools\fpga_top_wrapper.py --check
 Optional Verilator smoke command:
 
 ```text
-verilator --binary --timing --top-module cpu_v01_fpga_top_tb rtl/cpu_v01_pkg.sv rtl/cpu_v01_core.sv rtl/cpu_v01_fpga_top.sv rtl/cpu_v01_fpga_top_tb.sv
+verilator --binary --timing --top-module cpu_v01_fpga_top_tb rtl/cpu_v01_pkg.sv rtl/cpu_v01_core.sv rtl/cpu_v01_fpga_memories.sv rtl/cpu_v01_fpga_top.sv rtl/cpu_v01_fpga_top_tb.sv
 ```
 
 ## Wrapper Boundary
@@ -48,12 +48,13 @@ reset drives `cpu_v01_core` as `core_rst_n`.
 
 ## Current Idle Attachments
 
-I23-S02 does not claim a runnable ROM path. To keep the wrapper elaborable
-before BRAM integration:
+I23-S02 does not claim a runnable firmware path. To keep the wrapper elaborable
+before firmware integration:
 
-- `cpu_v01_core` is instantiated with `.ENABLE_FETCH(1'b0)`;
-- instruction, data, and tag-memory ready inputs are tied ready;
-- instruction, data, and tag responses are tied invalid or zero;
+- `cpu_v01_core` defaults to `.ENABLE_FETCH(1'b0)` through the wrapper
+  parameter;
+- instruction, data, and tag-memory ports connect to the FPGA BRAM adapters
+  added by I23-S03;
 - timer, software, external interrupt, and event inputs are tied idle;
 - retire is held ready so future firmware smoke status can observe retire
   packets without another wrapper contract change.
@@ -64,7 +65,6 @@ the dedicated first FPGA smoke firmware pass/fail contract.
 
 ## Deferrals
 
-- I23-S03 adds BRAM instruction ROM, data RAM, and tag RAM adapters.
 - I23-S04 adds the tiny smoke firmware and final pass/fail status source.
 - I23-S05 adds board constraints, synthesis, implementation, and timing gates.
 - I23-S06 captures board programming and first-pass evidence.
@@ -77,4 +77,4 @@ the dedicated first FPGA smoke firmware pass/fail contract.
 | Board reset is synchronized before reaching the core. | Met by the two-stage reset synchronizer and reset-smoke testbench. |
 | Interrupts/events are deterministically idle. | Met by constant idle event and interrupt connections. |
 | Status/debug pins are visible at the wrapper boundary. | Met by LED, fault, retire, reset, PCC, and SR outputs. |
-| Memory integration remains explicit future work. | Met by idle response ties and I23-S03 deferral. |
+| Memory integration remains explicit future work. | Met for the top boundary; I23-S03 owns the adapter behavior. |

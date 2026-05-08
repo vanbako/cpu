@@ -62,7 +62,10 @@ class FpgaTopWrapperTests(unittest.TestCase):
             "assign core_rst_n = reset_sync_q[RESET_SYNC_STAGES-1]",
             "cpu_v01_core #(",
             ".RESET_VECTOR(RESET_VECTOR)",
-            ".ENABLE_FETCH(1'b0)",
+            ".ENABLE_FETCH(ENABLE_FETCH)",
+            "cpu_v01_fpga_imem_rom",
+            "cpu_v01_fpga_data_ram",
+            "cpu_v01_fpga_tag_ram",
             ".timer_interrupt_pending(1'b0)",
             ".software_interrupt_pending(1'b0)",
             ".external_interrupt_pending(1'b0)",
@@ -70,12 +73,6 @@ class FpgaTopWrapperTests(unittest.TestCase):
             ".external_event_cause(16'd0)",
             ".debug_halt_request(debug_halt_request_i)",
             ".retire_ready(1'b1)",
-            "assign imem_req_ready = 1'b1",
-            "assign imem_rsp_valid = 1'b0",
-            "assign dmem_req_ready = 1'b1",
-            "assign dmem_rsp_valid = 1'b0",
-            "assign tagmem_req_ready = 1'b1",
-            "assign tagmem_rsp_valid = 1'b0",
             "assign pass_led_o = reset_observed && core_idle && !fault_sticky_q",
             "assign fail_led_o = fault_sticky_q",
             "debug_pcc_cursor_low_o",
@@ -90,8 +87,8 @@ class FpgaTopWrapperTests(unittest.TestCase):
         self.assertIn("module cpu_v01_fpga_top_tb", tb)
         self.assertIn("FPGA top wrapper reset synchronization failed", tb)
         self.assertIn("FPGA top wrapper did not expose reset-idle status", tb)
-        self.assertIn("FPGA top wrapper should not retire before BRAM adapters", tb)
-        self.assertIn("FPGA top wrapper should stay memory idle before BRAM adapters", tb)
+        self.assertIn("FPGA top wrapper should not retire while fetch is disabled", tb)
+        self.assertIn("FPGA top wrapper should stay memory idle while fetch is disabled", tb)
         self.assertIn("FPGA top wrapper reset debug projection mismatch", tb)
         self.assertIn("debug_pcc_cursor_low_o != 32'h0000_1000", tb)
         self.assertIn("debug_sr_low_o != 8'hC0", tb)
@@ -143,6 +140,7 @@ class FpgaTopWrapperTests(unittest.TestCase):
         self.assertIn("--top-module cpu_v01_fpga_top_tb", command)
         self.assertIn("rtl/cpu_v01_pkg.sv", command)
         self.assertIn("rtl/cpu_v01_core.sv", command)
+        self.assertIn("rtl/cpu_v01_fpga_memories.sv", command)
         self.assertIn("rtl/cpu_v01_fpga_top.sv", command)
         self.assertIn("rtl/cpu_v01_fpga_top_tb.sv", command)
 
