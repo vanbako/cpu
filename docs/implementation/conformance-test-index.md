@@ -226,3 +226,7 @@ table in the same change.
 | `src\cpu_v01\fpga_first_board_archive.py` | `I24-S05` | `E11-S01`, `E12-S01`, `E15-S07`, `I23-S06`, `I24-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tools\fpga_first_board_archive.py` | `I24-S05` | `E11-S01`, `E12-S01`, `E15-S07`, `I23-S06`, `I24-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i24_s05_fpga_first_board_archive.py` | `I24-S05` | `E11-S01`, `E12-S01`, `E15-S07`, `I23-S06`, `I24-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `docs\implementation\fpga-debug-status-packet.md` | `I25-S01` | `E12-S01`, `E15-S07`, `I23-S04`, `I24-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `src\cpu_v01\fpga_debug_status.py` | `I25-S01` | `E12-S01`, `E15-S07`, `I23-S04`, `I24-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tools\fpga_debug_status_packet.py` | `I25-S01` | `E12-S01`, `E15-S07`, `I23-S04`, `I24-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i25_s01_fpga_debug_status_packet.py` | `I25-S01` | `E12-S01`, `E15-S07`, `I23-S04`, `I24-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |

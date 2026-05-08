@@ -87,3 +87,4 @@ Current platform binding:
 - `docs/implementation/fpga-gowin-build.md`: I24-S03 Gowin build command plan, report-bundle audit, bitstream handoff, and blocker profile.
 - `docs/implementation/fpga-board-programming.md`: I24-S04 SRAM programming evidence parser, first pass/fail/heartbeat audit, and physical-run blocker profile.
 - `docs/implementation/fpga-first-board-evidence.md`: I24-S05 first-board evidence archive, blocker disposition audit, and downstream handoff profile.
+- `docs/implementation/fpga-debug-status-packet.md`: I25-S01 compact FPGA debug/status packet layout, encode/decode helper, and non-interference contract.
