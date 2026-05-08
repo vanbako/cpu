@@ -6,6 +6,12 @@ Status: Planned FPGA first-test profile
 
 Covered implementation stories: I23-S01 through I23-S06.
 
+Structured profile:
+
+```text
+python tools\fpga_first_test_profile.py --check
+```
+
 ## Purpose
 
 I23 turns the integrated single-core `cpu_v01_core` from a Verilator-gated RTL
@@ -26,9 +32,13 @@ board-specific only at the constraint and pin overlay layer.
 
 Minimum assumptions:
 
-- one free-running FPGA clock that can be divided or constrained to a safe
-  bring-up frequency;
-- one asynchronous board reset normalized by the top wrapper;
+- profile name `cpu_v01_fpga_first_test_bram_smoke`;
+- FPGA top module `cpu_v01_fpga_top`, with `cpu_v01_core` as the core under
+  test;
+- one free-running FPGA clock input named `board_clk_i` that can be divided or
+  constrained to a first-test core clock at or below 25 MHz;
+- one active-low asynchronous board reset input named `board_reset_n_i`,
+  normalized by at least a two-stage synchronizer before it reaches the core;
 - enough block RAM for a tiny instruction ROM, data RAM, and tag RAM;
 - at least one LED or status pin for pass/fail observation;
 - optional UART or integrated logic analyzer probes for retire, fault, and
@@ -68,12 +78,38 @@ represented in the golden trace harness should be listed as an I23 deferral.
 The concrete sizes can change with the target board, but the initial map should
 stay small and explicit:
 
-| Region | Purpose | Initial expectation |
-| --- | --- | --- |
-| Instruction ROM | Reset program and pass/fail branch path. | Initialized from a generated text or memory initialization file derived from the tiny ROM fixture. |
-| Data RAM | Scalar scratch state and status word. | Zeroed or explicitly initialized at configuration time. |
-| Tag RAM | Capability-slot tags for data-memory capability operations. | Reset-cleared, with integer stores forcing the corresponding tag state invalid. |
-| Status projection | Board-visible pass/fail, heartbeat, retire, and fault state. | Memory-mapped or wrapper-local status translated to LED/UART/ILA probes. |
+| Region | Port | Base cell | Size | Purpose | Initial expectation |
+| --- | --- | --- | --- | --- | --- |
+| `instruction_rom` | `imem` | `0x000000001000` | 1024 cells | Reset program and pass/fail branch path. | Initialized from `build/fpga/first_test_rom.mem`. |
+| `data_ram` | `dmem` | `0x000000010000` | 4096 cells | Scalar scratch state and status word. | Zeroed or initialized from `build/fpga/first_test_data.mem`. |
+| `tag_ram` | `tagmem` | `0x000000010000` | 4096 slots | Capability-slot tags for the data RAM range. | Reset-cleared, with integer stores forcing the corresponding tag state invalid. |
+
+The image format is `hex24-cells-v1`: one 6-hex-digit 24-bit cell per line in
+ascending cell-address order. The ROM image is derived from the tiny reset smoke
+fixture until I23-S04 replaces it with the dedicated FPGA smoke firmware.
+
+## Observation Contract
+
+| Signal | Required | Source | Purpose |
+| --- | --- | --- | --- |
+| `pass_led` | Yes | `first_test_status.pass` | Visible successful completion without a debugger. |
+| `fail_led` | Yes | `first_test_status.fail` | Visible trapped or failed completion without a debugger. |
+| `heartbeat_led` | Yes | `debug_retire_sequence` | Shows clock/reset and retire observation are alive. |
+| `fault_code_probe` | No | `retire_packet.fault.cause` | UART or ILA fault triage. |
+| `retire_count_probe` | No | `debug_retire_sequence` | UART or ILA retire progress. |
+
+## Synthesis Flow Contract
+
+I23-S05 owns the board-specific scripts, but I23-S01 fixes the flow contract:
+
+1. lint or elaborate `cpu_v01_fpga_top`;
+2. synthesize the BRAM smoke design;
+3. place and route with board constraints;
+4. report timing and utilization.
+
+The flow must fail on a missing `cpu_v01_core` or memory black box,
+unconstrained `board_clk_i` or `board_reset_n_i`, negative slack at the
+first-test clock, or missing pass/fail observation pins.
 
 ## Acceptance Review
 

@@ -171,6 +171,9 @@ table in the same change.
 | `tools\verilator_diff_harness.py` | `I22-S08` | `E07-S03`, `E13-S01`, `E15-S07`, `I17-S04`, `I20-S02`, `I21-S05`, `I22-S01`, `I22-S07` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i22_s08_rtl_core_regression_gate.py` | `I22-S08` | `E07-S03`, `E13-S01`, `E15-S07`, `I17-S04`, `I20-S02`, `I21-S05`, `I22-S01`, `I22-S07` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `docs\implementation\fpga-first-test-plan.md` | `I23-S01` | `E11-S01`, `E11-S02`, `E13-S01`, `I08-S01`, `I14-S01`, `I20-S03`, `I22-S08` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `src\cpu_v01\fpga_first_test.py` | `I23-S01` | `E11-S01`, `E11-S02`, `E13-S01`, `I08-S01`, `I14-S01`, `I20-S03`, `I22-S08` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tools\fpga_first_test_profile.py` | `I23-S01` | `E11-S01`, `E11-S02`, `E13-S01`, `I08-S01`, `I14-S01`, `I20-S03`, `I22-S08` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i23_s01_fpga_first_test_profile.py` | `I23-S01` | `E11-S01`, `E11-S02`, `E13-S01`, `I08-S01`, `I14-S01`, `I20-S03`, `I22-S08` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `docs\implementation\fpga-first-test-plan.md` | `I23-S02` | `E11-S01`, `E13-S01`, `I20-S03`, `I22-S01`, `I22-S08`, `I23-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `docs\implementation\fpga-first-test-plan.md` | `I23-S03` | `E03-S04`, `E10-S03`, `E14-S02`, `I11-S02`, `I14-S01`, `I22-S04`, `I23-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `docs\implementation\fpga-first-test-plan.md` | `I23-S04` | `E04-S02`, `E07-S03`, `E11-S01`, `I14-S01`, `I17-S04`, `I22-S03`, `I23-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
