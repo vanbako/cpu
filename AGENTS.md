@@ -96,7 +96,10 @@ bring-up blockers. Use `docs/implementation/fpga-debug-status-packet.md` and
 `python tools\fpga_debug_status_packet.py --check` before changing the packet
 layout. Use `docs/implementation/fpga-uart-status-streamer.md` and
 `python tools\fpga_uart_status_streamer.py --check` before changing UART debug
-transport around the status packet. Keep the device/package
+transport around the status packet. Use
+`docs/implementation/fpga-probe-bundles.md` and
+`python tools\fpga_probe_bundles.py --check` before changing optional GAO/ILA
+probe definitions. Keep the device/package
 verification note in
 `docs/implementation/fpga-first-test-plan.md` and the evidence contract in
 `docs/implementation/fpga-board-bringup.md` in mind before claiming a board

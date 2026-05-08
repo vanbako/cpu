@@ -231,8 +231,8 @@ def fpga_synthesis_gate() -> FpgaSynthesisGate:
             ),
             FpgaConstraintRequirement(
                 logical_signal="status_fault_code_o/status_retire_count_o",
-                constraint_kind="optional GAO/UART/ILA probe plan",
-                source="Gowin GAO or board UART probe mapping",
+                constraint_kind="optional I25-S03 GAO/UART/ILA probe plan",
+                source="Gowin GAO, board UART, or I25-S03 probe mapping",
                 fail_if_missing=False,
                 note="Optional probes improve triage but are not required for the first LED pass/fail smoke.",
             ),

@@ -237,3 +237,7 @@ table in the same change.
 | `src\cpu_v01\fpga_uart_status.py` | `I25-S02` | `E12-S01`, `E15-S07`, `I23-S02`, `I23-S04`, `I24-S04`, `I25-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tools\fpga_uart_status_streamer.py` | `I25-S02` | `E12-S01`, `E15-S07`, `I23-S02`, `I23-S04`, `I24-S04`, `I25-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i25_s02_fpga_uart_status_streamer.py` | `I25-S02` | `E12-S01`, `E15-S07`, `I23-S02`, `I23-S04`, `I24-S04`, `I25-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `docs\implementation\fpga-probe-bundles.md` | `I25-S03` | `E12-S01`, `E15-S07`, `I24-S02`, `I25-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `src\cpu_v01\fpga_probe_bundles.py` | `I25-S03` | `E12-S01`, `E15-S07`, `I24-S02`, `I25-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tools\fpga_probe_bundles.py` | `I25-S03` | `E12-S01`, `E15-S07`, `I24-S02`, `I25-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i25_s03_fpga_probe_bundles.py` | `I25-S03` | `E12-S01`, `E15-S07`, `I24-S02`, `I25-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |

@@ -81,7 +81,7 @@ I23-S05 implementation gate.
 | `fail_led_o` | PMOD LED pin, IO standard, and polarity. | Fail on `missing_status_or_uart_observation_pin`. |
 | `heartbeat_led_o` | PMOD LED pin, IO standard, and polarity. | Fail if no visible clock/reset progress output is available. |
 | `uart_tx_o` | UART TX pin, IO standard, and idle-high 8N1 path. | Fail on `missing_status_or_uart_observation_pin`. |
-| `status_fault_code_o`/`status_retire_count_o` | Optional GAO, UART, or ILA probe plan. | Not required for first LED smoke, but required for richer triage. |
+| `status_fault_code_o`/`status_retire_count_o` | Optional I25-S03 GAO, UART, or ILA probe plan. | Not required for first LED smoke, but required for richer triage. |
 
 ## Gate Steps
 

@@ -26,8 +26,9 @@ architectural retire behavior.
 
 I25-S02 owns the UART status streamer and is checked with
 `python tools\fpga_uart_status_streamer.py --check`. I25-S03 owns optional
-GAO/ILA probe bundles. This story fixes the shared packet layout those stories
-must use.
+GAO/ILA probe bundles and is checked with
+`python tools\fpga_probe_bundles.py --check`. This story fixes the shared
+packet layout those stories must use.
 
 ## Artifacts
 
