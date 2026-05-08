@@ -9,12 +9,18 @@ module cpu_v01_fpga_top #(
   parameter bit USE_ROM_INIT_FILE = 1'b0,
   parameter string ROM_INIT_FILE = "",
   parameter bit USE_DATA_INIT_FILE = 1'b0,
-  parameter string DATA_INIT_FILE = ""
+  parameter string DATA_INIT_FILE = "",
+  parameter bit UART_STATUS_ENABLE = 1'b1,
+  parameter int UART_STATUS_CLOCK_HZ = 25_000_000,
+  parameter int UART_STATUS_BAUD = 115_200,
+  parameter int UART_STATUS_INTERVAL_CYCLES = 25_000,
+  parameter logic [31:0] DEBUG_BUILD_ID = 32'h2501_C0DE
 ) (
   input  logic board_clk_i,
   input  logic board_reset_n_i,
   input  logic debug_halt_request_i,
 
+  output logic uart_tx_o,
   output logic pass_led_o,
   output logic fail_led_o,
   output logic heartbeat_led_o,
@@ -34,6 +40,10 @@ module cpu_v01_fpga_top #(
 
   localparam logic [RETIRE_SEQUENCE_BITS-1:0] FIRST_TEST_PASS_THRESHOLD =
       RETIRE_SEQUENCE_BITS'(FIRST_TEST_PASS_RETIRE_COUNT - 1);
+  localparam logic [15:0] STATUS_PACKET_MAGIC = 16'hC501;
+  localparam logic [7:0] STATUS_PACKET_VERSION = 8'd1;
+  localparam logic [7:0] STATUS_PACKET_SIZE_BYTES = 8'd32;
+  localparam int STATUS_PACKET_BITS = 256;
 
   logic [RESET_SYNC_STAGES-1:0] reset_sync_q;
   logic core_rst_n;
@@ -76,6 +86,11 @@ module cpu_v01_fpga_top #(
   logic fault_sticky_q;
   logic [15:0] fault_code_q;
   logic core_port_activity;
+  logic [15:0] uart_status_flags;
+  logic [7:0] uart_status_pass_fail_state;
+  logic [STATUS_PACKET_BITS-1:0] uart_status_packet;
+  logic [31:0] uart_status_sequence_q;
+  logic uart_status_packet_started;
 
   assign core_rst_n = reset_sync_q[RESET_SYNC_STAGES-1];
 
@@ -94,11 +109,59 @@ module cpu_v01_fpga_top #(
   assign debug_pcc_permissions_o = debug_pcc.payload.permissions;
   assign debug_sr_low_o = debug_sr[7:0];
 
+  always_comb begin
+    uart_status_flags = 16'd0;
+    uart_status_flags[0] = !core_rst_n;
+    uart_status_flags[1] = reset_observed;
+    uart_status_flags[2] = core_idle;
+    uart_status_flags[3] = retire_valid;
+    uart_status_flags[4] = fault_sticky_q;
+    uart_status_flags[5] = pass_led_o;
+    uart_status_flags[6] = fail_led_o;
+    uart_status_flags[7] = heartbeat_led_o;
+
+    if (!core_rst_n) begin
+      uart_status_pass_fail_state = 8'd0;
+    end else if (fault_sticky_q) begin
+      uart_status_pass_fail_state = 8'd3;
+    end else if (pass_led_o) begin
+      uart_status_pass_fail_state = 8'd2;
+    end else if (core_idle) begin
+      uart_status_pass_fail_state = 8'd0;
+    end else begin
+      uart_status_pass_fail_state = 8'd1;
+    end
+
+    uart_status_packet = '0;
+    uart_status_packet[0 +: 16] = STATUS_PACKET_MAGIC;
+    uart_status_packet[16 +: 8] = STATUS_PACKET_VERSION;
+    uart_status_packet[24 +: 8] = STATUS_PACKET_SIZE_BYTES;
+    uart_status_packet[32 +: 16] = uart_status_flags;
+    uart_status_packet[48 +: 8] = {7'd0, retire_packet.slot};
+    uart_status_packet[56 +: 8] = uart_status_pass_fail_state;
+    uart_status_packet[64 +: 64] =
+        {16'd0, (retire_valid ? retire_packet.pc_cell : debug_pcc.payload.cursor)};
+    uart_status_packet[128 +: 32] = debug_retire_sequence[31:0];
+    uart_status_packet[160 +: 16] = fault_code_q;
+    uart_status_packet[176 +: 16] =
+        retire_packet.fault.valid ? retire_packet.fault.cause : 16'd0;
+    uart_status_packet[192 +: 32] = DEBUG_BUILD_ID;
+    uart_status_packet[224 +: 32] = uart_status_sequence_q;
+  end
+
   always_ff @(posedge board_clk_i or negedge board_reset_n_i) begin
     if (!board_reset_n_i) begin
       reset_sync_q <= '0;
     end else begin
       reset_sync_q <= {reset_sync_q[RESET_SYNC_STAGES-2:0], 1'b1};
+    end
+  end
+
+  always_ff @(posedge board_clk_i or negedge core_rst_n) begin
+    if (!core_rst_n) begin
+      uart_status_sequence_q <= 32'd0;
+    end else if (uart_status_packet_started) begin
+      uart_status_sequence_q <= uart_status_sequence_q + 32'd1;
     end
   end
 
@@ -179,6 +242,19 @@ module cpu_v01_fpga_top #(
     .rsp_rtag(tagmem_rsp_rtag)
   );
 
+  cpu_v01_fpga_uart_status_streamer #(
+    .ENABLE(UART_STATUS_ENABLE),
+    .CLOCK_HZ(UART_STATUS_CLOCK_HZ),
+    .BAUD(UART_STATUS_BAUD),
+    .STATUS_INTERVAL_CYCLES(UART_STATUS_INTERVAL_CYCLES)
+  ) status_uart (
+    .clk(board_clk_i),
+    .rst_n(core_rst_n),
+    .packet_i(uart_status_packet),
+    .packet_started_o(uart_status_packet_started),
+    .uart_tx_o(uart_tx_o)
+  );
+
   cpu_v01_core #(
     .RESET_VECTOR(RESET_VECTOR),
     .ENABLE_FETCH(ENABLE_FETCH)
@@ -224,4 +300,98 @@ module cpu_v01_fpga_top #(
     .debug_sr(debug_sr),
     .debug_retire_sequence(debug_retire_sequence)
   );
+endmodule
+
+module cpu_v01_fpga_uart_status_streamer #(
+  parameter bit ENABLE = 1'b1,
+  parameter int CLOCK_HZ = 25_000_000,
+  parameter int BAUD = 115_200,
+  parameter int STATUS_INTERVAL_CYCLES = 25_000,
+  parameter int PACKET_BYTES = 32
+) (
+  input  logic clk,
+  input  logic rst_n,
+  input  logic [(PACKET_BYTES * 8)-1:0] packet_i,
+  output logic packet_started_o,
+  output logic uart_tx_o
+);
+  localparam int BAUD_DIVISOR = (CLOCK_HZ + (BAUD / 2)) / BAUD;
+  localparam int CLKS_PER_BIT = (BAUD_DIVISOR < 1) ? 1 : BAUD_DIVISOR;
+  localparam int EFFECTIVE_INTERVAL_CYCLES =
+      (STATUS_INTERVAL_CYCLES < 1) ? 1 : STATUS_INTERVAL_CYCLES;
+  localparam int BAUD_COUNTER_BITS = (CLKS_PER_BIT <= 1) ? 1 : $clog2(CLKS_PER_BIT);
+  localparam int INTERVAL_COUNTER_BITS =
+      (EFFECTIVE_INTERVAL_CYCLES <= 1) ? 1 : $clog2(EFFECTIVE_INTERVAL_CYCLES);
+  localparam logic [BAUD_COUNTER_BITS-1:0] BAUD_COUNT_RELOAD =
+      BAUD_COUNTER_BITS'(CLKS_PER_BIT - 1);
+  localparam logic [INTERVAL_COUNTER_BITS-1:0] INTERVAL_COUNT_RELOAD =
+      INTERVAL_COUNTER_BITS'(EFFECTIVE_INTERVAL_CYCLES - 1);
+  localparam logic [5:0] LAST_PACKET_BYTE = 6'(PACKET_BYTES - 1);
+
+  logic [(PACKET_BYTES * 8)-1:0] packet_q;
+  logic [5:0] byte_index_q;
+  logic packet_active_q;
+  logic [9:0] tx_shift_q;
+  logic [3:0] tx_bit_count_q;
+  logic [BAUD_COUNTER_BITS-1:0] baud_count_q;
+  logic [INTERVAL_COUNTER_BITS-1:0] interval_count_q;
+  logic tx_busy_q;
+
+  assign uart_tx_o = (!ENABLE || !tx_busy_q) ? 1'b1 : tx_shift_q[0];
+
+  always_ff @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+      packet_q <= '0;
+      byte_index_q <= 6'd0;
+      packet_active_q <= 1'b0;
+      tx_shift_q <= 10'h3FF;
+      tx_bit_count_q <= 4'd0;
+      baud_count_q <= '0;
+      interval_count_q <= '0;
+      tx_busy_q <= 1'b0;
+      packet_started_o <= 1'b0;
+    end else begin
+      packet_started_o <= 1'b0;
+
+      if (!ENABLE) begin
+        packet_q <= '0;
+        byte_index_q <= 6'd0;
+        packet_active_q <= 1'b0;
+        tx_shift_q <= 10'h3FF;
+        tx_bit_count_q <= 4'd0;
+        baud_count_q <= '0;
+        interval_count_q <= '0;
+        tx_busy_q <= 1'b0;
+      end else if (tx_busy_q) begin
+        if (baud_count_q != '0) begin
+          baud_count_q <= baud_count_q - 1'b1;
+        end else if (tx_bit_count_q == 4'd9) begin
+          tx_busy_q <= 1'b0;
+          tx_shift_q <= 10'h3FF;
+        end else begin
+          tx_shift_q <= {1'b1, tx_shift_q[9:1]};
+          tx_bit_count_q <= tx_bit_count_q + 1'b1;
+          baud_count_q <= BAUD_COUNT_RELOAD;
+        end
+      end else if (packet_active_q) begin
+        tx_shift_q <= {1'b1, packet_q[(byte_index_q * 8) +: 8], 1'b0};
+        tx_bit_count_q <= 4'd0;
+        baud_count_q <= BAUD_COUNT_RELOAD;
+        tx_busy_q <= 1'b1;
+        if (byte_index_q == LAST_PACKET_BYTE) begin
+          packet_active_q <= 1'b0;
+        end else begin
+          byte_index_q <= byte_index_q + 1'b1;
+        end
+      end else if (interval_count_q != '0) begin
+        interval_count_q <= interval_count_q - 1'b1;
+      end else begin
+        packet_q <= packet_i;
+        byte_index_q <= 6'd0;
+        packet_active_q <= 1'b1;
+        packet_started_o <= 1'b1;
+        interval_count_q <= INTERVAL_COUNT_RELOAD;
+      end
+    end
+  end
 endmodule

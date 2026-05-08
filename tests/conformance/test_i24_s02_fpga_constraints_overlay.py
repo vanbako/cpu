@@ -75,6 +75,7 @@ class FpgaConstraintsOverlayTests(unittest.TestCase):
             "pass_led_o",
             "fail_led_o",
             "heartbeat_led_o",
+            "uart_tx_o",
         ):
             with self.subTest(name=name):
                 self.assertIn(name, signals)
@@ -92,6 +93,7 @@ class FpgaConstraintsOverlayTests(unittest.TestCase):
             "I24_S02_PIN_PASS_LED_O",
             "I24_S02_PIN_FAIL_LED_O",
             "I24_S02_PIN_HEARTBEAT_LED_O",
+            "I24_S02_PIN_UART_TX_O",
         ):
             with self.subTest(token=token):
                 self.assertIn(token, cst)
@@ -119,6 +121,7 @@ class FpgaConstraintsOverlayTests(unittest.TestCase):
             "pass_led_o_pin=",
             "fail_led_o_pin=",
             "heartbeat_led_o_pin=",
+            "uart_tx_o_pin=",
             "board_clk_i_clock_period_ns=40.000",
         ):
             self.assertIn(token, template)
@@ -137,6 +140,7 @@ class FpgaConstraintsOverlayTests(unittest.TestCase):
                     "pass_led_o_pin=P3",
                     "fail_led_o_pin=P4",
                     "heartbeat_led_o_pin=P5",
+                    "uart_tx_o_pin=P6",
                     "board_clk_i_clock_period_ns=40.000",
                 )
             )
@@ -251,6 +255,7 @@ class FpgaConstraintsOverlayTests(unittest.TestCase):
         self.assertIn("pass_led_o", text)
         self.assertIn("fail_led_o", text)
         self.assertIn("heartbeat_led_o", text)
+        self.assertIn("uart_tx_o", text)
         self.assertIn("LVCMOS33", text)
         self.assertIn("40.000", text)
         self.assertIn("I24_S02_PIN_BOARD_CLK_I", text)

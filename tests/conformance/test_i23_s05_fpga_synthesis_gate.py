@@ -71,6 +71,7 @@ class FpgaSynthesisGateTests(unittest.TestCase):
             "pass_led_o",
             "fail_led_o",
             "heartbeat_led_o",
+            "uart_tx_o",
         ):
             with self.subTest(signal=signal):
                 self.assertIn(signal, constraints)
@@ -78,6 +79,7 @@ class FpgaSynthesisGateTests(unittest.TestCase):
 
         self.assertIn("40 ns", constraints["board_clk_i"].constraint_kind)
         self.assertIn("PMOD LED", constraints["pass_led_o"].constraint_kind)
+        self.assertIn("UART TX", constraints["uart_tx_o"].constraint_kind)
 
     def test_command_plan_and_gowin_tcl_name_required_flow(self) -> None:
         plan = fpga_synthesis.fpga_synthesis_command_plan()
@@ -109,6 +111,7 @@ class FpgaSynthesisGateTests(unittest.TestCase):
         self.assertIn("FPG676", blockers)
         self.assertIn("board_clk_i", blockers)
         self.assertIn("pass_led_o", blockers)
+        self.assertIn("uart_tx_o", blockers)
 
     def test_cli_validates_renders_json_plan_and_gowin_template(self) -> None:
         tool = load_tool_module()
@@ -162,6 +165,7 @@ class FpgaSynthesisGateTests(unittest.TestCase):
         self.assertIn("pass_led_o", text)
         self.assertIn("fail_led_o", text)
         self.assertIn("heartbeat_led_o", text)
+        self.assertIn("uart_tx_o", text)
         self.assertIn("unconstrained_clock_or_reset", text)
         self.assertIn("negative_timing_slack_at_first_test_clock", text)
         self.assertIn("I23-S06", text)

@@ -357,7 +357,7 @@ FPGA_FIRST_TEST_PROFILE = FpgaFirstTestProfile(
             "missing_cpu_v01_core_or_memory_black_box",
             "unconstrained_clock_or_reset",
             "negative_timing_slack_at_first_test_clock",
-            "missing_pass_fail_observation_pin",
+            "missing_status_or_uart_observation_pin",
         ),
     ),
     non_goals=(

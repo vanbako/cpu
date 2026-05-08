@@ -193,6 +193,15 @@ def fpga_constraints_overlay() -> FpgaConstraintsOverlay:
                 polarity="active_high_or_recorded_in_evidence",
                 purpose="Visible clock/reset/retire heartbeat output.",
             ),
+            ConstraintSignal(
+                name="uart_tx_o",
+                direction="output",
+                required=True,
+                evidence_key="uart_tx_o_pin",
+                io_standard="LVCMOS33",
+                polarity="idle_high_8n1",
+                purpose="I25-S02 UART debug/status packet stream.",
+            ),
         ),
         evidence_fields=(
             ConstraintEvidenceField(
@@ -229,7 +238,7 @@ def fpga_constraints_overlay() -> FpgaConstraintsOverlay:
         blockers=(
             "I24-S01 identity evidence must audit as confirmed before pins can be accepted",
             "Sipeed All PIN Constraints source for the exact SOM/package must be captured",
-            "board_clk_i, board_reset_n_i, pass_led_o, fail_led_o, and heartbeat_led_o pins must be filled from verified board data",
+            "board_clk_i, board_reset_n_i, pass_led_o, fail_led_o, heartbeat_led_o, and uart_tx_o pins must be filled from verified board data",
             "do not create the final CST file until placeholders are replaced with verified pins",
         ),
     )
@@ -512,6 +521,7 @@ def validate_fpga_constraints_overlay(root: Path | None = None) -> tuple[str, ..
         "pass_led_o",
         "fail_led_o",
         "heartbeat_led_o",
+        "uart_tx_o",
     ):
         signal = signals.get(required)
         if signal is None:
@@ -532,6 +542,7 @@ def validate_fpga_constraints_overlay(root: Path | None = None) -> tuple[str, ..
         "I24_S02_PIN_PASS_LED_O",
         "I24_S02_PIN_FAIL_LED_O",
         "I24_S02_PIN_HEARTBEAT_LED_O",
+        "I24_S02_PIN_UART_TX_O",
         "LVCMOS33",
     ):
         if token not in template:
@@ -607,6 +618,7 @@ def validate_fpga_constraints_overlay(root: Path | None = None) -> tuple[str, ..
                 "pass_led_o_pin=P3",
                 "fail_led_o_pin=P4",
                 "heartbeat_led_o_pin=P5",
+                "uart_tx_o_pin=P6",
                 "board_clk_i_clock_period_ns=40.000",
             )
         )
@@ -631,6 +643,7 @@ def validate_fpga_constraints_overlay(root: Path | None = None) -> tuple[str, ..
         "pass_led_o",
         "fail_led_o",
         "heartbeat_led_o",
+        "uart_tx_o",
         "LVCMOS33",
         "40.000",
         "I24_S02_PIN_BOARD_CLK_I",

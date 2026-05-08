@@ -93,8 +93,10 @@ reset release, heartbeat, pass/fail, retire, and fault evidence. Use
 `docs/implementation/fpga-first-board-evidence.md` and
 `python tools\fpga_first_board_archive.py --check` to close or file residual
 bring-up blockers. Use `docs/implementation/fpga-debug-status-packet.md` and
-`python tools\fpga_debug_status_packet.py --check` before implementing UART or
-ILA debug transport around the status packet. Keep the device/package
+`python tools\fpga_debug_status_packet.py --check` before changing the packet
+layout. Use `docs/implementation/fpga-uart-status-streamer.md` and
+`python tools\fpga_uart_status_streamer.py --check` before changing UART debug
+transport around the status packet. Keep the device/package
 verification note in
 `docs/implementation/fpga-first-test-plan.md` and the evidence contract in
 `docs/implementation/fpga-board-bringup.md` in mind before claiming a board

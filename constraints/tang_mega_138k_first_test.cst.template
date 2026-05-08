@@ -18,3 +18,6 @@ IO_PORT "fail_led_o" IO_TYPE=LVCMOS33;
 
 IO_LOC "heartbeat_led_o" I24_S02_PIN_HEARTBEAT_LED_O;
 IO_PORT "heartbeat_led_o" IO_TYPE=LVCMOS33;
+
+IO_LOC "uart_tx_o" I24_S02_PIN_UART_TX_O;
+IO_PORT "uart_tx_o" IO_TYPE=LVCMOS33;

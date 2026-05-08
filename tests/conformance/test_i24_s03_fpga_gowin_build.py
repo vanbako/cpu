@@ -75,6 +75,7 @@ def write_fixture_reports(root: Path, *, timing_text: str | None = None) -> None
                 "pass_led_o LOC P3",
                 "fail_led_o LOC P4",
                 "heartbeat_led_o LOC P5",
+                "uart_tx_o LOC P6",
             )
         ),
         encoding="utf-8",
@@ -114,6 +115,7 @@ class FpgaGowinBuildTests(unittest.TestCase):
         self.assertIn("black box", requirements["synthesis_report"].forbidden_tokens)
         self.assertIn("Slack -", requirements["timing_report"].forbidden_tokens)
         self.assertIn("pass_led_o", requirements["ports_report"].required_tokens)
+        self.assertIn("uart_tx_o", requirements["ports_report"].required_tokens)
 
     def test_default_report_audit_is_blocked_without_physical_evidence(self) -> None:
         audit = fpga_gowin_build.audit_gowin_report_bundle(
@@ -163,6 +165,7 @@ class FpgaGowinBuildTests(unittest.TestCase):
         self.assertIn("timing_report contains Slack -", audit.failure_markers)
         self.assertIn("ports_report missing fail_led_o", audit.token_issues)
         self.assertIn("ports_report missing heartbeat_led_o", audit.token_issues)
+        self.assertIn("ports_report missing uart_tx_o", audit.token_issues)
 
     def test_command_plan_and_cli_outputs(self) -> None:
         plan = fpga_gowin_build.fpga_gowin_command_plan()
@@ -220,6 +223,7 @@ class FpgaGowinBuildTests(unittest.TestCase):
         self.assertIn("pass_led_o", text)
         self.assertIn("fail_led_o", text)
         self.assertIn("heartbeat_led_o", text)
+        self.assertIn("uart_tx_o", text)
         self.assertIn("I24-S04", text)
         self.assertIn("blocked", text)
 

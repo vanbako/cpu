@@ -88,3 +88,4 @@ Current platform binding:
 - `docs/implementation/fpga-board-programming.md`: I24-S04 SRAM programming evidence parser, first pass/fail/heartbeat audit, and physical-run blocker profile.
 - `docs/implementation/fpga-first-board-evidence.md`: I24-S05 first-board evidence archive, blocker disposition audit, and downstream handoff profile.
 - `docs/implementation/fpga-debug-status-packet.md`: I25-S01 compact FPGA debug/status packet layout, encode/decode helper, and non-interference contract.
+- `docs/implementation/fpga-uart-status-streamer.md`: I25-S02 UART status packet streamer, idle/pass/fault scenarios, and board decode procedure.

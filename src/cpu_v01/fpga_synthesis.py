@@ -223,6 +223,13 @@ def fpga_synthesis_gate() -> FpgaSynthesisGate:
                 note="Heartbeat distinguishes reset/clock failure from firmware failure.",
             ),
             FpgaConstraintRequirement(
+                logical_signal="uart_tx_o",
+                constraint_kind="UART TX pin, IO standard, and idle-high 8N1 path",
+                source="Sipeed onboard USB UART or verified PMOD UART pin",
+                fail_if_missing=True,
+                note="I25-S02 debug/status packets need a constrained board output.",
+            ),
+            FpgaConstraintRequirement(
                 logical_signal="status_fault_code_o/status_retire_count_o",
                 constraint_kind="optional GAO/UART/ILA probe plan",
                 source="Gowin GAO or board UART probe mapping",
@@ -271,7 +278,7 @@ def fpga_synthesis_gate() -> FpgaSynthesisGate:
                 failure_conditions=(
                     "unconstrained_clock_or_reset",
                     "negative_timing_slack_at_first_test_clock",
-                    "missing_pass_fail_observation_pin",
+                    "missing_status_or_uart_observation_pin",
                     "memory_or_core_black_box",
                 ),
             ),
@@ -302,7 +309,7 @@ def fpga_synthesis_gate() -> FpgaSynthesisGate:
             FpgaReportRequirement(
                 path="build/fpga/tang_mega_138k/first_test/impl/pnr/*ports*.rpt",
                 producer_step="gowin_synth_place_route",
-                must_contain=("pass_led_o", "fail_led_o", "heartbeat_led_o"),
+                must_contain=("pass_led_o", "fail_led_o", "heartbeat_led_o", "uart_tx_o"),
             ),
             FpgaReportRequirement(
                 path="build/fpga/tang_mega_138k/first_test/impl/pnr/*.fs",
@@ -312,7 +319,7 @@ def fpga_synthesis_gate() -> FpgaSynthesisGate:
         ),
         blockers=(
             "confirm whether the physical board is the PG484 non-Pro SOM or the FPG676 Pro-style SOM",
-            "extract board_clk_i, board_reset_n_i, pass_led_o, fail_led_o, and heartbeat_led_o pins from Sipeed constraints",
+            "extract board_clk_i, board_reset_n_i, pass_led_o, fail_led_o, heartbeat_led_o, and uart_tx_o pins from Sipeed constraints",
             "verify LED polarity and 3.3 V IO standard before programming",
         ),
     )
@@ -456,7 +463,7 @@ def validate_fpga_synthesis_gate(root: Path | None = None) -> tuple[str, ...]:
             issues.append(f"missing tool requirement {required}")
 
     constraints = {constraint.logical_signal: constraint for constraint in gate.constraint_requirements}
-    for required in ("board_clk_i", "board_reset_n_i", "pass_led_o", "fail_led_o", "heartbeat_led_o"):
+    for required in ("board_clk_i", "board_reset_n_i", "pass_led_o", "fail_led_o", "heartbeat_led_o", "uart_tx_o"):
         constraint = constraints.get(required)
         if constraint is None:
             issues.append(f"missing constraint requirement {required}")
@@ -499,6 +506,7 @@ def validate_fpga_synthesis_gate(root: Path | None = None) -> tuple[str, ...]:
         "pass_led_o",
         "fail_led_o",
         "heartbeat_led_o",
+        "uart_tx_o",
         "unconstrained_clock_or_reset",
         "negative_timing_slack_at_first_test_clock",
         "I23-S06",

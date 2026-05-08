@@ -132,7 +132,7 @@ I23-S05 owns the board-specific scripts, but I23-S01 fixes the flow contract:
 
 The flow must fail on a missing `cpu_v01_core` or memory black box,
 unconstrained `board_clk_i` or `board_reset_n_i`, negative slack at the
-first-test clock, or missing pass/fail observation pins.
+first-test clock, or missing pass/fail/UART observation pins.
 
 I23-S05 is tracked in `docs/implementation/fpga-synthesis-gate.md` and checked
 with:

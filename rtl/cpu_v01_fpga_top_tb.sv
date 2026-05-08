@@ -2,6 +2,7 @@ module cpu_v01_fpga_top_tb;
   logic board_clk_i;
   logic board_reset_n_i;
   logic debug_halt_request_i;
+  logic uart_tx_o;
   logic pass_led_o;
   logic fail_led_o;
   logic heartbeat_led_o;
@@ -16,13 +17,18 @@ module cpu_v01_fpga_top_tb;
   logic [31:0] debug_pcc_cursor_low_o;
   logic [7:0] debug_pcc_permissions_o;
   logic [7:0] debug_sr_low_o;
+  logic uart_seen_low_q;
 
   cpu_v01_fpga_top #(
-    .ENABLE_FETCH(1'b0)
+    .ENABLE_FETCH(1'b0),
+    .UART_STATUS_CLOCK_HZ(10),
+    .UART_STATUS_BAUD(10),
+    .UART_STATUS_INTERVAL_CYCLES(2)
   ) dut (
     .board_clk_i(board_clk_i),
     .board_reset_n_i(board_reset_n_i),
     .debug_halt_request_i(debug_halt_request_i),
+    .uart_tx_o(uart_tx_o),
     .pass_led_o(pass_led_o),
     .fail_led_o(fail_led_o),
     .heartbeat_led_o(heartbeat_led_o),
@@ -42,6 +48,14 @@ module cpu_v01_fpga_top_tb;
   initial begin
     board_clk_i = 1'b0;
     forever #5 board_clk_i = ~board_clk_i;
+  end
+
+  always_ff @(posedge board_clk_i or negedge board_reset_n_i) begin
+    if (!board_reset_n_i) begin
+      uart_seen_low_q <= 1'b0;
+    end else begin
+      uart_seen_low_q <= uart_seen_low_q || !uart_tx_o;
+    end
   end
 
   initial begin
@@ -69,6 +83,9 @@ module cpu_v01_fpga_top_tb;
     end
     if (status_core_port_activity_o) begin
       $fatal(1, "FPGA top wrapper should stay memory idle while fetch is disabled");
+    end
+    if (!uart_seen_low_q) begin
+      $fatal(1, "FPGA top wrapper did not stream a UART status packet");
     end
     if (!debug_pcc_valid_o ||
         debug_pcc_cursor_low_o != 32'h0000_1000 ||

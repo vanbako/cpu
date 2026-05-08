@@ -39,6 +39,7 @@ The wrapper exposes only board-neutral signals:
 - `board_clk_i`;
 - active-low asynchronous `board_reset_n_i`;
 - optional `debug_halt_request_i`;
+- `uart_tx_o` for the I25-S02 debug/status packet stream;
 - `pass_led_o`, `fail_led_o`, and `heartbeat_led_o`;
 - reset, idle, retire, fault, and memory-port activity status outputs;
 - low-width debug projections for reset PCC, PCC permissions, and reset SR.
@@ -61,6 +62,10 @@ coverage while the default path runs the I23-S04 first-test firmware:
 - retire is held ready so future firmware smoke status can observe retire
   packets without another wrapper contract change.
 
+I25-S02 adds the optional UART debug/status stream. It serializes the I25-S01
+32-byte status packet on `uart_tx_o` and is checked with
+`python tools\fpga_uart_status_streamer.py --check`.
+
 The runtime pass status is now `pass_sticky_q && !fault_sticky_q`, set by the
 I23-S04 retire threshold. The reset-smoke testbench checks that pass remains
 low when fetch is disabled.
@@ -69,6 +74,7 @@ low when fetch is disabled.
 
 - I23-S05 adds board constraints, synthesis, implementation, and timing gates.
 - I23-S06 captures board programming and first-pass evidence.
+- I25-S02 owns the UART status streamer baud/packet procedure.
 
 ## Acceptance Review
 

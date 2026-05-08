@@ -43,6 +43,7 @@ class FpgaTopWrapperTests(unittest.TestCase):
 
         self.assertEqual(by_name["board_clk_i"].group, "clock_reset")
         self.assertEqual(by_name["board_reset_n_i"].group, "clock_reset")
+        self.assertEqual(by_name["uart_tx_o"].group, "debug")
         self.assertEqual(by_name["pass_led_o"].group, "status")
         self.assertEqual(by_name["fail_led_o"].width, "1")
         self.assertEqual(by_name["status_fault_code_o"].width, "16")
@@ -59,6 +60,8 @@ class FpgaTopWrapperTests(unittest.TestCase):
             "board_reset_n_i",
             "parameter int RESET_SYNC_STAGES = 2",
             "parameter bit ENABLE_FETCH = 1'b1",
+            "parameter bit UART_STATUS_ENABLE = 1'b1",
+            "parameter int UART_STATUS_BAUD = 115_200",
             "parameter int FIRST_TEST_PASS_RETIRE_COUNT = 8",
             "reset_sync_q <= {reset_sync_q[RESET_SYNC_STAGES-2:0], 1'b1}",
             "assign core_rst_n = reset_sync_q[RESET_SYNC_STAGES-1]",
@@ -78,6 +81,8 @@ class FpgaTopWrapperTests(unittest.TestCase):
             ".retire_ready(1'b1)",
             "assign pass_led_o = pass_sticky_q && !fault_sticky_q",
             "assign fail_led_o = fault_sticky_q",
+            "cpu_v01_fpga_uart_status_streamer #(",
+            ".uart_tx_o(uart_tx_o)",
             "debug_pcc_cursor_low_o",
             "debug_sr_low_o",
         ):
@@ -89,11 +94,13 @@ class FpgaTopWrapperTests(unittest.TestCase):
 
         self.assertIn("module cpu_v01_fpga_top_tb", tb)
         self.assertIn(".ENABLE_FETCH(1'b0)", tb)
+        self.assertIn(".UART_STATUS_BAUD(10)", tb)
         self.assertIn("FPGA top wrapper reset synchronization failed", tb)
         self.assertIn("FPGA top wrapper did not expose reset-idle status", tb)
         self.assertIn("FPGA top wrapper should not pass before firmware retires", tb)
         self.assertIn("FPGA top wrapper should not retire while fetch is disabled", tb)
         self.assertIn("FPGA top wrapper should stay memory idle while fetch is disabled", tb)
+        self.assertIn("FPGA top wrapper did not stream a UART status packet", tb)
         self.assertIn("FPGA top wrapper reset debug projection mismatch", tb)
         self.assertIn("debug_pcc_cursor_low_o != 32'h0000_1000", tb)
         self.assertIn("debug_sr_low_o != 8'hC0", tb)
@@ -119,6 +126,7 @@ class FpgaTopWrapperTests(unittest.TestCase):
         self.assertIn("board_reset_n_i", names)
         self.assertIn("pass_led_o", names)
         self.assertIn("status_core_port_activity_o", names)
+        self.assertIn("uart_tx_o", names)
         self.assertIn("debug_pcc_cursor_low_o", names)
 
     def test_documentation_artifact_names_sources_commands_and_deferrals(self) -> None:
@@ -136,6 +144,7 @@ class FpgaTopWrapperTests(unittest.TestCase):
         self.assertIn("board_reset_n_i", text)
         self.assertIn("pass_led_o", text)
         self.assertIn("fail_led_o", text)
+        self.assertIn("uart_tx_o", text)
         self.assertIn("I23-S03", text)
         self.assertIn("BRAM adapters", text)
 

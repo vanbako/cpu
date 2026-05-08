@@ -24,8 +24,10 @@ captures reset state, PC/slot, retire count, fault code, trap cause,
 pass/fail state, build identity, and packet sequence without changing
 architectural retire behavior.
 
-I25-S02 owns the UART status streamer. I25-S03 owns optional GAO/ILA probe
-bundles. This story fixes the shared packet layout those stories must use.
+I25-S02 owns the UART status streamer and is checked with
+`python tools\fpga_uart_status_streamer.py --check`. I25-S03 owns optional
+GAO/ILA probe bundles. This story fixes the shared packet layout those stories
+must use.
 
 ## Artifacts
 

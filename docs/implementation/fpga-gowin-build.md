@@ -72,12 +72,12 @@ timing slack, missing pass/fail/heartbeat ports, and absent bitstream output.
 | --- | --- | --- | --- |
 | `synthesis_report` | `impl/gwsynthesis/*.rpt` | `cpu_v01_fpga_top`, `cpu_v01_core`. | `black box`, unresolved modules, or errors. |
 | `timing_report` | `impl/pnr/*timing*.rpt` | `Slack`, `board_clk_i`. | `Slack -`, `VIOLATED`, `negative slack`, or `unconstrained`. |
-| `ports_report` | `impl/pnr/*ports*.rpt` | `board_clk_i`, `board_reset_n_i`, `pass_led_o`, `fail_led_o`, `heartbeat_led_o`. | `unassigned`, `not constrained`, or missing LOC evidence. |
+| `ports_report` | `impl/pnr/*ports*.rpt` | `board_clk_i`, `board_reset_n_i`, `pass_led_o`, `fail_led_o`, `heartbeat_led_o`, `uart_tx_o`. | `unassigned`, `not constrained`, or missing LOC evidence. |
 | `utilization_report` | `impl/pnr/*util*.rpt` | `LUT`, `Register`. | error or failed markers. |
 | `bitstream` | `impl/pnr/*.fs` | File exists. | missing bitstream. |
 
 The timing failure condition is `negative_timing_slack_at_first_test_clock`.
-The visible-output failure condition is `missing_pass_fail_observation_pin`.
+The visible-output failure condition is `missing_status_or_uart_observation_pin`.
 
 ## Audit Results
 

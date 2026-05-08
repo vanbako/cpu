@@ -62,6 +62,7 @@ I24-S01 identity record confirms `GW5AST-LV138PG484A` / `PBG484A`.
 | `pass_led_o` | Output | `LVCMOS33` | active high or recorded in evidence | `pass_led_o_pin` | Visible first-test pass output. |
 | `fail_led_o` | Output | `LVCMOS33` | active high or recorded in evidence | `fail_led_o_pin` | Visible first-test fail output. |
 | `heartbeat_led_o` | Output | `LVCMOS33` | active high or recorded in evidence | `heartbeat_led_o_pin` | Visible clock/reset/retire heartbeat output. |
+| `uart_tx_o` | Output | `LVCMOS33` | idle high 8N1 | `uart_tx_o_pin` | I25-S02 UART debug/status packet stream. |
 
 ## Evidence Format
 
@@ -85,6 +86,7 @@ board_reset_n_i_pin=
 pass_led_o_pin=
 fail_led_o_pin=
 heartbeat_led_o_pin=
+uart_tx_o_pin=
 board_clk_i_clock_period_ns=40.000
 ```
 
@@ -106,7 +108,7 @@ IO_PORT "board_clk_i" IO_TYPE=LVCMOS33;
 ```
 
 The same `IO_LOC` and `IO_PORT` pattern is required for `board_reset_n_i`,
-`pass_led_o`, `fail_led_o`, and `heartbeat_led_o`.
+`pass_led_o`, `fail_led_o`, `heartbeat_led_o`, and `uart_tx_o`.
 
 ## SDC Timing
 
@@ -134,7 +136,7 @@ blocked until board evidence exists.
 - Sipeed All PIN Constraints source for the exact SOM/package has not been
   captured.
 - Verified pins for `board_clk_i`, `board_reset_n_i`, `pass_led_o`,
-  `fail_led_o`, and `heartbeat_led_o` are not yet recorded.
+  `fail_led_o`, `heartbeat_led_o`, and `uart_tx_o` are not yet recorded.
 - I24-S03 must not run as a real board build until the CST placeholder tokens
   are replaced from verified board data.
 

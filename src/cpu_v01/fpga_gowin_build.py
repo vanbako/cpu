@@ -191,9 +191,10 @@ def fpga_gowin_build_profile() -> FpgaGowinBuildProfile:
                     "pass_led_o",
                     "fail_led_o",
                     "heartbeat_led_o",
+                    "uart_tx_o",
                 ),
                 forbidden_tokens=("unassigned", "not constrained", "No LOC"),
-                failure_condition="missing_pass_fail_observation_pin",
+                failure_condition="missing_status_or_uart_observation_pin",
             ),
             GowinReportRequirement(
                 name="utilization_report",
@@ -465,6 +466,7 @@ def validate_fpga_gowin_build(root: Path | None = None) -> tuple[str, ...]:
         "pass_led_o",
         "fail_led_o",
         "heartbeat_led_o",
+        "uart_tx_o",
         "I24-S04",
         "blocked",
     ):

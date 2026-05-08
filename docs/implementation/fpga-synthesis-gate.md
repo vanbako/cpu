@@ -77,9 +77,10 @@ I23-S05 implementation gate.
 | --- | --- | --- |
 | `board_clk_i` | Pin assignment plus 40 ns clock period. | Fail on `unconstrained_clock_or_reset`. |
 | `board_reset_n_i` | Pin assignment, IO standard, and reset synchronizer treatment. | Fail on `unconstrained_clock_or_reset`. |
-| `pass_led_o` | PMOD LED pin, IO standard, and polarity. | Fail on `missing_pass_fail_observation_pin`. |
-| `fail_led_o` | PMOD LED pin, IO standard, and polarity. | Fail on `missing_pass_fail_observation_pin`. |
+| `pass_led_o` | PMOD LED pin, IO standard, and polarity. | Fail on `missing_status_or_uart_observation_pin`. |
+| `fail_led_o` | PMOD LED pin, IO standard, and polarity. | Fail on `missing_status_or_uart_observation_pin`. |
 | `heartbeat_led_o` | PMOD LED pin, IO standard, and polarity. | Fail if no visible clock/reset progress output is available. |
+| `uart_tx_o` | UART TX pin, IO standard, and idle-high 8N1 path. | Fail on `missing_status_or_uart_observation_pin`. |
 | `status_fault_code_o`/`status_retire_count_o` | Optional GAO, UART, or ILA probe plan. | Not required for first LED smoke, but required for richer triage. |
 
 ## Gate Steps
@@ -103,16 +104,17 @@ been checked.
 | --- | --- |
 | `build/fpga/tang_mega_138k/first_test/impl/gwsynthesis/*.rpt` | `cpu_v01_fpga_top`, `cpu_v01_core`, and no memory/core black boxes. |
 | `build/fpga/tang_mega_138k/first_test/impl/pnr/*timing*.rpt` | `board_clk_i`, slack, and no `negative_timing_slack_at_first_test_clock`. |
-| `build/fpga/tang_mega_138k/first_test/impl/pnr/*ports*.rpt` | `pass_led_o`, `fail_led_o`, and `heartbeat_led_o` pin assignments. |
+| `build/fpga/tang_mega_138k/first_test/impl/pnr/*ports*.rpt` | `pass_led_o`, `fail_led_o`, `heartbeat_led_o`, and `uart_tx_o` pin assignments. |
 | `build/fpga/tang_mega_138k/first_test/impl/pnr/*.fs` | Bitstream file for programmer handoff. |
 
 ## Blockers
 
 - Confirm whether the physical board is the `PG484` non-Pro SOM or an
   `FPG676` Pro-style SOM.
-- Extract `board_clk_i`, `board_reset_n_i`, `pass_led_o`, `fail_led_o`, and
-  `heartbeat_led_o` from Sipeed's All PIN Constraints package. I24-S02 tracks
-  this in `docs/implementation/fpga-constraints-overlay.md` and
+- Extract `board_clk_i`, `board_reset_n_i`, `pass_led_o`, `fail_led_o`,
+  `heartbeat_led_o`, and `uart_tx_o` from Sipeed's All PIN Constraints
+  package. I24-S02/I25-S02 track this in
+  `docs/implementation/fpga-constraints-overlay.md` and
   `python tools\fpga_constraints_overlay.py --check`.
 - Verify LED polarity and 3.3 V IO standard before programming.
 
@@ -124,7 +126,7 @@ been checked.
 | The flow reports utilization and timing. | Met by report requirements and the report-audit entry point. |
 | The flow fails on unconstrained clocks/resets. | Met by mandatory `board_clk_i` and `board_reset_n_i` constraints and `unconstrained_clock_or_reset` failure condition. |
 | The flow fails on black boxes. | Met by synthesis report requirements for `cpu_v01_fpga_top`, `cpu_v01_core`, and memory/core black-box checks. |
-| The flow fails without visible pass/fail outputs. | Met by mandatory `pass_led_o`, `fail_led_o`, and `heartbeat_led_o` constraints. |
+| The flow fails without visible pass/fail/debug outputs. | Met by mandatory `pass_led_o`, `fail_led_o`, `heartbeat_led_o`, and `uart_tx_o` constraints. |
 | Board-specific uncertainty is visible. | Met by explicit package and pin-extraction blockers. |
 
 ## Next
