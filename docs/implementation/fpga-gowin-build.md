@@ -87,6 +87,10 @@ The visible-output failure condition is `missing_pass_fail_observation_pin`.
 | `failed` | Reports exist but contain missing tokens or failure markers such as black box, unconstrained path, or negative timing evidence. | Fix RTL, constraints, timing, or build settings and rerun Gowin. |
 | `blocked` | Identity/constraints are not confirmed or reports/bitstream are missing. | Complete upstream evidence or rerun `gw_sh` before programming. |
 
+I24-S04 board programming is tracked in
+`docs/implementation/fpga-board-programming.md` and checked with
+`python tools\fpga_board_programming.py --check`.
+
 ## Current Blocker
 
 - I24-S01 physical identity evidence is not captured.

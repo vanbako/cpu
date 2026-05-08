@@ -87,10 +87,12 @@ LED or probe capture. Use `docs/implementation/fpga-board-identity.md`,
 `python tools\fpga_constraints_overlay.py --check` before generating
 board-specific constraints. Use `docs/implementation/fpga-gowin-build.md` and
 `python tools\fpga_gowin_build.py --check` before handing a bitstream to board
-programming. Keep the device/package verification note in
-`docs/implementation/fpga-first-test-plan.md` and the evidence contract in
-`docs/implementation/fpga-board-bringup.md` in mind before claiming a board
-pass.
+programming. Use `docs/implementation/fpga-board-programming.md` and
+`python tools\fpga_board_programming.py --check` to audit SRAM programming,
+reset release, heartbeat, pass/fail, retire, and fault evidence. Keep the
+device/package verification note in `docs/implementation/fpga-first-test-plan.md`
+and the evidence contract in `docs/implementation/fpga-board-bringup.md` in
+mind before claiming a board pass.
 
 ## Story Coverage Rules
 
