@@ -111,7 +111,9 @@ been checked.
 - Confirm whether the physical board is the `PG484` non-Pro SOM or an
   `FPG676` Pro-style SOM.
 - Extract `board_clk_i`, `board_reset_n_i`, `pass_led_o`, `fail_led_o`, and
-  `heartbeat_led_o` from Sipeed's All PIN Constraints package.
+  `heartbeat_led_o` from Sipeed's All PIN Constraints package. I24-S02 tracks
+  this in `docs/implementation/fpga-constraints-overlay.md` and
+  `python tools\fpga_constraints_overlay.py --check`.
 - Verify LED polarity and 3.3 V IO standard before programming.
 
 ## Acceptance Review

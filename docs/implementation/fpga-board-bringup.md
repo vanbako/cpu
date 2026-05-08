@@ -60,7 +60,7 @@ locked.
 | --- | --- | --- |
 | `device_package_confirmed` | Board marking or programmer/JTAG scan confirms `GW5AST-LV138PG484A`/`PBG484A`, or updates the target overlay. | Do not lock the CST or program the board until the `PG484` versus `FPG676` ambiguity is resolved. |
 | `i23_s05_gate_passed` | `python tools\fpga_synthesis_gate.py --check` passes and Gowin timing, utilization, ports, and bitstream reports exist. | Record a documented blocker instead of claiming first-board execution. |
-| `constraints_verified` | `constraints/tang_mega_138k_first_test.cst` maps `board_clk_i`, `board_reset_n_i`, `pass_led_o`, `fail_led_o`, and `heartbeat_led_o` with correct IO standard and polarity. | Return to I23-S05 and extract the verified Sipeed pin overlay. |
+| `constraints_verified` | `constraints/tang_mega_138k_first_test.cst` maps `board_clk_i`, `board_reset_n_i`, `pass_led_o`, `fail_led_o`, and `heartbeat_led_o` with correct IO standard and polarity; I24-S02 is checked with `python tools\fpga_constraints_overlay.py --check`. | Return to I24-S02 and extract the verified Sipeed pin overlay. |
 | `board_power_and_usb_ready` | Tang Mega 138K Dock is powered and onboard USB JTAG/UART enumerates. | Triage cable, driver, boot mode, and board power before programming. |
 | `programmer_selected` | Gowin Programmer or openFPGALoader command is selected for the verified device, with SRAM programming selected first. | Do not use flash programming until volatile programming has a repeatable pass. |
 

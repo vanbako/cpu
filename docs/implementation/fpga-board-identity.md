@@ -113,6 +113,9 @@ Required fields:
   exists, or until the target profile is deliberately updated for an observed
   `FPG676A` board.
 
+I24-S02 is tracked in `docs/implementation/fpga-constraints-overlay.md` and
+checked with `python tools\fpga_constraints_overlay.py --check`.
+
 ## Acceptance Review
 
 | Acceptance criterion | Result |
