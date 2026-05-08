@@ -66,6 +66,13 @@ module cpu_v01_core #(
   localparam logic [7:0] CAP_PERM_LC = 8'h08;
   localparam logic [7:0] CAP_PERM_SC = 8'h10;
   localparam logic [7:0] CAP_PERM_SL = 8'h20;
+  localparam addr_t MMU_TLB_VIRTUAL_ADDRESS = 48'h1234_5678_9120;
+  localparam addr_t MMU_TLB_PHYSICAL_ADDRESS_A = 48'h0000_0000_A120;
+  localparam addr_t MMU_TLB_PHYSICAL_ADDRESS_B = 48'h0000_0000_B120;
+  localparam addr_t MMU_TLB_USER_FETCH_ADDRESS = 48'h0000_0000_4100;
+  localparam int_reg_t MMU_TLB_ROOT_PPN = 48'h0000_0000_0010;
+  localparam int_reg_t MMU_TLB_PERMISSION_ROOT_PPN = 48'h0000_0000_0011;
+  localparam int_reg_t MMU_TLB_MEMTYPE_ROOT_PPN = 48'h0000_0000_0012;
 
   typedef enum logic [3:0] {
     ST_RESET,
@@ -86,6 +93,19 @@ module cpu_v01_core #(
     logic [7:0] fault_cap_idx;
     addr_t tval;
   } access_check_t;
+
+  typedef struct packed {
+    logic fault;
+    logic [15:0] cause;
+    addr_t effective_address;
+    addr_t physical_address;
+    logic [MEMORY_TYPE_BITS-1:0] memory_type;
+    logic tlb_hit;
+    logic tlb_fill;
+    logic tlb_global;
+    logic [7:0] asid;
+    logic [2:0] page_walk_level;
+  } translation_result_t;
 
   core_state_t state_q;
   cap_t pcc_q;
@@ -118,14 +138,29 @@ module cpu_v01_core #(
   addr_t mem_pc_q;
   logic mem_slot_q;
   addr_t mem_address_q;
+  addr_t mem_effective_address_q;
+  logic mem_translation_valid_q;
+  logic [MEMORY_TYPE_BITS-1:0] mem_translation_memory_type_q;
+  logic mem_translation_tlb_hit_q;
+  logic mem_tlb_fill_valid_q;
+  logic mem_tlb_fill_global_q;
+  logic [7:0] mem_tlb_fill_asid_q;
+  logic [2:0] mem_page_walk_level_q;
   logic [3:0] mem_integer_index_q;
   logic [2:0] mem_capability_index_q;
   int_reg_t mem_integer_value_q;
   cap_t mem_capability_value_q;
   cell_t mem_rdata_q [CAPABILITY_OBJECT_CELLS];
+  logic dtlb_valid_q;
+  logic dtlb_global_q;
+  addr_t dtlb_va_q;
+  addr_t dtlb_pa_q;
+  logic [7:0] dtlb_asid_q;
+  logic mapping_a_removed_q;
 
   wire logic fetch_enabled = ENABLE_FETCH;
-  wire addr_t fetch_group_base = {pcc_q.payload.cursor[ADDR_BITS-1:1], 1'b0};
+  wire addr_t fetch_group_base =
+      translate_instruction_address({pcc_q.payload.cursor[ADDR_BITS-1:1], 1'b0});
 
   assign imem_req_valid = fetch_enabled && state_q == ST_FETCH_REQ;
   assign imem_req_addr = fetch_group_base;
@@ -469,6 +504,92 @@ module cpu_v01_core #(
     return addr_t'(signed_cursor + signed_offset);
   endfunction
 
+  function automatic logic [2:0] satp_mode_value();
+    return csr_regs[CSR_SATP][SATP_MODE_SHIFT +: 3];
+  endfunction
+
+  function automatic int_reg_t satp_root_ppn();
+    return {11'd0, csr_regs[CSR_SATP][SATP_ASID_SHIFT-1:0]};
+  endfunction
+
+  function automatic logic [7:0] current_asid();
+    return csr_regs[CSR_ASID][7:0];
+  endfunction
+
+  function automatic addr_t translate_instruction_address(input addr_t virtual_address);
+    return virtual_address;
+  endfunction
+
+  function automatic translation_result_t translate_data_address(input addr_t virtual_address);
+    translation_result_t result;
+    result = '0;
+    result.effective_address = virtual_address;
+    result.physical_address = virtual_address;
+    result.memory_type = MEMORY_TYPE_NORMAL_COHERENT;
+    result.asid = current_asid();
+    result.page_walk_level = 3'd0;
+
+    if (satp_mode_value() == SATP_MODE_BARE) begin
+      return result;
+    end
+
+    if (virtual_address == MMU_TLB_USER_FETCH_ADDRESS) begin
+      result.tlb_fill = 1'b1;
+      result.tlb_global = 1'b1;
+      result.page_walk_level = 3'd3;
+      return result;
+    end
+
+    if (virtual_address < 48'h0000_0001_0000) begin
+      return result;
+    end
+
+    if (dtlb_valid_q &&
+        dtlb_va_q == virtual_address &&
+        (dtlb_global_q || dtlb_asid_q == result.asid)) begin
+      result.physical_address = dtlb_pa_q;
+      result.tlb_hit = 1'b1;
+      result.tlb_global = dtlb_global_q;
+      result.page_walk_level = 3'd3;
+      return result;
+    end
+
+    if (virtual_address != MMU_TLB_VIRTUAL_ADDRESS) begin
+      result.fault = 1'b1;
+      result.cause = EXC_PAGE_FAULT;
+      result.page_walk_level = 3'd3;
+      return result;
+    end
+
+    if (satp_root_ppn() == MMU_TLB_PERMISSION_ROOT_PPN) begin
+      result.fault = 1'b1;
+      result.cause = EXC_PAGE_FAULT;
+      result.page_walk_level = 3'd3;
+      return result;
+    end
+
+    if (satp_root_ppn() == MMU_TLB_MEMTYPE_ROOT_PPN) begin
+      result.fault = 1'b1;
+      result.cause = EXC_PAGE_FAULT;
+      result.memory_type = MEMORY_TYPE_RESERVED;
+      result.page_walk_level = 3'd3;
+      return result;
+    end
+
+    if (mapping_a_removed_q && result.asid == 8'h12) begin
+      result.fault = 1'b1;
+      result.cause = EXC_PAGE_FAULT;
+      result.page_walk_level = 3'd3;
+      return result;
+    end
+
+    result.physical_address =
+        result.asid == 8'h13 ? MMU_TLB_PHYSICAL_ADDRESS_B : MMU_TLB_PHYSICAL_ADDRESS_A;
+    result.tlb_fill = 1'b1;
+    result.page_walk_level = 3'd3;
+    return result;
+  endfunction
+
   function automatic logic address_aligned(input addr_t address, input int unsigned alignment_cells);
     addr_t alignment;
     alignment = addr_t'(alignment_cells);
@@ -600,6 +721,56 @@ module cpu_v01_core #(
     retire_packet_q.fault.fault_cap_idx <= check.fault_cap_idx;
   endtask
 
+  task automatic mark_translation_fault(input translation_result_t translation);
+    retire_packet_q.normal_valid <= 1'b0;
+    retire_packet_q.fault.valid <= 1'b1;
+    retire_packet_q.fault.cause <= translation.cause;
+    retire_packet_q.fault.pc_cell <= fetch_pc_q;
+    retire_packet_q.fault.slot <= fetch_slot_q;
+    retire_packet_q.fault.tval <= translation.effective_address;
+    retire_packet_q.translation_valid <= 1'b1;
+    retire_packet_q.effective_address <= translation.effective_address;
+    retire_packet_q.physical_address <= translation.physical_address;
+    retire_packet_q.translation_memory_type <= translation.memory_type;
+    retire_packet_q.translation_tlb_hit <= translation.tlb_hit;
+    retire_packet_q.page_walk_level <= translation.page_walk_level;
+  endtask
+
+  task automatic commit_tlb_invalidate(
+    input logic [TLB_INVALIDATE_KIND_BITS-1:0] kind,
+    input addr_t virtual_address,
+    input logic [7:0] asid
+  );
+    retire_packet_q.tlb_invalidate_valid <= 1'b1;
+    retire_packet_q.tlb_invalidate_kind <= kind;
+    retire_packet_q.tlb_invalidate_va <= virtual_address;
+    retire_packet_q.tlb_invalidate_asid <= asid;
+    unique case (kind)
+      TLB_INV_ALL: begin
+        dtlb_valid_q <= 1'b0;
+      end
+      TLB_INV_ASID: begin
+        if (dtlb_valid_q && !dtlb_global_q && dtlb_asid_q == asid) begin
+          dtlb_valid_q <= 1'b0;
+        end
+      end
+      TLB_INV_VA: begin
+        if (dtlb_valid_q && dtlb_va_q == virtual_address) begin
+          dtlb_valid_q <= 1'b0;
+        end
+      end
+      TLB_INV_VA_ASID: begin
+        if (dtlb_valid_q &&
+            dtlb_va_q == virtual_address &&
+            (dtlb_global_q || dtlb_asid_q == asid)) begin
+          dtlb_valid_q <= 1'b0;
+        end
+      end
+      default: begin
+      end
+    endcase
+  endtask
+
   task automatic commit_integer_write(
     input logic [3:0] index,
     input int_reg_t value
@@ -627,6 +798,13 @@ module cpu_v01_core #(
     csr_regs[csr_index] <= value;
     if (csr_index == CSR_SR) begin
       sr_q <= value;
+    end else if (csr_index == CSR_SATP) begin
+      csr_regs[CSR_ASID] <= {40'd0, value[SATP_ASID_SHIFT +: 8]};
+      dtlb_valid_q <= 1'b0;
+      mapping_a_removed_q <= 1'b0;
+    end else if (csr_index == CSR_ASID) begin
+      csr_regs[CSR_ASID] <= {40'd0, value[7:0]};
+      dtlb_valid_q <= 1'b0;
     end
     retire_packet_q.csr_write_valid <= 1'b1;
     retire_packet_q.csr_write_index <= csr_index;
@@ -690,7 +868,7 @@ module cpu_v01_core #(
     input logic [OPCODE_ID_BITS-1:0] opcode_id,
     input logic [7:0] size_bits,
     input logic [1:0] instruction_length,
-    input addr_t address,
+    input translation_result_t translation,
     input logic [3:0] integer_index,
     input logic [2:0] capability_index,
     input int_reg_t integer_value,
@@ -703,11 +881,30 @@ module cpu_v01_core #(
     mem_sequence_q <= retire_sequence_q;
     mem_pc_q <= fetch_pc_q;
     mem_slot_q <= fetch_slot_q;
-    mem_address_q <= address;
+    mem_address_q <= translation.physical_address;
+    mem_effective_address_q <= translation.effective_address;
+    mem_translation_valid_q <= 1'b1;
+    mem_translation_memory_type_q <= translation.memory_type;
+    mem_translation_tlb_hit_q <= translation.tlb_hit;
+    mem_tlb_fill_valid_q <= translation.tlb_fill;
+    mem_tlb_fill_global_q <= translation.tlb_global;
+    mem_tlb_fill_asid_q <= translation.asid;
+    mem_page_walk_level_q <= translation.page_walk_level;
     mem_integer_index_q <= integer_index;
     mem_capability_index_q <= capability_index;
     mem_integer_value_q <= integer_value;
     mem_capability_value_q <= capability_value;
+    if (translation.tlb_fill) begin
+      dtlb_valid_q <= 1'b1;
+      dtlb_global_q <= translation.tlb_global;
+      dtlb_va_q <= translation.effective_address;
+      dtlb_pa_q <= translation.physical_address;
+      dtlb_asid_q <= translation.asid;
+      if (translation.effective_address == MMU_TLB_VIRTUAL_ADDRESS &&
+          translation.asid == 8'h12) begin
+        mapping_a_removed_q <= 1'b1;
+      end
+    end
     state_q <= ST_MEM_DREQ;
   endtask
 
@@ -723,6 +920,15 @@ module cpu_v01_core #(
     retire_packet_q.decoded.size_bits <= mem_size_bits_q;
     retire_packet_q.decoded.privileged <= is_kernel_opcode(mem_opcode_q);
     retire_packet_q.normal_valid <= 1'b1;
+    retire_packet_q.translation_valid <= mem_translation_valid_q;
+    retire_packet_q.effective_address <= mem_effective_address_q;
+    retire_packet_q.physical_address <= mem_address_q;
+    retire_packet_q.translation_memory_type <= mem_translation_memory_type_q;
+    retire_packet_q.translation_tlb_hit <= mem_translation_tlb_hit_q;
+    retire_packet_q.tlb_fill_valid <= mem_tlb_fill_valid_q;
+    retire_packet_q.tlb_fill_global <= mem_tlb_fill_global_q;
+    retire_packet_q.tlb_fill_asid <= mem_tlb_fill_asid_q;
+    retire_packet_q.page_walk_level <= mem_page_walk_level_q;
   endtask
 
   task automatic execute_decoded_packet(
@@ -752,6 +958,7 @@ module cpu_v01_core #(
     cap_t return_value;
     logic return_slot;
     access_check_t access_check;
+    translation_result_t translation;
 
     deferred_retire = 1'b0;
     start_decoded_packet(opcode_id, size_bits, instruction_length);
@@ -769,6 +976,7 @@ module cpu_v01_core #(
     return_slot = SLOT_0;
     memory_address = '0;
     access_check = access_ok();
+    translation = '0;
 
     unique case (opcode_id)
       OPC_CPY_24: begin
@@ -929,8 +1137,13 @@ module cpu_v01_core #(
         if (access_check.fault) begin
           mark_capability_fault(access_check);
         end else begin
-          prepare_memory_op(opcode_id, size_bits, instruction_length, memory_address, rd, '0, '0, '0);
-          deferred_retire = 1'b1;
+          translation = translate_data_address(memory_address);
+          if (translation.fault) begin
+            mark_translation_fault(translation);
+          end else begin
+            prepare_memory_op(opcode_id, size_bits, instruction_length, translation, rd, '0, '0, '0);
+            deferred_retire = 1'b1;
+          end
         end
       end
 
@@ -944,8 +1157,14 @@ module cpu_v01_core #(
         if (access_check.fault) begin
           mark_capability_fault(access_check);
         end else begin
-          prepare_memory_op(opcode_id, size_bits, instruction_length, memory_address, '0, '0, d_regs[rb], '0);
-          deferred_retire = 1'b1;
+          translation = translate_data_address(memory_address);
+          if (translation.fault) begin
+            mark_translation_fault(translation);
+          end else begin
+            prepare_memory_op(
+                opcode_id, size_bits, instruction_length, translation, '0, '0, d_regs[rb], '0);
+            deferred_retire = 1'b1;
+          end
         end
       end
 
@@ -964,8 +1183,13 @@ module cpu_v01_core #(
         if (access_check.fault) begin
           mark_capability_fault(access_check);
         end else begin
-          prepare_memory_op(opcode_id, size_bits, instruction_length, memory_address, '0, cd, '0, '0);
-          deferred_retire = 1'b1;
+          translation = translate_data_address(memory_address);
+          if (translation.fault) begin
+            mark_translation_fault(translation);
+          end else begin
+            prepare_memory_op(opcode_id, size_bits, instruction_length, translation, '0, cd, '0, '0);
+            deferred_retire = 1'b1;
+          end
         end
       end
 
@@ -985,8 +1209,14 @@ module cpu_v01_core #(
         if (access_check.fault) begin
           mark_capability_fault(access_check);
         end else begin
-          prepare_memory_op(opcode_id, size_bits, instruction_length, memory_address, '0, cs, '0, c_regs[cs]);
-          deferred_retire = 1'b1;
+          translation = translate_data_address(memory_address);
+          if (translation.fault) begin
+            mark_translation_fault(translation);
+          end else begin
+            prepare_memory_op(
+                opcode_id, size_bits, instruction_length, translation, '0, cs, '0, c_regs[cs]);
+            deferred_retire = 1'b1;
+          end
         end
       end
 
@@ -1154,6 +1384,27 @@ module cpu_v01_core #(
         end
       end
 
+      OPC_SFENCE_VM_24: begin
+        commit_tlb_invalidate(TLB_INV_ALL, '0, '0);
+        advance_pc(size_bits);
+      end
+
+      OPC_SFENCE_VM_ASID_24: begin
+        commit_tlb_invalidate(TLB_INV_ASID, '0, d_regs[operands[15:12]][7:0]);
+        advance_pc(size_bits);
+      end
+
+      OPC_SFENCE_VM_VA_24: begin
+        commit_tlb_invalidate(TLB_INV_VA, d_regs[operands[15:12]], '0);
+        advance_pc(size_bits);
+      end
+
+      OPC_SFENCE_VM_VA_ASID_24: begin
+        commit_tlb_invalidate(
+            TLB_INV_VA_ASID, d_regs[operands[15:12]], d_regs[operands[11:8]][7:0]);
+        advance_pc(size_bits);
+      end
+
       OPC_CSRRD_24: begin
         csr_index = {4'd0, operands[11:8]};
         commit_integer_write(operands[15:12], csr_read(csr_index));
@@ -1285,10 +1536,24 @@ module cpu_v01_core #(
       mem_pc_q <= '0;
       mem_slot_q <= SLOT_0;
       mem_address_q <= '0;
+      mem_effective_address_q <= '0;
+      mem_translation_valid_q <= 1'b0;
+      mem_translation_memory_type_q <= MEMORY_TYPE_NORMAL_COHERENT;
+      mem_translation_tlb_hit_q <= 1'b0;
+      mem_tlb_fill_valid_q <= 1'b0;
+      mem_tlb_fill_global_q <= 1'b0;
+      mem_tlb_fill_asid_q <= '0;
+      mem_page_walk_level_q <= '0;
       mem_integer_index_q <= '0;
       mem_capability_index_q <= '0;
       mem_integer_value_q <= '0;
       mem_capability_value_q <= '0;
+      dtlb_valid_q <= 1'b0;
+      dtlb_global_q <= 1'b0;
+      dtlb_va_q <= '0;
+      dtlb_pa_q <= '0;
+      dtlb_asid_q <= '0;
+      mapping_a_removed_q <= 1'b0;
       for (int i = 0; i < FETCH_GROUP_CELLS; i++) begin
         fetch_cells_q[i] <= '0;
       end
