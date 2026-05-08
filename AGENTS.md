@@ -85,7 +85,9 @@ LED or probe capture. Use `docs/implementation/fpga-board-identity.md`,
 `python tools\fpga_board_identity.py --check`,
 `docs/implementation/fpga-constraints-overlay.md`, and
 `python tools\fpga_constraints_overlay.py --check` before generating
-board-specific constraints. Keep the device/package verification note in
+board-specific constraints. Use `docs/implementation/fpga-gowin-build.md` and
+`python tools\fpga_gowin_build.py --check` before handing a bitstream to board
+programming. Keep the device/package verification note in
 `docs/implementation/fpga-first-test-plan.md` and the evidence contract in
 `docs/implementation/fpga-board-bringup.md` in mind before claiming a board
 pass.

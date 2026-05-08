@@ -84,3 +84,4 @@ Current platform binding:
 - `docs/implementation/fpga-board-bringup.md`: I23-S06 Tang Mega 138K programming, reset, observation, evidence, and documented-blocker runbook.
 - `docs/implementation/fpga-board-identity.md`: I24-S01 Tang Mega 138K physical device/package identity evidence gate and blocker profile.
 - `docs/implementation/fpga-constraints-overlay.md`: I24-S02 Tang Mega 138K first-test CST template, SDC timing file, pin evidence audit, and blocker profile.
+- `docs/implementation/fpga-gowin-build.md`: I24-S03 Gowin build command plan, report-bundle audit, bitstream handoff, and blocker profile.

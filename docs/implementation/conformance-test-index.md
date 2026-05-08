@@ -214,3 +214,7 @@ table in the same change.
 | `src\cpu_v01\fpga_constraints.py` | `I24-S02` | `E11-S01`, `E13-S01`, `E15-S07`, `I23-S05`, `I24-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tools\fpga_constraints_overlay.py` | `I24-S02` | `E11-S01`, `E13-S01`, `E15-S07`, `I23-S05`, `I24-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i24_s02_fpga_constraints_overlay.py` | `I24-S02` | `E11-S01`, `E13-S01`, `E15-S07`, `I23-S05`, `I24-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `docs\implementation\fpga-gowin-build.md` | `I24-S03` | `E13-S01`, `E15-S07`, `I20-S04`, `I22-S08`, `I23-S05`, `I24-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `src\cpu_v01\fpga_gowin_build.py` | `I24-S03` | `E13-S01`, `E15-S07`, `I20-S04`, `I22-S08`, `I23-S05`, `I24-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tools\fpga_gowin_build.py` | `I24-S03` | `E13-S01`, `E15-S07`, `I20-S04`, `I22-S08`, `I23-S05`, `I24-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i24_s03_fpga_gowin_build.py` | `I24-S03` | `E13-S01`, `E15-S07`, `I20-S04`, `I22-S08`, `I23-S05`, `I24-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |

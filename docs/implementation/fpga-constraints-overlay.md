@@ -138,6 +138,9 @@ blocked until board evidence exists.
 - I24-S03 must not run as a real board build until the CST placeholder tokens
   are replaced from verified board data.
 
+I24-S03 is tracked in `docs/implementation/fpga-gowin-build.md` and checked
+with `python tools\fpga_gowin_build.py --check`.
+
 ## Acceptance Review
 
 | Acceptance criterion | Result |

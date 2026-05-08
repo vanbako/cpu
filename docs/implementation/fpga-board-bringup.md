@@ -101,7 +101,7 @@ locked.
 | Evidence | Required | Path or record | Acceptance rule |
 | --- | --- | --- | --- |
 | `device_scan_record` | Yes | `docs/implementation/evidence/i23_s06_device_scan.txt` | Names the observed FPGA device, package, and device version used by the build. |
-| `i23_s05_report_bundle` | Yes | `build/fpga/tang_mega_138k/first_test/impl` | Includes synthesis, timing, port, utilization, and bitstream artifacts accepted by `--check-reports`. |
+| `i23_s05_report_bundle` | Yes | `build/fpga/tang_mega_138k/first_test/impl` | Includes synthesis, timing, port, utilization, and bitstream artifacts accepted by `python tools\fpga_gowin_build.py --audit-reports`. |
 | `bitstream_path` | Yes | `build/fpga/tang_mega_138k/first_test/impl/pnr/*.fs` | Matches the build audited immediately before programming. |
 | `programming_log` | Yes | `docs/implementation/evidence/i23_s06_programming_log.txt` | Shows the programmer command/tool, selected SRAM mode, target device, and successful exit. |
 | `reset_observation` | Yes | `docs/implementation/evidence/i23_s06_reset_observation.txt` | Records reset assertion/release timing and the first 10 seconds of observation. |

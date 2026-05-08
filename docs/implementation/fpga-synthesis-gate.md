@@ -90,7 +90,7 @@ I23-S05 implementation gate.
 | `gate_profile_check` | `python tools\fpga_synthesis_gate.py --check` | The checker reports zero profile issues. |
 | `emit_gowin_tcl` | `python tools\fpga_synthesis_gate.py --gowin-tcl` | The template names every RTL source, `cpu_v01_fpga_top`, the constraints, and `run all`. |
 | `gowin_synth_place_route` | `gw_sh build/fpga/tang_mega_138k/first_test/run_gowin.tcl` | Gowin emits synthesis, timing, port, utilization, and bitstream outputs. |
-| `report_audit` | `python tools\fpga_synthesis_gate.py --check-reports build\fpga\tang_mega_138k\first_test` | Reports contain timing slack, utilization, port assignment, and bitstream evidence. |
+| `report_audit` | `python tools\fpga_synthesis_gate.py --check-reports build\fpga\tang_mega_138k\first_test` | Delegates to the I24-S03 report audit; reports contain timing slack, utilization, port assignment, and bitstream evidence. |
 
 The Gowin Tcl template uses the Gowin project commands documented for
 `add_file`, `set_device`, `set_option`, and `run all`. The template keeps
@@ -133,3 +133,7 @@ I23-S06 is tracked in `docs/implementation/fpga-board-bringup.md` and checked
 with `python tools\fpga_bringup_runbook.py --check`. It should not claim a
 physical pass until this gate has a verified constraint overlay, Gowin
 timing/utilization reports, a bitstream, and observed LED or probe evidence.
+
+I24-S03 adds the concrete Gowin report-bundle audit in
+`docs/implementation/fpga-gowin-build.md` and
+`python tools\fpga_gowin_build.py --check`.

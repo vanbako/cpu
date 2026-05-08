@@ -13,7 +13,7 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-from cpu_v01 import fpga_synthesis
+from cpu_v01 import fpga_gowin_build, fpga_synthesis
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -59,11 +59,11 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.check_reports:
-        print(
-            "FPGA synthesis report audit is defined but blocked until Gowin "
-            f"reports exist under {args.check_reports}"
-        )
-        return 0
+        audit = fpga_gowin_build.audit_gowin_report_bundle(ROOT / Path(args.check_reports))
+        import json
+
+        print(json.dumps(audit.as_dict(), indent=2, sort_keys=True))
+        return 0 if audit.passed else 1
 
     issues = fpga_synthesis.validate_fpga_synthesis_gate(ROOT)
     if issues:
