@@ -93,6 +93,10 @@ status_fault_code=
 | `invalid` | Required evidence fields are missing or malformed. | Fix or recapture the evidence record. |
 | `blocked` | I24-S03 has not passed or no programming evidence exists. | Do not program SRAM yet, or capture the missing evidence after prerequisites pass. |
 
+I24-S05 first-board evidence archiving is tracked in
+`docs/implementation/fpga-first-board-evidence.md` and checked with
+`python tools\fpga_first_board_archive.py --check`.
+
 ## Current Blocker
 
 - I24-S03 Gowin report audit is not `passed`.
