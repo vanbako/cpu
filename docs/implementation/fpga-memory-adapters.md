@@ -60,10 +60,10 @@ firmware.
 - `cpu_v01_fpga_data_ram` at `DATA_RAM_BASE`;
 - `cpu_v01_fpga_tag_ram` over the same `DATA_RAM_BASE` range.
 
-The wrapper still defaults `ENABLE_FETCH` to `1'b0`, so the reset-smoke
-testbench remains a stable wrapper check. I23-S04 owns enabling a firmware
-program and converting the reset-idle pass LED into a real firmware pass/fail
-status.
+The wrapper defaults `ENABLE_FETCH` to `1'b1` for the I23-S04 smoke firmware.
+The reset-smoke testbench overrides `ENABLE_FETCH` to `1'b0`, so the wrapper
+reset contract remains stable while the board-facing default fetches from the
+ROM stream.
 
 ## Acceptance Review
 
@@ -77,6 +77,5 @@ status.
 
 ## Deferrals
 
-- I23-S04 owns the dedicated first FPGA smoke firmware and final status word.
 - I23-S05 owns board constraints, synthesis, implementation, and timing gates.
 - I23-S06 owns captured board evidence.

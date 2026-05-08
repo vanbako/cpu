@@ -57,7 +57,7 @@ class FpgaMemoryAdapterTests(unittest.TestCase):
             "parameter bit USE_INIT_FILE = 1'b0",
             "parameter string INIT_FILE = \"\"",
             "$readmemh(INIT_FILE, rom_q)",
-            "rom_q[0] = 24'h05B05B",
+            "rom_q[i] = 24'h05B05B",
             "assign req_ready = !rsp_valid || rsp_ready",
             "rsp_fault <= access_fault(req_addr)",
             "module cpu_v01_fpga_data_ram",

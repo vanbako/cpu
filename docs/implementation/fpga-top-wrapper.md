@@ -5,10 +5,10 @@ Story: I23-S02
 Status: Implemented board-neutral wrapper profile
 
 This story adds the first board-neutral FPGA wrapper around the integrated
-`cpu_v01_core`. The wrapper is intentionally a reset and observation shell: it
+`cpu_v01_core`. The wrapper started as a reset and observation shell: it
 synchronizes board reset, instantiates the integrated core, ties interrupts and
-events to deterministic idle values, exposes status/debug pins, and defaults to
-a fetch-disabled reset-smoke mode until I23-S04 adds first-test firmware.
+events to deterministic idle values, exposes status/debug pins, and now defaults
+to the I23-S04 first-test firmware path.
 
 ## Artifacts
 
@@ -48,24 +48,25 @@ reset drives `cpu_v01_core` as `core_rst_n`.
 
 ## Current Idle Attachments
 
-I23-S02 does not claim a runnable firmware path. To keep the wrapper elaborable
-before firmware integration:
+The wrapper keeps a fetch-disabled reset-smoke mode for I23-S02 regression
+coverage while the default path runs the I23-S04 first-test firmware:
 
-- `cpu_v01_core` defaults to `.ENABLE_FETCH(1'b0)` through the wrapper
+- `cpu_v01_core` defaults to `.ENABLE_FETCH(1'b1)` through the wrapper
   parameter;
+- `cpu_v01_fpga_top_tb` overrides `.ENABLE_FETCH(1'b0)` to preserve the reset
+  observation check;
 - instruction, data, and tag-memory ports connect to the FPGA BRAM adapters
   added by I23-S03;
 - timer, software, external interrupt, and event inputs are tied idle;
 - retire is held ready so future firmware smoke status can observe retire
   packets without another wrapper contract change.
 
-The reset-smoke status treats `reset_observed && core_idle && !fault_sticky_q`
-as `pass_led_o`. I23-S04 owns replacing that reset-idle pass indication with
-the dedicated first FPGA smoke firmware pass/fail contract.
+The runtime pass status is now `pass_sticky_q && !fault_sticky_q`, set by the
+I23-S04 retire threshold. The reset-smoke testbench checks that pass remains
+low when fetch is disabled.
 
 ## Deferrals
 
-- I23-S04 adds the tiny smoke firmware and final pass/fail status source.
 - I23-S05 adds board constraints, synthesis, implementation, and timing gates.
 - I23-S06 captures board programming and first-pass evidence.
 

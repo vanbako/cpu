@@ -24,13 +24,8 @@ module cpu_v01_fpga_imem_rom #(
 
   initial begin
     for (int i = 0; i < DEPTH_CELLS; i++) begin
-      rom_q[i] = '0;
+      rom_q[i] = 24'h05B05B;
     end
-
-    rom_q[0] = 24'h05B05B;
-    rom_q[1] = 24'h05B05B;
-    rom_q[2] = 24'h05B05B;
-    rom_q[3] = 24'h05B05B;
 
     if (USE_INIT_FILE && INIT_FILE != "") begin
       $readmemh(INIT_FILE, rom_q);

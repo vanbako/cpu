@@ -79,3 +79,4 @@ Current platform binding:
 - `docs/implementation/fpga-first-test-plan.md`: I23-S01 through I23-S06 first FPGA smoke bring-up profile, story refinement, memory map, synthesis gate, and board evidence plan.
 - `docs/implementation/fpga-top-wrapper.md`: I23-S02 board-neutral `cpu_v01_fpga_top` wrapper, reset synchronization, status/debug outputs, and fetch-disabled smoke attachment.
 - `docs/implementation/fpga-memory-adapters.md`: I23-S03 FPGA instruction ROM, data RAM, and tag RAM adapters plus initialization and tag-clear checks.
+- `docs/implementation/fpga-smoke-firmware.md`: I23-S04 built-in PAUSE smoke firmware, pass/fail LED contract, heartbeat, retire count, and fault observation.

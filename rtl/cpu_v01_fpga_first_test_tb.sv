@@ -1,4 +1,4 @@
-module cpu_v01_fpga_top_tb;
+module cpu_v01_fpga_first_test_tb;
   logic board_clk_i;
   logic board_reset_n_i;
   logic debug_halt_request_i;
@@ -16,10 +16,11 @@ module cpu_v01_fpga_top_tb;
   logic [31:0] debug_pcc_cursor_low_o;
   logic [7:0] debug_pcc_permissions_o;
   logic [7:0] debug_sr_low_o;
+  logic retire_seen_q;
+  logic activity_seen_q;
+  logic heartbeat_seen_q;
 
-  cpu_v01_fpga_top #(
-    .ENABLE_FETCH(1'b0)
-  ) dut (
+  cpu_v01_fpga_top dut (
     .board_clk_i(board_clk_i),
     .board_reset_n_i(board_reset_n_i),
     .debug_halt_request_i(debug_halt_request_i),
@@ -44,37 +45,45 @@ module cpu_v01_fpga_top_tb;
     forever #5 board_clk_i = ~board_clk_i;
   end
 
+  always_ff @(posedge board_clk_i or negedge board_reset_n_i) begin
+    if (!board_reset_n_i) begin
+      retire_seen_q <= 1'b0;
+      activity_seen_q <= 1'b0;
+      heartbeat_seen_q <= 1'b0;
+    end else begin
+      retire_seen_q <= retire_seen_q || status_retire_valid_o;
+      activity_seen_q <= activity_seen_q || status_core_port_activity_o;
+      heartbeat_seen_q <= heartbeat_seen_q || heartbeat_led_o;
+    end
+  end
+
   initial begin
     debug_halt_request_i = 1'b0;
     board_reset_n_i = 1'b0;
     repeat (2) @(posedge board_clk_i);
-    if (status_reset_observed_o || pass_led_o) begin
-      $fatal(1, "FPGA top wrapper reset synchronization failed");
-    end
-
     board_reset_n_i = 1'b1;
-    repeat (5) @(posedge board_clk_i);
+    repeat (80) @(posedge board_clk_i);
 
-    if (!status_reset_observed_o || !status_core_idle_o) begin
-      $fatal(1, "FPGA top wrapper did not expose reset-idle status");
+    if (!status_reset_observed_o) begin
+      $fatal(1, "FPGA first-test smoke did not observe reset release");
     end
-    if (pass_led_o) begin
-      $fatal(1, "FPGA top wrapper should not pass before firmware retires");
+    if (!pass_led_o) begin
+      $fatal(1, "FPGA first-test smoke firmware did not reach pass status");
     end
     if (fail_led_o || status_fault_valid_o || status_fault_code_o != 16'd0) begin
-      $fatal(1, "FPGA top wrapper reported an unexpected fault");
+      $fatal(1, "FPGA first-test smoke firmware reported a fault");
     end
-    if (status_retire_valid_o || status_retire_count_o != 32'd0 || heartbeat_led_o) begin
-      $fatal(1, "FPGA top wrapper should not retire while fetch is disabled");
+    if (status_retire_count_o < 32'd8 || !retire_seen_q) begin
+      $fatal(1, "FPGA first-test smoke firmware did not retire enough PAUSE instructions");
     end
-    if (status_core_port_activity_o) begin
-      $fatal(1, "FPGA top wrapper should stay memory idle while fetch is disabled");
+    if (!activity_seen_q || !heartbeat_seen_q) begin
+      $fatal(1, "FPGA first-test smoke did not expose activity and heartbeat");
     end
     if (!debug_pcc_valid_o ||
         debug_pcc_cursor_low_o != 32'h0000_1000 ||
         debug_pcc_permissions_o != 8'd4 ||
         debug_sr_low_o != 8'hC0) begin
-      $fatal(1, "FPGA top wrapper reset debug projection mismatch");
+      $fatal(1, "FPGA first-test smoke reset debug projection mismatch");
     end
 
     $finish;

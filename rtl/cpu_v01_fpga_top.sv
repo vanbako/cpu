@@ -1,7 +1,8 @@
 module cpu_v01_fpga_top #(
   parameter cpu_v01_pkg::addr_t RESET_VECTOR = 48'h0000_0000_1000,
   parameter int RESET_SYNC_STAGES = 2,
-  parameter bit ENABLE_FETCH = 1'b0,
+  parameter bit ENABLE_FETCH = 1'b1,
+  parameter int FIRST_TEST_PASS_RETIRE_COUNT = 8,
   parameter cpu_v01_pkg::addr_t DATA_RAM_BASE = 48'h0000_0001_0000,
   parameter int INSTRUCTION_ROM_CELLS = 1024,
   parameter int DATA_RAM_CELLS = 4096,
@@ -30,6 +31,9 @@ module cpu_v01_fpga_top #(
   output logic [7:0] debug_sr_low_o
 );
   import cpu_v01_pkg::*;
+
+  localparam logic [RETIRE_SEQUENCE_BITS-1:0] FIRST_TEST_PASS_THRESHOLD =
+      RETIRE_SEQUENCE_BITS'(FIRST_TEST_PASS_RETIRE_COUNT - 1);
 
   logic [RESET_SYNC_STAGES-1:0] reset_sync_q;
   logic core_rst_n;
@@ -68,13 +72,14 @@ module cpu_v01_fpga_top #(
   logic debug_pcc_slot;
   int_reg_t debug_sr;
   logic [RETIRE_SEQUENCE_BITS-1:0] debug_retire_sequence;
+  logic pass_sticky_q;
   logic fault_sticky_q;
   logic [15:0] fault_code_q;
   logic core_port_activity;
 
   assign core_rst_n = reset_sync_q[RESET_SYNC_STAGES-1];
 
-  assign pass_led_o = reset_observed && core_idle && !fault_sticky_q;
+  assign pass_led_o = pass_sticky_q && !fault_sticky_q;
   assign fail_led_o = fault_sticky_q;
   assign heartbeat_led_o = debug_retire_sequence[0];
   assign status_reset_observed_o = reset_observed;
@@ -99,11 +104,14 @@ module cpu_v01_fpga_top #(
 
   always_ff @(posedge board_clk_i or negedge core_rst_n) begin
     if (!core_rst_n) begin
+      pass_sticky_q <= 1'b0;
       fault_sticky_q <= 1'b0;
       fault_code_q <= 16'd0;
     end else if (retire_packet.fault.valid) begin
       fault_sticky_q <= 1'b1;
       fault_code_q <= retire_packet.fault.cause;
+    end else if (retire_valid && debug_retire_sequence >= FIRST_TEST_PASS_THRESHOLD) begin
+      pass_sticky_q <= 1'b1;
     end
   end
 

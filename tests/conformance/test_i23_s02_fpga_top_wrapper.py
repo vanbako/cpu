@@ -58,8 +58,11 @@ class FpgaTopWrapperTests(unittest.TestCase):
             "board_clk_i",
             "board_reset_n_i",
             "parameter int RESET_SYNC_STAGES = 2",
+            "parameter bit ENABLE_FETCH = 1'b1",
+            "parameter int FIRST_TEST_PASS_RETIRE_COUNT = 8",
             "reset_sync_q <= {reset_sync_q[RESET_SYNC_STAGES-2:0], 1'b1}",
             "assign core_rst_n = reset_sync_q[RESET_SYNC_STAGES-1]",
+            "pass_sticky_q",
             "cpu_v01_core #(",
             ".RESET_VECTOR(RESET_VECTOR)",
             ".ENABLE_FETCH(ENABLE_FETCH)",
@@ -73,7 +76,7 @@ class FpgaTopWrapperTests(unittest.TestCase):
             ".external_event_cause(16'd0)",
             ".debug_halt_request(debug_halt_request_i)",
             ".retire_ready(1'b1)",
-            "assign pass_led_o = reset_observed && core_idle && !fault_sticky_q",
+            "assign pass_led_o = pass_sticky_q && !fault_sticky_q",
             "assign fail_led_o = fault_sticky_q",
             "debug_pcc_cursor_low_o",
             "debug_sr_low_o",
@@ -85,8 +88,10 @@ class FpgaTopWrapperTests(unittest.TestCase):
         tb = (ROOT / "rtl" / "cpu_v01_fpga_top_tb.sv").read_text(encoding="utf-8")
 
         self.assertIn("module cpu_v01_fpga_top_tb", tb)
+        self.assertIn(".ENABLE_FETCH(1'b0)", tb)
         self.assertIn("FPGA top wrapper reset synchronization failed", tb)
         self.assertIn("FPGA top wrapper did not expose reset-idle status", tb)
+        self.assertIn("FPGA top wrapper should not pass before firmware retires", tb)
         self.assertIn("FPGA top wrapper should not retire while fetch is disabled", tb)
         self.assertIn("FPGA top wrapper should stay memory idle while fetch is disabled", tb)
         self.assertIn("FPGA top wrapper reset debug projection mismatch", tb)

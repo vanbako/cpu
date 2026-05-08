@@ -101,7 +101,8 @@ class StoryCoverageReportTests(unittest.TestCase):
         self.assertEqual(rows["I23-S01"].status, "tested")
         self.assertEqual(rows["I23-S02"].status, "tested")
         self.assertEqual(rows["I23-S03"].status, "tested")
-        for story in ("I23-S04", "I23-S05", "I23-S06"):
+        self.assertEqual(rows["I23-S04"].status, "tested")
+        for story in ("I23-S05", "I23-S06"):
             self.assertEqual(rows[story].status, "docs/tool")
         self.assertGreater(report.tested_count, 0)
         self.assertEqual(report.missing_count, 0)
@@ -212,6 +213,12 @@ class StoryCoverageReportTests(unittest.TestCase):
         self.assertIn("cpu_v01_fpga_memories.sv", rendered)
         self.assertIn("fpga_memory.py", rendered)
         self.assertIn("fpga_memory_adapters.py", rendered)
+        self.assertIn("`I23-S04` | tested", rendered)
+        self.assertIn("test_i23_s04_fpga_smoke_firmware.py", rendered)
+        self.assertIn("fpga-smoke-firmware.md", rendered)
+        self.assertIn("cpu_v01_fpga_first_test_tb.sv", rendered)
+        self.assertIn("fpga_smoke.py", rendered)
+        self.assertIn("fpga_smoke_firmware.py", rendered)
         self.assertIn("`I23-S06` | docs/tool", rendered)
         self.assertIn("fpga-first-test-plan.md", rendered)
 
@@ -243,7 +250,8 @@ class StoryCoverageReportTests(unittest.TestCase):
         self.assertNotIn("`I23-S01` | tested", output)
         self.assertNotIn("`I23-S02` | tested", output)
         self.assertNotIn("`I23-S03` | tested", output)
-        for story in ("I23-S04", "I23-S05", "I23-S06"):
+        self.assertNotIn("`I23-S04` | tested", output)
+        for story in ("I23-S05", "I23-S06"):
             self.assertNotIn(f"`{story}` | docs/tool", output)
         self.assertNotIn("`I18-S01` | tested", output)
         self.assertNotIn("`I18-S02` | tested", output)
