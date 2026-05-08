@@ -167,3 +167,6 @@ table in the same change.
 | `tools\rtl_core_atomic_cache.py` | `I22-S07` | `E08-S01`, `E08-S02`, `E08-S03`, `E08-S04`, `E10-S05`, `I21-S03`, `I22-S06` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i22_s07_rtl_core_atomic_cache.py` | `I22-S07` | `E08-S01`, `E08-S02`, `E08-S03`, `E08-S04`, `E10-S05`, `I21-S03`, `I22-S06` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `docs\implementation\rtl-integrated-core-plan.md` | `I22-S08` | `E07-S03`, `E13-S01`, `E15-S07`, `I17-S04`, `I20-S02`, `I21-S05`, `I22-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `docs\implementation\rtl-integrated-core-regression-gate.md` | `I22-S08` | `E07-S03`, `E13-S01`, `E15-S07`, `I17-S04`, `I20-S02`, `I21-S05`, `I22-S01`, `I22-S07` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tools\verilator_diff_harness.py` | `I22-S08` | `E07-S03`, `E13-S01`, `E15-S07`, `I17-S04`, `I20-S02`, `I21-S05`, `I22-S01`, `I22-S07` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i22_s08_rtl_core_regression_gate.py` | `I22-S08` | `E07-S03`, `E13-S01`, `E15-S07`, `I17-S04`, `I20-S02`, `I21-S05`, `I22-S01`, `I22-S07` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |

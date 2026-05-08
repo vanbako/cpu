@@ -96,7 +96,7 @@ class StoryCoverageReportTests(unittest.TestCase):
         self.assertEqual(rows["I22-S05"].status, "tested")
         self.assertEqual(rows["I22-S06"].status, "tested")
         self.assertEqual(rows["I22-S07"].status, "tested")
-        self.assertEqual(rows["I22-S08"].status, "docs/tool")
+        self.assertEqual(rows["I22-S08"].status, "tested")
         self.assertGreater(report.tested_count, 0)
         self.assertEqual(report.missing_count, 0)
 
@@ -187,8 +187,9 @@ class StoryCoverageReportTests(unittest.TestCase):
         self.assertIn("`I22-S07` | tested", rendered)
         self.assertIn("test_i22_s07_rtl_core_atomic_cache.py", rendered)
         self.assertIn("rtl-integrated-core-atomic-cache.md", rendered)
-        self.assertIn("`I22-S08` | docs/tool", rendered)
-        self.assertIn("rtl-integrated-core-plan.md", rendered)
+        self.assertIn("`I22-S08` | tested", rendered)
+        self.assertIn("test_i22_s08_rtl_core_regression_gate.py", rendered)
+        self.assertIn("rtl-integrated-core-regression-gate.md", rendered)
 
     def test_missing_only_cli_filters_report_rows(self) -> None:
         tool = load_story_coverage_module()
@@ -214,7 +215,7 @@ class StoryCoverageReportTests(unittest.TestCase):
         self.assertNotIn("`I22-S05` | tested", output)
         self.assertNotIn("`I22-S06` | tested", output)
         self.assertNotIn("`I22-S07` | tested", output)
-        self.assertNotIn("`I22-S08` | docs/tool", output)
+        self.assertNotIn("`I22-S08` | tested", output)
         self.assertNotIn("`I18-S01` | tested", output)
         self.assertNotIn("`I18-S02` | tested", output)
         self.assertNotIn("`I18-S03` | tested", output)

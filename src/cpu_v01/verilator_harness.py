@@ -5,6 +5,7 @@ Owner stories:
 - I20-S03: generated SystemVerilog package/interface contract.
 - I20-S04: Verilator differential harness skeleton.
 - I21-S05: Verilator regression-suite gate.
+- I22-S08: integrated cpu_v01_core regression gate.
 """
 
 from __future__ import annotations
@@ -22,8 +23,9 @@ from . import golden_traces, sv_contract, toolchain_corpus
 JsonValue = Any
 RETIRE_TRACE_FILENAME = "retire_trace.json"
 RTL_RUN_DEFERRED_MESSAGE = (
-    "RTL build/run command is intentionally deferred until an integrated "
-    "cpu_v01_core top-level is implemented"
+    "integrated cpu_v01_core top-level binary execution is deferred to the "
+    "external Verilator/make runner; dry-run selection and observed-trace "
+    "comparison are gateable"
 )
 
 
@@ -47,17 +49,25 @@ class RegressionCase:
     description: str
     golden_trace_case_id: str = ""
     packet_count: int = 0
+    top_module: str = ""
+    source_files: tuple[str, ...] = ()
+    deferred_reason: str = ""
 
     def __post_init__(self) -> None:
         if not isinstance(self.case_id, str) or not self.case_id:
             raise ValueError("case_id must be a nonempty str")
-        if self.source not in {"golden", "toolchain"}:
-            raise ValueError("source must be golden or toolchain")
+        if self.source not in {"golden", "toolchain", "integrated"}:
+            raise ValueError("source must be golden, toolchain, or integrated")
         object.__setattr__(self, "suite", HarnessSuite(self.suite))
         if not isinstance(self.description, str) or not self.description:
             raise ValueError("description must be a nonempty str")
         if type(self.packet_count) is not int or self.packet_count < 0:
             raise ValueError("packet_count must be a nonnegative int")
+        object.__setattr__(self, "source_files", tuple(self.source_files))
+        if self.source == "integrated" and not self.top_module:
+            raise ValueError("integrated cases must name a top_module")
+        if self.source == "integrated" and not self.source_files:
+            raise ValueError("integrated cases must name source_files")
 
     @property
     def has_retire_trace(self) -> bool:
@@ -71,6 +81,9 @@ class RegressionCase:
             "description": self.description,
             "golden_trace_case_id": self.golden_trace_case_id,
             "packet_count": self.packet_count,
+            "top_module": self.top_module,
+            "source_files": list(self.source_files),
+            "deferred_reason": self.deferred_reason,
         }
 
 
@@ -132,6 +145,7 @@ class HarnessResult:
     observed_trace: Path | None = None
     suite: HarnessSuite | None = None
     selected_case_ids: tuple[str, ...] = ()
+    deferrals: tuple[str, ...] = ()
 
     @property
     def ok(self) -> bool:
@@ -169,6 +183,8 @@ def regression_cases(suite: HarnessSuite = HarnessSuite.ALL) -> tuple[Regression
             )
         )
 
+    cases.extend(_integrated_core_cases(golden_by_id))
+
     if suite is HarnessSuite.ALL:
         return tuple(cases)
     return tuple(case for case in cases if case.suite is suite)
@@ -185,6 +201,24 @@ def expected_retire_cases(
 ) -> tuple[dict[str, JsonValue], ...]:
     selected = _select_regression_cases(case_ids=case_ids, suite=suite)
     return _expected_retire_cases_for(selected)
+
+
+def integrated_core_verilator_commands(
+    suite: HarnessSuite = HarnessSuite.ALL,
+) -> tuple[str, ...]:
+    return tuple(
+        _verilator_command(case)
+        for case in regression_cases(suite)
+        if case.source == "integrated"
+    )
+
+
+def integrated_core_deferrals(
+    suite: HarnessSuite = HarnessSuite.ALL,
+) -> tuple[str, ...]:
+    return _selected_deferrals(
+        tuple(case for case in regression_cases(suite) if case.source == "integrated")
+    )
 
 
 def run_harness(config: HarnessConfig) -> HarnessResult:
@@ -216,6 +250,7 @@ def run_harness(config: HarnessConfig) -> HarnessResult:
     case_count = len(selected_cases)
     packet_count = sum(len(case["packets"]) for case in expected_cases)
     selected_case_ids = tuple(case.case_id for case in selected_cases)
+    deferrals = _selected_deferrals(selected_cases)
 
     if config.observed_cases is not None or config.observed_trace is not None:
         observed = (
@@ -238,6 +273,7 @@ def run_harness(config: HarnessConfig) -> HarnessResult:
                 observed_trace=config.observed_trace,
                 suite=config.suite,
                 selected_case_ids=selected_case_ids,
+                deferrals=deferrals,
             )
         return HarnessResult(
             HarnessStatus.PASSED,
@@ -247,6 +283,7 @@ def run_harness(config: HarnessConfig) -> HarnessResult:
             observed_trace=config.observed_trace,
             suite=config.suite,
             selected_case_ids=selected_case_ids,
+            deferrals=deferrals,
         )
 
     verilator_path = shutil.which(config.verilator_executable)
@@ -259,6 +296,7 @@ def run_harness(config: HarnessConfig) -> HarnessResult:
             packet_count=packet_count,
             suite=config.suite,
             selected_case_ids=selected_case_ids,
+            deferrals=deferrals,
         )
 
     if config.dry_run:
@@ -270,6 +308,7 @@ def run_harness(config: HarnessConfig) -> HarnessResult:
             verilator_path=verilator_path,
             suite=config.suite,
             selected_case_ids=selected_case_ids,
+            deferrals=deferrals,
         )
 
     return HarnessResult(
@@ -280,6 +319,7 @@ def run_harness(config: HarnessConfig) -> HarnessResult:
         verilator_path=verilator_path,
         suite=config.suite,
         selected_case_ids=selected_case_ids,
+        deferrals=deferrals,
     )
 
 
@@ -341,6 +381,10 @@ def harness_summary(result: HarnessResult) -> str:
         lines.append(f"Verilator: {result.verilator_path}")
     if result.observed_trace:
         lines.append(f"Observed trace: {result.observed_trace}")
+    if result.deferrals:
+        lines.append("Deferrals:")
+        for deferral in result.deferrals:
+            lines.append(f"- {deferral}")
     return "\n".join(lines)
 
 
@@ -380,6 +424,120 @@ def _expected_retire_cases_for(
         expected["suite"] = case.suite.value
         expected_cases.append(expected)
     return tuple(expected_cases)
+
+
+def _integrated_core_cases(
+    golden_by_id: dict[str, golden_traces.GoldenTraceCase],
+) -> tuple[RegressionCase, ...]:
+    common_sources = ("rtl/cpu_v01_pkg.sv", "rtl/cpu_v01_core.sv")
+    cases = (
+        (
+            "core.shell.reset_idle",
+            HarnessSuite.FAST,
+            "Integrated core reset/idle top-level smoke.",
+            "",
+            "cpu_v01_core_shell_tb",
+            (*common_sources, "rtl/cpu_v01_core_shell_tb.sv"),
+            "No retire trace is expected for the no-program shell smoke.",
+        ),
+        (
+            "core.fetch_decode.slot1_48bit_placement",
+            HarnessSuite.FAST,
+            "Integrated fetch/decode placement-fault fixture.",
+            "fault_cases.slot1_48bit_placement",
+            "cpu_v01_core_fetch_decode_tb",
+            (*common_sources, "rtl/cpu_v01_core_fetch_decode_tb.sv"),
+            "",
+        ),
+        (
+            "core.scalar.integer_ops_add_mul",
+            HarnessSuite.FAST,
+            "Integrated scalar/control ADD/MUL retire fixture.",
+            "integer_ops.add_mul",
+            "cpu_v01_core_scalar_control_tb",
+            (*common_sources, "rtl/cpu_v01_core_scalar_control_tb.sv"),
+            "",
+        ),
+        (
+            "core.cap_mem.memory_tag_ops",
+            HarnessSuite.SLOW,
+            "Integrated capability/data/tag-memory fixture.",
+            "memory_tag_ops.csc_clc_st48_ld48",
+            "cpu_v01_core_cap_mem_tb",
+            (*common_sources, "rtl/cpu_v01_core_cap_mem_tb.sv"),
+            "",
+        ),
+        (
+            "core.control_trap.sys_iret",
+            HarnessSuite.SLOW,
+            "Integrated trap-frame save and IRET fixture.",
+            "traps.sys_iret_return",
+            "cpu_v01_core_control_trap_tb",
+            (*common_sources, "rtl/cpu_v01_core_control_trap_tb.sv"),
+            "",
+        ),
+        (
+            "core.mmu_tlb.translation_sfence",
+            HarnessSuite.SLOW,
+            "Integrated MMU/TLB translation and SFENCE fixture.",
+            "",
+            "cpu_v01_core_mmu_tlb_tb",
+            (*common_sources, "rtl/cpu_v01_core_mmu_tlb_tb.sv"),
+            "MMU/TLB fixture assertions are top-level checks until trace capture covers translation and TLB metadata.",
+        ),
+        (
+            "core.atomic_cache.llsc_cache",
+            HarnessSuite.SLOW,
+            "Integrated LL/SC, reservation, fence, and cache-maintenance fixture.",
+            "",
+            "cpu_v01_core_atomic_cache_tb",
+            (*common_sources, "rtl/cpu_v01_core_atomic_cache_tb.sv"),
+            "Atomic/cache fixture assertions are top-level checks until trace capture covers reservation and cache metadata.",
+        ),
+    )
+    result: list[RegressionCase] = []
+    for (
+        case_id,
+        suite,
+        description,
+        golden_trace_case_id,
+        top_module,
+        source_files,
+        deferred_reason,
+    ) in cases:
+        packet_count = 0
+        if golden_trace_case_id:
+            packet_count = len(golden_by_id[golden_trace_case_id].packets)
+        result.append(
+            RegressionCase(
+                case_id,
+                "integrated",
+                suite,
+                description,
+                golden_trace_case_id,
+                packet_count,
+                top_module,
+                source_files,
+                deferred_reason,
+            )
+        )
+    return tuple(result)
+
+
+def _verilator_command(case: RegressionCase) -> str:
+    sources = " ".join(case.source_files)
+    return f"verilator --lint-only --timing --top-module {case.top_module} {sources}"
+
+
+def _selected_deferrals(selected_cases: tuple[RegressionCase, ...]) -> tuple[str, ...]:
+    seen: set[str] = set()
+    deferrals: list[str] = []
+    for case in selected_cases:
+        if not case.deferred_reason or case.deferred_reason in seen:
+            continue
+        seen.add(case.deferred_reason)
+        deferrals.append(case.deferred_reason)
+    return tuple(deferrals)
 
 
 def _golden_suite(case: golden_traces.GoldenTraceCase) -> HarnessSuite:
