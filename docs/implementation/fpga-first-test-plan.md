@@ -141,6 +141,13 @@ with:
 python tools\fpga_synthesis_gate.py --check
 ```
 
+I23-S06 is tracked in `docs/implementation/fpga-board-bringup.md` and checked
+with:
+
+```text
+python tools\fpga_bringup_runbook.py --check
+```
+
 Official Gowin EDA is the primary synthesis/place-route/bitstream flow for the
 first board test because Gowin's tool covers code synthesis, place and route,
 bitstream generation, and download. Sipeed documents Tang Mega 138K support in

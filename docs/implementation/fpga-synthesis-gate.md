@@ -127,6 +127,7 @@ been checked.
 
 ## Next
 
-I23-S06 owns the board runbook and captured first-pass evidence. It should not
-claim a physical pass until this gate has a verified constraint overlay, Gowin
+I23-S06 is tracked in `docs/implementation/fpga-board-bringup.md` and checked
+with `python tools\fpga_bringup_runbook.py --check`. It should not claim a
+physical pass until this gate has a verified constraint overlay, Gowin
 timing/utilization reports, a bitstream, and observed LED or probe evidence.
