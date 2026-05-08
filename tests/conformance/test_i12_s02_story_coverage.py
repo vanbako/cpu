@@ -25,7 +25,7 @@ def load_story_coverage_module():
 
 
 class StoryCoverageReportTests(unittest.TestCase):
-    def test_backlog_story_parser_covers_i01_through_i22_rows(self) -> None:
+    def test_backlog_story_parser_covers_i01_through_i23_rows(self) -> None:
         tool = load_story_coverage_module()
 
         stories = tool.implementation_story_ids(ROOT / "agile-impl-v0.1.md")
@@ -40,6 +40,7 @@ class StoryCoverageReportTests(unittest.TestCase):
         self.assertIn("I20-S08", stories)
         self.assertIn("I21-S06", stories)
         self.assertIn("I22-S08", stories)
+        self.assertIn("I23-S06", stories)
         self.assertEqual(len(stories), len(set(stories)))
 
     def test_report_classifies_tested_doc_only_and_missing_stories(self) -> None:
@@ -97,6 +98,8 @@ class StoryCoverageReportTests(unittest.TestCase):
         self.assertEqual(rows["I22-S06"].status, "tested")
         self.assertEqual(rows["I22-S07"].status, "tested")
         self.assertEqual(rows["I22-S08"].status, "tested")
+        for story in ("I23-S01", "I23-S02", "I23-S03", "I23-S04", "I23-S05", "I23-S06"):
+            self.assertEqual(rows[story].status, "docs/tool")
         self.assertGreater(report.tested_count, 0)
         self.assertEqual(report.missing_count, 0)
 
@@ -190,6 +193,9 @@ class StoryCoverageReportTests(unittest.TestCase):
         self.assertIn("`I22-S08` | tested", rendered)
         self.assertIn("test_i22_s08_rtl_core_regression_gate.py", rendered)
         self.assertIn("rtl-integrated-core-regression-gate.md", rendered)
+        self.assertIn("`I23-S01` | docs/tool", rendered)
+        self.assertIn("`I23-S06` | docs/tool", rendered)
+        self.assertIn("fpga-first-test-plan.md", rendered)
 
     def test_missing_only_cli_filters_report_rows(self) -> None:
         tool = load_story_coverage_module()
@@ -216,6 +222,8 @@ class StoryCoverageReportTests(unittest.TestCase):
         self.assertNotIn("`I22-S06` | tested", output)
         self.assertNotIn("`I22-S07` | tested", output)
         self.assertNotIn("`I22-S08` | tested", output)
+        for story in ("I23-S01", "I23-S02", "I23-S03", "I23-S04", "I23-S05", "I23-S06"):
+            self.assertNotIn(f"`{story}` | docs/tool", output)
         self.assertNotIn("`I18-S01` | tested", output)
         self.assertNotIn("`I18-S02` | tested", output)
         self.assertNotIn("`I18-S03` | tested", output)

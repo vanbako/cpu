@@ -63,6 +63,7 @@ Implementation principles:
 | I20 | P1 | RTL readiness and first SystemVerilog slice. | First-slice contract, golden retire corpus, SV package/interface plan, Verilator harness, and first single-core RTL gates. |
 | I21 | P1 | Single-core RTL semantic closure. | Expand the first RTL slice to mandatory single-core instruction, trap, MMU, atomic, and differential-gate coverage. |
 | I22 | P1 | Integrated single-core RTL core. | Replace fixture-only RTL slices with a real `cpu_v01_core` top level that runs golden programs through fetch, decode, execute, memory, trap, and retire paths. |
+| I23 | P1 | FPGA first-test bring-up. | Wrap the integrated single-core RTL for a first FPGA smoke test with BRAM-backed memories, a tiny visible pass/fail program, synthesis constraints, and board bring-up evidence. |
 
 ## First Vertical Slice
 
@@ -173,6 +174,12 @@ Explicitly excluded from the first slice:
 | I22-S06 | P1 | XL | I22-S05, I21-S02, I18-S02, E09-S02, E09-S03, E09-S07 | Integrate MMU, TLB, SATP/ASID, page-walk, and translation faults. | Instruction and data accesses use the integrated translation path; golden VM fixtures cover bare mode, page walks, permission and memory-type faults, stale TLB behavior, ASID/global matching, and all `SFENCE.VM*` invalidation forms. |
 | I22-S07 | P1 | L | I22-S06, I21-S03, I06-S04, E08-S01, E08-S02, E08-S04, E10-S05 | Integrate LL/SC, reservation, fence, and cache-maintenance effects. | Top-level cases and litmus projections pass for `LL48`/`SC48`, conflict and trap clears, spurious failure allowance, `FENCE`, `FENCE.I`, `CACHE.*` access checks, and ordering-visible retire boundaries. |
 | I22-S08 | P1 | L | I22-S01, I22-S02, I22-S03, I22-S04, I22-S05, I22-S06, I22-S07, I21-S05, I17-S04 | Promote integrated `cpu_v01_core` simulation to the RTL regression gate. | Fast and slow Verilator suites run against `cpu_v01_core`, selected golden/toolchain cases move from slice projection to observed top-level retire traces, remaining deferrals are explicit, and the local gate fails on integrated-core mismatches. |
+| I23-S01 | P1 | M | I22-S08, I20-S03, I08-S01, I14-S01 | Define the FPGA first-test boundary and target profile. | A bring-up profile names target board assumptions, clock/reset, ROM/RAM/tag BRAM map, image format, debug/status outputs, synthesis flow, and explicit non-goals. |
+| I23-S02 | P1 | L | I23-S01, I22-S01, I22-S08, I20-S03 | Add a board-neutral `cpu_v01_fpga_top` wrapper. | An FPGA top wrapper instantiates `cpu_v01_core`, synchronizes reset, exposes clock/reset/status/debug pins, drives idle interrupts/events, and elaborates without black-box CPU-owned ports. |
+| I23-S03 | P1 | L | I23-S02, I11-S02, I14-S01, I22-S04 | Implement FPGA ROM, RAM, and tag-memory adapters. | BRAM-friendly instruction ROM, data RAM, and tag RAM adapters satisfy core handshakes, load a tiny initialized image, and clear tag state on integer stores. |
+| I23-S04 | P1 | M | I23-S03, I14-S01, I17-S04, I22-S03 | Build first FPGA smoke firmware and observation signals. | A tiny firmware case retires deterministic instructions, reaches a pass/fail status visible on LED/UART/ILA probes, and exposes retire/fault heartbeat signals. |
+| I23-S05 | P1 | L | I23-S04, I20-S04, I22-S08, E13-S01 | Add synthesis, implementation, and timing gates for the first-test design. | A scripted FPGA synth/place/route flow builds the first-test design, reports utilization/timing, and fails on unconstrained clocks/resets or black boxes. |
+| I23-S06 | P1 | M | I23-S05, E11-S01, E12-S01, E15-S07 | Document and execute the first board bring-up procedure. | The bring-up runbook covers programming, reset, expected observations, triage steps, and captured first-pass evidence from the board or documented blocker. |
 
 ## RTL Readiness Slice
 
@@ -224,6 +231,14 @@ trap/syscall/protected control flow, MMU/TLB integration, atomic and maintenance
 effects, then promotion of the integrated core into the Verilator regression
 gate. Multicore execution, fabric links, coherence, and external module
 topology remain outside I22.
+
+I23 should follow I22 by proving that the integrated single-core RTL can become
+a physical FPGA smoke target. The order is target profile, board-neutral top
+wrapper, BRAM-backed ROM/RAM/tag adapters, tiny firmware and visible
+observation signals, synthesis/timing gate, then a board bring-up runbook with
+captured evidence. Full SoC peripherals, multicore execution, fabric links,
+cache hierarchy tuning, and long-running software workloads remain outside
+I23.
 
 ## Near-term Sprint Plan
 

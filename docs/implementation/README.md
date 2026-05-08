@@ -76,3 +76,4 @@ Current platform binding:
 - `docs/implementation/rtl-integrated-core-mmu-tlb.md`: I22-S06 integrated `SATP`/`ASID`, data translation, local TLB, `SFENCE.VM*`, and page-fault retire effects in `cpu_v01_core`.
 - `docs/implementation/rtl-integrated-core-atomic-cache.md`: I22-S07 integrated `LL48`/`SC48`, reservation, fence, and cache-maintenance retire effects in `cpu_v01_core`.
 - `docs/implementation/rtl-integrated-core-regression-gate.md`: I22-S08 integrated `cpu_v01_core` Verilator regression-gate case registry, trace comparison, and deferral profile.
+- `docs/implementation/fpga-first-test-plan.md`: I23-S01 through I23-S06 first FPGA smoke bring-up profile, story refinement, memory map, synthesis gate, and board evidence plan.
