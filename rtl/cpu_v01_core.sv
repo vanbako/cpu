@@ -73,6 +73,7 @@ module cpu_v01_core #(
   localparam int_reg_t MMU_TLB_ROOT_PPN = 48'h0000_0000_0010;
   localparam int_reg_t MMU_TLB_PERMISSION_ROOT_PPN = 48'h0000_0000_0011;
   localparam int_reg_t MMU_TLB_MEMTYPE_ROOT_PPN = 48'h0000_0000_0012;
+  localparam addr_t ATOMIC_CACHE_DEVICE_PA = 48'h0000_0000_F000;
 
   typedef enum logic [3:0] {
     ST_RESET,
@@ -157,6 +158,9 @@ module cpu_v01_core #(
   addr_t dtlb_pa_q;
   logic [7:0] dtlb_asid_q;
   logic mapping_a_removed_q;
+  logic reservation_valid_q;
+  addr_t reservation_word_address_q;
+  logic [MEMORY_TYPE_BITS-1:0] reservation_memory_type_q;
 
   wire logic fetch_enabled = ENABLE_FETCH;
   wire addr_t fetch_group_base =
@@ -167,15 +171,18 @@ module cpu_v01_core #(
   assign imem_rsp_ready = fetch_enabled && state_q == ST_FETCH_WAIT;
 
   assign dmem_req_valid = state_q == ST_MEM_DREQ;
-  assign dmem_req_write = mem_opcode_q == OPC_ST48_24 || mem_opcode_q == OPC_CSC_24;
+  assign dmem_req_write =
+      mem_opcode_q == OPC_ST48_24 || mem_opcode_q == OPC_CSC_24 || mem_opcode_q == OPC_SC48_24;
   assign dmem_req_addr = mem_address_q;
   assign dmem_req_len_cells =
       (mem_opcode_q == OPC_CLC_24 || mem_opcode_q == OPC_CSC_24) ? 3'd4 : 3'd2;
 
   assign tagmem_req_valid = state_q == ST_MEM_TAG_REQ;
-  assign tagmem_req_write = mem_opcode_q == OPC_ST48_24 || mem_opcode_q == OPC_CSC_24;
+  assign tagmem_req_write =
+      mem_opcode_q == OPC_ST48_24 || mem_opcode_q == OPC_CSC_24 || mem_opcode_q == OPC_SC48_24;
   assign tagmem_req_slot_addr =
-      mem_opcode_q == OPC_ST48_24 ? capability_slot_base(mem_address_q) : mem_address_q;
+      (mem_opcode_q == OPC_ST48_24 || mem_opcode_q == OPC_SC48_24) ?
+          capability_slot_base(mem_address_q) : mem_address_q;
   assign tagmem_req_wtag = mem_opcode_q == OPC_CSC_24 ? mem_capability_value_q.tag : 1'b0;
 
   assign retire_packet = retire_packet_q;
@@ -192,7 +199,7 @@ module cpu_v01_core #(
     for (int i = 0; i < CAPABILITY_OBJECT_CELLS; i++) begin
       dmem_req_wdata[i] = '0;
     end
-    if (mem_opcode_q == OPC_ST48_24) begin
+    if (mem_opcode_q == OPC_ST48_24 || mem_opcode_q == OPC_SC48_24) begin
       dmem_req_wdata[0] = mem_integer_value_q[23:0];
       dmem_req_wdata[1] = mem_integer_value_q[47:24];
     end else if (mem_opcode_q == OPC_CSC_24) begin
@@ -529,6 +536,12 @@ module cpu_v01_core #(
     result.asid = current_asid();
     result.page_walk_level = 3'd0;
 
+    if (virtual_address == ATOMIC_CACHE_DEVICE_PA) begin
+      result.physical_address = ATOMIC_CACHE_DEVICE_PA;
+      result.memory_type = MEMORY_TYPE_DEVICE_ORDERED;
+      return result;
+    end
+
     if (satp_mode_value() == SATP_MODE_BARE) begin
       return result;
     end
@@ -594,6 +607,19 @@ module cpu_v01_core #(
     addr_t alignment;
     alignment = addr_t'(alignment_cells);
     return (address % alignment) == 0;
+  endfunction
+
+  function automatic logic reservation_overlaps(
+    input addr_t base_address,
+    input addr_t length_cells
+  );
+    addr_t reservation_end;
+    addr_t access_end;
+    reservation_end = reservation_word_address_q + addr_t'(INTEGER_OBJECT_CELLS);
+    access_end = base_address + length_cells;
+    return reservation_valid_q &&
+        access_end > reservation_word_address_q &&
+        base_address < reservation_end;
   endfunction
 
   function automatic access_check_t access_ok();
@@ -769,6 +795,42 @@ module cpu_v01_core #(
       default: begin
       end
     endcase
+    commit_reservation_clear_if_valid();
+  endtask
+
+  task automatic commit_reservation_install(
+    input addr_t word_address,
+    input logic [MEMORY_TYPE_BITS-1:0] memory_type
+  );
+    reservation_valid_q <= 1'b1;
+    reservation_word_address_q <= word_address;
+    reservation_memory_type_q <= memory_type;
+    retire_packet_q.reservation_install_valid <= 1'b1;
+    retire_packet_q.reservation_word_address <= word_address;
+    retire_packet_q.reservation_memory_type <= memory_type;
+  endtask
+
+  task automatic commit_reservation_clear_if_valid();
+    if (reservation_valid_q) begin
+      retire_packet_q.reservation_clear_valid <= 1'b1;
+      retire_packet_q.reservation_word_address <= reservation_word_address_q;
+      retire_packet_q.reservation_memory_type <= reservation_memory_type_q;
+      reservation_valid_q <= 1'b0;
+      reservation_word_address_q <= '0;
+      reservation_memory_type_q <= MEMORY_TYPE_NORMAL_COHERENT;
+    end
+  endtask
+
+  task automatic commit_reservation_clear_at(
+    input addr_t word_address,
+    input logic [MEMORY_TYPE_BITS-1:0] memory_type
+  );
+    retire_packet_q.reservation_clear_valid <= 1'b1;
+    retire_packet_q.reservation_word_address <= word_address;
+    retire_packet_q.reservation_memory_type <= memory_type;
+    reservation_valid_q <= 1'b0;
+    reservation_word_address_q <= '0;
+    reservation_memory_type_q <= MEMORY_TYPE_NORMAL_COHERENT;
   endtask
 
   task automatic commit_integer_write(
@@ -809,6 +871,7 @@ module cpu_v01_core #(
     retire_packet_q.csr_write_valid <= 1'b1;
     retire_packet_q.csr_write_index <= csr_index;
     retire_packet_q.csr_write_value <= value;
+    commit_reservation_clear_if_valid();
   endtask
 
   task automatic commit_pcc_update(
@@ -957,6 +1020,9 @@ module cpu_v01_core #(
     cap_t cap_value;
     cap_t return_value;
     logic return_slot;
+    logic [CACHE_MAINT_KIND_BITS-1:0] cache_kind;
+    addr_t cache_length;
+    int unsigned cache_length_cells;
     access_check_t access_check;
     translation_result_t translation;
 
@@ -974,6 +1040,9 @@ module cpu_v01_core #(
     result = '0;
     return_value = '0;
     return_slot = SLOT_0;
+    cache_kind = CACHE_MAINT_NONE;
+    cache_length = '0;
+    cache_length_cells = 0;
     memory_address = '0;
     access_check = access_ok();
     translation = '0;
@@ -1220,6 +1289,65 @@ module cpu_v01_core #(
         end
       end
 
+      OPC_LL48_24: begin
+        rd = operands[15:12];
+        ca = operands[10:8];
+        ra = operands[7:4];
+        memory_address = effective_address(c_regs[ca], d_regs[ra]);
+        access_check = memory_access_check(
+            ca, memory_address, INTEGER_OBJECT_CELLS, INTEGER_OBJECT_CELLS, CAP_PERM_LD, 1'b0);
+        if (access_check.fault) begin
+          mark_capability_fault(access_check);
+          commit_reservation_clear_if_valid();
+        end else begin
+          translation = translate_data_address(memory_address);
+          if (translation.fault) begin
+            mark_translation_fault(translation);
+            commit_reservation_clear_if_valid();
+          end else begin
+            prepare_memory_op(opcode_id, size_bits, instruction_length, translation, rd, '0, '0, '0);
+            deferred_retire = 1'b1;
+          end
+        end
+      end
+
+      OPC_SC48_24: begin
+        rd = operands[15:12];
+        ca = operands[10:8];
+        ra = operands[7:4];
+        rb = operands[3:0];
+        memory_address = effective_address(c_regs[ca], d_regs[ra]);
+        access_check = memory_access_check(
+            ca, memory_address, INTEGER_OBJECT_CELLS, INTEGER_OBJECT_CELLS, CAP_PERM_ST, 1'b0);
+        if (access_check.fault) begin
+          mark_capability_fault(access_check);
+          commit_reservation_clear_if_valid();
+        end else begin
+          translation = translate_data_address(memory_address);
+          if (translation.fault) begin
+            mark_translation_fault(translation);
+            commit_reservation_clear_if_valid();
+          end else if (reservation_valid_q &&
+                       reservation_word_address_q == translation.physical_address &&
+                       reservation_memory_type_q == translation.memory_type) begin
+            prepare_memory_op(
+                opcode_id, size_bits, instruction_length, translation, rd, '0, d_regs[rb], '0);
+            deferred_retire = 1'b1;
+          end else begin
+            commit_integer_write(rd, 48'd1);
+            retire_packet_q.translation_valid <= 1'b1;
+            retire_packet_q.effective_address <= translation.effective_address;
+            retire_packet_q.physical_address <= translation.physical_address;
+            retire_packet_q.translation_memory_type <= translation.memory_type;
+            retire_packet_q.translation_tlb_hit <= translation.tlb_hit;
+            retire_packet_q.page_walk_level <= translation.page_walk_level;
+            retire_packet_q.sc_success <= 1'b0;
+            commit_reservation_clear_at(translation.physical_address, translation.memory_type);
+            advance_pc(size_bits);
+          end
+        end
+      end
+
       OPC_CMOVE_48: begin
         commit_capability_write(cd, c_regs[ca]);
         advance_pc(size_bits);
@@ -1360,6 +1488,7 @@ module cpu_v01_core #(
 
       OPC_BRK_12: begin
         mark_decoded_fault(EXC_BREAKPOINT, fetch_pc_q);
+        commit_reservation_clear_if_valid();
       end
 
       OPC_CALLC_24: begin
@@ -1381,6 +1510,70 @@ module cpu_v01_core #(
           retire_packet_q.tag_write_valid <= 1'b1;
           retire_packet_q.tag_write_value <= 1'b1;
           commit_pcc_update(unsealed_capability(c_regs[ca]), SLOT_0);
+        end
+      end
+
+      OPC_FENCE_24: begin
+        retire_packet_q.fence_order_valid <= 1'b1;
+        advance_pc(size_bits);
+      end
+
+      OPC_FENCE_I_24: begin
+        retire_packet_q.fence_i_valid <= 1'b1;
+        advance_pc(size_bits);
+      end
+
+      OPC_CACHE_CLEAN_24,
+      OPC_CACHE_INVAL_24,
+      OPC_CACHE_CLEANINVAL_24: begin
+        ca = operands[14:12];
+        ra = operands[11:8];
+        rb = operands[7:4];
+        cache_length = d_regs[rb];
+        cache_length_cells = int'(d_regs[rb][31:0]);
+        unique case (opcode_id)
+          OPC_CACHE_CLEAN_24: cache_kind = CACHE_MAINT_CLEAN;
+          OPC_CACHE_INVAL_24: cache_kind = CACHE_MAINT_INVAL;
+          default: cache_kind = CACHE_MAINT_CLEANINVAL;
+        endcase
+        if (cache_length == '0) begin
+          advance_pc(size_bits);
+        end else begin
+          memory_address = effective_address(c_regs[ca], d_regs[ra]);
+          access_check = cap_source_check(ca);
+          if (access_check.fault) begin
+            mark_capability_fault(access_check);
+          end else if (!cap_contains_range(c_regs[ca], memory_address, cache_length_cells)) begin
+            access_check.fault = 1'b1;
+            access_check.cause = EXC_CAPABILITY_BOUNDS_FAULT;
+            access_check.capcause = CAPCAUSE_BOUNDS;
+            access_check.fault_cap_idx = fault_cap_idx_for_c(ca);
+            access_check.tval = memory_address;
+            mark_capability_fault(access_check);
+          end else begin
+            translation = translate_data_address(memory_address);
+            if (translation.fault) begin
+              mark_translation_fault(translation);
+            end else if (translation.memory_type == MEMORY_TYPE_DEVICE_ORDERED) begin
+              mark_decoded_fault(EXC_ACCESS_FAULT, translation.physical_address);
+              retire_packet_q.translation_valid <= 1'b1;
+              retire_packet_q.effective_address <= translation.effective_address;
+              retire_packet_q.physical_address <= translation.physical_address;
+              retire_packet_q.translation_memory_type <= translation.memory_type;
+              retire_packet_q.translation_tlb_hit <= translation.tlb_hit;
+              retire_packet_q.page_walk_level <= translation.page_walk_level;
+            end else begin
+              retire_packet_q.cache_maintenance_valid <= 1'b1;
+              retire_packet_q.cache_maintenance_kind <= cache_kind;
+              retire_packet_q.cache_maintenance_address <= translation.physical_address;
+              retire_packet_q.cache_maintenance_length <= cache_length;
+              if ((opcode_id == OPC_CACHE_INVAL_24 || opcode_id == OPC_CACHE_CLEANINVAL_24) &&
+                  reservation_overlaps(translation.physical_address, cache_length)) begin
+                commit_reservation_clear_if_valid();
+              end
+              advance_pc(size_bits);
+            end
+          end
         end
       end
 
@@ -1554,6 +1747,9 @@ module cpu_v01_core #(
       dtlb_pa_q <= '0;
       dtlb_asid_q <= '0;
       mapping_a_removed_q <= 1'b0;
+      reservation_valid_q <= 1'b0;
+      reservation_word_address_q <= '0;
+      reservation_memory_type_q <= MEMORY_TYPE_NORMAL_COHERENT;
       for (int i = 0; i < FETCH_GROUP_CELLS; i++) begin
         fetch_cells_q[i] <= '0;
       end
@@ -1649,11 +1845,17 @@ module cpu_v01_core #(
               start_pending_packet();
               retire_packet_q.normal_valid <= 1'b0;
               retire_packet_q.fault <= dmem_rsp_fault;
+              if (mem_opcode_q == OPC_LL48_24) begin
+                commit_reservation_clear_if_valid();
+              end
               retire_sequence_q <= retire_sequence_q + 64'd1;
               state_q <= ST_FETCH_REQ;
-            end else if (mem_opcode_q == OPC_LD48_24) begin
+            end else if (mem_opcode_q == OPC_LD48_24 || mem_opcode_q == OPC_LL48_24) begin
               start_pending_packet();
               commit_integer_write(mem_integer_index_q, {dmem_rsp_rdata[1], dmem_rsp_rdata[0]});
+              if (mem_opcode_q == OPC_LL48_24) begin
+                commit_reservation_install(mem_address_q, mem_translation_memory_type_q);
+              end
               advance_pc(mem_size_bits_q);
               retire_sequence_q <= retire_sequence_q + 64'd1;
               state_q <= ST_FETCH_REQ;
@@ -1673,9 +1875,16 @@ module cpu_v01_core #(
               retire_packet_q.memory_effect_address <= mem_address_q;
               retire_packet_q.tag_write_valid <= 1'b1;
               retire_packet_q.tag_write_value <= tagmem_req_wtag;
-              if (mem_opcode_q == OPC_ST48_24) begin
+              if (mem_opcode_q == OPC_ST48_24 || mem_opcode_q == OPC_SC48_24) begin
                 retire_packet_q.memory_effect_kind <= MEM_EFFECT_ST48;
                 retire_packet_q.memory_integer_value <= mem_integer_value_q;
+                if (mem_opcode_q == OPC_SC48_24) begin
+                  commit_integer_write(mem_integer_index_q, 48'd0);
+                  retire_packet_q.sc_success <= 1'b1;
+                  commit_reservation_clear_at(mem_address_q, mem_translation_memory_type_q);
+                end else if (reservation_overlaps(mem_address_q, addr_t'(INTEGER_OBJECT_CELLS))) begin
+                  commit_reservation_clear_if_valid();
+                end
               end else begin
                 retire_packet_q.memory_effect_kind <= MEM_EFFECT_CSC;
                 retire_packet_q.memory_capability_value <= mem_capability_value_q;

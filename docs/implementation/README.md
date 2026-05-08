@@ -74,3 +74,4 @@ Current platform binding:
 - `docs/implementation/rtl-integrated-core-cap-mem.md`: I22-S04 integrated capability derivation, data-memory, and tag-memory retire effects in `cpu_v01_core`.
 - `docs/implementation/rtl-integrated-core-control-trap.md`: I22-S05 integrated call, protected return-stack, syscall trap, trap-frame, and `IRET` retire effects in `cpu_v01_core`.
 - `docs/implementation/rtl-integrated-core-mmu-tlb.md`: I22-S06 integrated `SATP`/`ASID`, data translation, local TLB, `SFENCE.VM*`, and page-fault retire effects in `cpu_v01_core`.
+- `docs/implementation/rtl-integrated-core-atomic-cache.md`: I22-S07 integrated `LL48`/`SC48`, reservation, fence, and cache-maintenance retire effects in `cpu_v01_core`.
