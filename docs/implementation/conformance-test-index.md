@@ -204,3 +204,7 @@ table in the same change.
 | `src\cpu_v01\fpga_bringup.py` | `I23-S06` | `E11-S01`, `E12-S01`, `E15-S07`, `I23-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tools\fpga_bringup_runbook.py` | `I23-S06` | `E11-S01`, `E12-S01`, `E15-S07`, `I23-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i23_s06_fpga_board_bringup.py` | `I23-S06` | `E11-S01`, `E12-S01`, `E15-S07`, `I23-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `docs\implementation\fpga-board-identity.md` | `I24-S01` | `E11-S01`, `E12-S01`, `E15-S07`, `I23-S06` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `src\cpu_v01\fpga_board_identity.py` | `I24-S01` | `E11-S01`, `E12-S01`, `E15-S07`, `I23-S06` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tools\fpga_board_identity.py` | `I24-S01` | `E11-S01`, `E12-S01`, `E15-S07`, `I23-S06` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i24_s01_fpga_board_identity.py` | `I24-S01` | `E11-S01`, `E12-S01`, `E15-S07`, `I23-S06` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |

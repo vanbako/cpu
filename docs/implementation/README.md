@@ -82,3 +82,4 @@ Current platform binding:
 - `docs/implementation/fpga-smoke-firmware.md`: I23-S04 built-in PAUSE smoke firmware, pass/fail LED contract, heartbeat, retire count, and fault observation.
 - `docs/implementation/fpga-synthesis-gate.md`: I23-S05 Tang Mega 138K synthesis, place-route, timing, bitstream, and board-constraint gate profile.
 - `docs/implementation/fpga-board-bringup.md`: I23-S06 Tang Mega 138K programming, reset, observation, evidence, and documented-blocker runbook.
+- `docs/implementation/fpga-board-identity.md`: I24-S01 Tang Mega 138K physical device/package identity evidence gate and blocker profile.

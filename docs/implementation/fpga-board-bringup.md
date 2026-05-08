@@ -122,7 +122,9 @@ locked.
 ## Current Blocker
 
 - Physical Tang Mega 138K device/package scan has not been captured in this
-  repository.
+  repository. I24-S01 tracks this through
+  `docs/implementation/fpga-board-identity.md` and
+  `python tools\fpga_board_identity.py --check`.
 - Verified Tang Mega 138K CST pin overlay for `board_clk_i`,
   `board_reset_n_i`, `pass_led_o`, `fail_led_o`, and `heartbeat_led_o` is
   still pending.

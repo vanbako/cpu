@@ -64,6 +64,12 @@ Implementation principles:
 | I21 | P1 | Single-core RTL semantic closure. | Expand the first RTL slice to mandatory single-core instruction, trap, MMU, atomic, and differential-gate coverage. |
 | I22 | P1 | Integrated single-core RTL core. | Replace fixture-only RTL slices with a real `cpu_v01_core` top level that runs golden programs through fetch, decode, execute, memory, trap, and retire paths. |
 | I23 | P1 | FPGA first-test bring-up. | Wrap the integrated single-core RTL for a first FPGA smoke test with BRAM-backed memories, a tiny visible pass/fail program, synthesis constraints, and board bring-up evidence. |
+| I24 | P1 | Tang Mega 138K physical build bring-up. | Verified device/package, CST/SDC overlay, Gowin reports, bitstream, SRAM programming log, and first board pass/fail/heartbeat evidence. |
+| I25 | P1 | FPGA debug and observability. | UART or GAO/ILA status path for retire count, fault code, PC/slot, reset state, and replayable failure evidence. |
+| I26 | P1 | Loadable FPGA program images. | Repeatable FPGA ROM/RAM/tag image generation and a board-safe path to run more than one smoke program. |
+| I27 | P1 | Minimal FPGA SoC shell. | UART, timer, GPIO/status, simple MMIO map, interrupt path, and firmware-visible platform profile around the CPU. |
+| I28 | P1 | FPGA timing and reset hardening. | Clock/PLL profiles, reset/CDC audit, automated timing-report parser, and conservative debug/release build gates. |
+| I29 | P2 | External memory bring-up. | DDR/external-memory boundary, calibration visibility, memory-test firmware, and cache/tag policy evidence for off-BRAM execution. |
 
 ## First Vertical Slice
 
@@ -180,6 +186,36 @@ Explicitly excluded from the first slice:
 | I23-S04 | P1 | M | I23-S03, I14-S01, I17-S04, I22-S03 | Build first FPGA smoke firmware and observation signals. | A tiny firmware case retires deterministic instructions, reaches a pass/fail status visible on LED/UART/ILA probes, and exposes retire/fault heartbeat signals. |
 | I23-S05 | P1 | L | I23-S04, I20-S04, I22-S08, E13-S01 | Add synthesis, implementation, and timing gates for the first-test design. | A scripted FPGA synth/place/route flow builds the first-test design, reports utilization/timing, and fails on unconstrained clocks/resets or black boxes. |
 | I23-S06 | P1 | M | I23-S05, E11-S01, E12-S01, E15-S07 | Document and execute the first board bring-up procedure. | The bring-up runbook covers programming, reset, expected observations, triage steps, and captured first-pass evidence from the board or documented blocker. |
+| I24-S01 | P1 | M | I23-S06, E15-S07 | Verify the physical Tang Mega 138K device, package, and toolchain target. | Board marking or programmer/JTAG scan records the actual FPGA device, package, and device version; target docs and build settings are updated if the board is not the assumed `GW5AST-LV138PG484A`/`PBG484A`. |
+| I24-S02 | P1 | L | I24-S01, I23-S05 | Create the verified Tang Mega 138K first-test CST/SDC overlay. | Constraints map `board_clk_i`, `board_reset_n_i`, `pass_led_o`, `fail_led_o`, `heartbeat_led_o`, IO standards, LED polarity, and clock period from verified board data. |
+| I24-S03 | P1 | L | I24-S02, I23-S05 | Run Gowin synthesis, place-route, bitstream, and report audit for the first-test design. | Timing, utilization, port assignment, synthesis, and `.fs` bitstream artifacts are captured; the audit fails on black boxes, unconstrained paths, negative slack, or missing status pins. |
+| I24-S04 | P1 | M | I24-S03, I23-S06 | Program SRAM and capture first pass/fail/heartbeat board evidence. | Programming log, reset observation, LED or probe capture, and pass/fail/heartbeat result are recorded with the exact bitstream and board identity. |
+| I24-S05 | P1 | M | I24-S04 | Archive first-board evidence and close or file bring-up blockers. | A first-board evidence note links the scan, reports, bitstream, programming log, observation capture, and any residual defects or retest steps. |
+| I25-S01 | P1 | M | I23-S04, I24-S04, E12-S01 | Define a compact FPGA debug/status packet. | Status fields cover reset state, PC/slot, retire count, fault code, trap cause, pass/fail state, and build identity without changing architectural retire behavior. |
+| I25-S02 | P1 | L | I25-S01, I24-S04, I23-S02 | Add a UART status streamer for board bring-up. | The FPGA top can stream status packets over UART at a documented baud rate; simulation and board procedures show expected idle, pass, and fault packets. |
+| I25-S03 | P1 | M | I25-S01, I24-S02 | Add optional GAO/ILA probe bundles for first-failure capture. | Probe definitions expose clock/reset, PC/slot, retire count, fault code, pass/fail/heartbeat, and key memory handshakes without perturbing the release build. |
+| I25-S04 | P1 | M | I25-S02, I22-S08, I23-S06 | Map board failure captures back to Verilator replay cases. | A captured fault/status record can select the nearest `core.*` or golden case, print replay commands, and preserve first-mismatch diagnostics. |
+| I25-S05 | P1 | M | I25-S02, I25-S03, I24-S05 | Add a debug-evidence gate to the FPGA bring-up runbook. | The runbook requires UART or ILA evidence for nontrivial failures and distinguishes clock/reset failures from firmware, memory, trap, and translation failures. |
+| I26-S01 | P1 | M | I17-S04, I23-S03 | Define the FPGA program-image manifest. | Manifest entries bind assembler/linker fixtures to instruction ROM, data RAM, tag RAM, entry capability, image hash, and expected board observations. |
+| I26-S02 | P1 | L | I26-S01, I23-S04 | Generate FPGA BRAM initialization images from toolchain fixtures. | ROM/RAM/tag `.mem` artifacts are produced deterministically from selected fixtures and checked against simulator-visible expected cells and tags. |
+| I26-S03 | P1 | M | I26-S02, I24-S03 | Document and automate the bitstream rebuild or memory-update path for changed programs. | The flow names which artifacts require Gowin rebuild, which can be updated in-place if supported, and how image identity is recorded in reports and board evidence. |
+| I26-S04 | P1 | L | I25-S02, I27-S02 | Add a board-safe UART or JTAG-assisted program load path. | A loader can install a bounded RAM image, reject malformed images, preserve tag policy, and report success/failure over the debug/status path. |
+| I26-S05 | P1 | M | I26-S02, I25-S04 | Publish an FPGA smoke-program corpus. | Multiple small programs cover reset pass, scalar/control, capability memory, trap/syscall, translation fault, and failure-path observations with expected UART/LED/probe signatures. |
+| I27-S01 | P1 | M | I23-S01, I24-S05, E11-S01 | Define the minimal FPGA SoC platform profile and MMIO map. | The platform profile assigns UART, timer, GPIO/status, interrupt pending/enable, reset cause, and image identity registers without conflicting with existing memory regions. |
+| I27-S02 | P1 | L | I27-S01, I25-S01 | Integrate a simple UART TX/RX MMIO peripheral. | Firmware can transmit status text/packets and optionally receive bounded commands through documented MMIO registers with simulation and FPGA wrapper checks. |
+| I27-S03 | P1 | L | I27-S01, I14-S02, I22-S05 | Add a timer and interrupt source for FPGA firmware. | The timer can raise an interrupt, be acknowledged by firmware, and produce visible or UART-confirmed handler progress without breaking first-test pass/fail behavior. |
+| I27-S04 | P1 | M | I27-S01, I23-S04 | Add GPIO/status MMIO registers for LEDs, reset cause, and board diagnostics. | Firmware-visible registers drive pass/fail/heartbeat/status outputs and expose reset/build diagnostics for the bring-up runbook. |
+| I27-S05 | P1 | L | I27-S02, I27-S03, I27-S04, I18-S03 | Run a minimal firmware/kernel smoke on the FPGA SoC shell. | A board or documented-blocker run shows UART output, timer interrupt handling, syscall/trap path progress, and GPIO pass/fail evidence. |
+| I28-S01 | P1 | M | I24-S03 | Define clock, PLL, and build-frequency profiles for the FPGA target. | Debug and release clock profiles name source clocks, PLL settings, generated clocks, SDC constraints, and expected timing margins. |
+| I28-S02 | P1 | L | I28-S01, I23-S02 | Audit reset and clock-domain crossings in the FPGA wrapper and debug paths. | Async inputs, reset synchronizers, UART/debug crossings, and generated-clock domains are documented and checked by focused RTL or lint assertions. |
+| I28-S03 | P1 | L | I24-S03, I28-S01 | Implement an automated Gowin timing/report parser. | The parser extracts slack, utilization, unconstrained paths, ports, warnings, bitstream identity, and clock summary; CI-style checks fail on policy violations. |
+| I28-S04 | P1 | M | I28-S03 | Track maximum passing first-test clock and select conservative board defaults. | Frequency sweep results or documented blockers identify the highest passing build and the lower default clock used for bring-up and debug. |
+| I28-S05 | P1 | M | I28-S02, I28-S03 | Publish a reproducible FPGA build profile. | Tool version, device/package, constraints, Tcl, reports, bitstream hash, and board evidence are captured so another machine can reproduce the build. |
+| I29-S01 | P2 | M | I27-S01, E10-S03, E10-S05 | Define the external-memory attachment and DDR bring-up boundary. | The profile separates DDR controller signals, calibration status, memory window, cacheability, tag policy, and CPU-owned fault behavior from board-specific IP details. |
+| I29-S02 | P2 | XL | I29-S01, I28-S02 | Integrate the DDR controller wrapper and calibration visibility. | The FPGA shell exposes calibration done/error state, gates CPU access until ready, and fails visibly or through UART when calibration does not complete. |
+| I29-S03 | P2 | L | I29-S02, I26-S05 | Add external-memory test firmware. | Walking pattern, address-line, burst, alignment, and fault-injection tests run from BRAM while exercising DDR as data memory and reporting progress over debug/status output. |
+| I29-S04 | P2 | L | I29-S02, I06-S04, I15-S02 | Define cache, ordering, and capability-tag policy for external memory. | Litmus and firmware fixtures prove the selected memory type, cache-maintenance requirements, and tag-clearing/non-forgery behavior for off-BRAM accesses. |
+| I29-S05 | P2 | XL | I29-S03, I29-S04, I28-S05 | Capture first external-memory FPGA evidence. | Board evidence shows DDR calibration, memory-test pass/fail, timing reports, debug/status output, and any remaining external-memory blockers. |
 
 ## RTL Readiness Slice
 
@@ -239,6 +275,44 @@ observation signals, synthesis/timing gate, then a board bring-up runbook with
 captured evidence. Full SoC peripherals, multicore execution, fabric links,
 cache hierarchy tuning, and long-running software workloads remain outside
 I23.
+
+I24 should follow I23 by removing the documented board blocker. The order is
+physical device/package confirmation, verified CST/SDC overlay, Gowin
+synthesis/place-route/report capture, SRAM programming with pass/fail evidence,
+then an archived evidence bundle that closes or files every residual blocker.
+It should avoid adding new peripherals; the goal is a trustworthy first board
+pass of the existing I23 smoke design.
+
+I25 should add observability before the FPGA target becomes more complex. The
+order is compact status-packet definition, UART status streaming, optional
+GAO/ILA probes, replay mapping back to Verilator cases, then a bring-up
+evidence gate that makes board failures diagnosable. It should not depend on
+DDR, a full SoC, or long-running firmware.
+
+I26 should make FPGA software iteration repeatable. The order is an FPGA image
+manifest, deterministic BRAM image generation from toolchain fixtures,
+documented bitstream rebuild or memory-update flow, optional UART/JTAG-assisted
+loading, then a small corpus of board smoke programs with expected
+observations. It should preserve the existing architectural tag rules instead
+of inventing a separate FPGA-only image format.
+
+I27 should wrap the CPU in the smallest useful FPGA SoC shell after the first
+board pass and debug path exist. The order is MMIO/platform profile, UART,
+timer interrupt, GPIO/status registers, then a minimal firmware/kernel smoke.
+It remains a single-core board platform; fabric links, DDR, and cache hierarchy
+work stay outside I27.
+
+I28 should harden the board build so later FPGA stories are repeatable. The
+order is clock/PLL profiles, reset and CDC audit, automated Gowin report
+parsing, frequency-margin tracking, then a reproducible build profile. It
+should fail loudly on unconstrained paths, unsafe reset crossings, negative
+slack, or mismatched bitstream/report evidence.
+
+I29 should only start after BRAM execution, debug, and timing gates are stable.
+The order is external-memory boundary definition, DDR controller/calibration
+wrapper, memory-test firmware, cache/order/tag policy, then first external
+memory board evidence. It is intentionally P2 because DDR failures are expensive
+to debug without I24-I28 in place.
 
 ## Near-term Sprint Plan
 
