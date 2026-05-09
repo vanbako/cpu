@@ -104,8 +104,10 @@ probe definitions. Use `docs/implementation/fpga-replay-mapper.md` and
 to Verilator replay mapping. Use
 `docs/implementation/fpga-debug-evidence-gate.md` and
 `python tools\fpga_debug_evidence.py --check` before changing failure evidence
-closure rules. Keep the device/package
-verification note in
+closure rules. Use `docs/implementation/fpga-program-image-manifest.md` and
+`python tools\fpga_program_manifest.py --check` before adding FPGA `.mem`
+generation, bitstream memory updates, or multi-program smoke images. Keep the
+device/package verification note in
 `docs/implementation/fpga-first-test-plan.md` and the evidence contract in
 `docs/implementation/fpga-board-bringup.md` in mind before claiming a board
 pass.

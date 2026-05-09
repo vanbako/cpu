@@ -249,3 +249,7 @@ table in the same change.
 | `src\cpu_v01\fpga_debug_evidence.py` | `I25-S05` | `E12-S01`, `E15-S07`, `I24-S05`, `I25-S02`, `I25-S03`, `I25-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tools\fpga_debug_evidence.py` | `I25-S05` | `E12-S01`, `E15-S07`, `I24-S05`, `I25-S02`, `I25-S03`, `I25-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i25_s05_fpga_debug_evidence.py` | `I25-S05` | `E12-S01`, `E15-S07`, `I24-S05`, `I25-S02`, `I25-S03`, `I25-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `docs\implementation\fpga-program-image-manifest.md` | `I26-S01` | `E11-S01`, `E11-S02`, `E14-S02`, `I17-S04`, `I23-S03` | `E15-S03`, `E15-S05`, `E15-S06`, `E15-S07` |
+| `src\cpu_v01\fpga_program_manifest.py` | `I26-S01` | `E11-S01`, `E11-S02`, `E14-S02`, `I17-S04`, `I23-S03` | `E15-S03`, `E15-S05`, `E15-S06`, `E15-S07` |
+| `tools\fpga_program_manifest.py` | `I26-S01` | `E11-S01`, `E11-S02`, `E14-S02`, `I17-S04`, `I23-S03` | `E15-S03`, `E15-S05`, `E15-S06`, `E15-S07` |
+| `tests\conformance\test_i26_s01_fpga_program_manifest.py` | `I26-S01` | `E11-S01`, `E11-S02`, `E14-S02`, `I17-S04`, `I23-S03` | `E15-S03`, `E15-S05`, `E15-S06`, `E15-S07` |
