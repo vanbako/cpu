@@ -98,3 +98,4 @@ Current platform binding:
 - `docs/implementation/fpga-smoke-program-corpus.md`: I26-S05 multi-program smoke corpus with image readiness, replay targets, and LED/UART/probe signatures.
 - `docs/implementation/fpga-soc-platform.md`: I27-S01 minimal FPGA SoC MMIO map for UART, timer, GPIO/status, interrupts, reset cause, and image identity.
 - `docs/implementation/fpga-uart-mmio.md`: I27-S02 firmware-visible UART TX/RX MMIO peripheral, bounded FIFOs, interrupt lines, and standalone RTL wrapper simulation.
+- `docs/implementation/fpga-timer-mmio.md`: I27-S03 firmware-visible timer MMIO peripheral, compare interrupt source, acknowledgement, and standalone RTL wrapper simulation.

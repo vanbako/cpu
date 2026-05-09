@@ -275,3 +275,9 @@ table in the same change.
 | `src\cpu_v01\fpga_uart_mmio.py` | `I27-S02` | `E11-S01`, `I25-S01`, `I27-S01` | `E15-S03`, `E15-S05`, `E15-S07` |
 | `tools\fpga_uart_mmio.py` | `I27-S02` | `E11-S01`, `I25-S01`, `I27-S01` | `E15-S03`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i27_s02_fpga_uart_mmio.py` | `I27-S02` | `E11-S01`, `I25-S01`, `I27-S01` | `E15-S03`, `E15-S05`, `E15-S07` |
+| `docs\implementation\fpga-timer-mmio.md` | `I27-S03` | `E11-S01`, `I14-S02`, `I22-S05`, `I27-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `rtl\cpu_v01_fpga_timer_mmio.sv` | `I27-S03` | `E11-S01`, `I14-S02`, `I22-S05`, `I27-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `rtl\cpu_v01_fpga_timer_mmio_tb.sv` | `I27-S03` | `E11-S01`, `I14-S02`, `I22-S05`, `I27-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `src\cpu_v01\fpga_timer_mmio.py` | `I27-S03` | `E11-S01`, `I14-S02`, `I22-S05`, `I27-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tools\fpga_timer_mmio.py` | `I27-S03` | `E11-S01`, `I14-S02`, `I22-S05`, `I27-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i27_s03_fpga_timer_mmio.py` | `I27-S03` | `E11-S01`, `I14-S02`, `I22-S05`, `I27-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
