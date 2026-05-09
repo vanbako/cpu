@@ -70,6 +70,10 @@ Implementation principles:
 | I27 | P1 | Minimal FPGA SoC shell. | UART, timer, GPIO/status, simple MMIO map, interrupt path, and firmware-visible platform profile around the CPU. |
 | I28 | P1 | FPGA timing and reset hardening. | Clock/PLL profiles, reset/CDC audit, automated timing-report parser, and conservative debug/release build gates. |
 | I29 | P2 | External memory bring-up. | DDR/external-memory boundary, calibration visibility, memory-test firmware, and cache/tag policy evidence for off-BRAM execution. |
+| I30 | P1 | FPGA SoC top-level integration closure. | Replace documented top-level blockers with a real data/MMIO decoder, wired UART/timer/GPIO/status paths, loader handoff, interrupts, and Verilator evidence. |
+| I31 | P1 | Board-proven first CPU pass. | Build, program, capture, replay, and archive the first physical integrated single-core CPU pass or a fully triaged blocker record. |
+| I32 | P1 | Interactive board loading and debug monitor. | Board-safe monitor commands for loading bounded images, starting/stopping programs, reading status, and preserving replayable debug evidence. |
+| I33 | P2 | Single-core v0.1 release candidate hardening. | Full regression, documentation traceability, reproducible artifacts, known-limitations freeze, and release-candidate evidence bundle. |
 
 ## First Vertical Slice
 
@@ -216,6 +220,30 @@ Explicitly excluded from the first slice:
 | I29-S03 | P2 | L | I29-S02, I26-S05 | Add external-memory test firmware. | Walking pattern, address-line, burst, alignment, and fault-injection tests run from BRAM while exercising DDR as data memory and reporting progress over debug/status output. |
 | I29-S04 | P2 | L | I29-S02, I06-S04, I15-S02 | Define cache, ordering, and capability-tag policy for external memory. | Litmus and firmware fixtures prove the selected memory type, cache-maintenance requirements, and tag-clearing/non-forgery behavior for off-BRAM accesses. |
 | I29-S05 | P2 | XL | I29-S03, I29-S04, I28-S05 | Capture first external-memory FPGA evidence. | Board evidence shows DDR calibration, memory-test pass/fail, timing reports, debug/status output, and any remaining external-memory blockers. |
+| I30-S01 | P1 | M | I27-S05, I26-S04, I25-S05 | Publish the FPGA SoC top-level closure plan. | A blocker matrix maps each current `cpu_v01_fpga_top` shortcut to its owning RTL change, testbench, validator, and board-evidence handoff. |
+| I30-S02 | P1 | XL | I30-S01, I27-S01, I23-S03 | Replace the direct data-RAM path with a top-level data/MMIO decoder. | CPU data requests route to BRAM, UART, timer, GPIO/status, system-identity, and reserved/fault windows with deterministic response/fault behavior. |
+| I30-S03 | P1 | L | I30-S02, I27-S02, I27-S03, I27-S04 | Wire UART, timer, GPIO/status, and interrupt lines into `cpu_v01_fpga_top`. | Top-level RTL exposes firmware-visible UART TX/RX, timer interrupt pending/acknowledge, GPIO/status LEDs, reset/build identity, and passes Verilator wrapper checks. |
+| I30-S04 | P1 | L | I30-S03, I25-S02, I26-S04 | Integrate the board-safe loader handoff into the SoC top. | Loader traffic is bounded, cannot overwrite protected/tag state outside its manifest, reports status over debug/UART, and cleanly arbitrates with firmware UART/status output. |
+| I30-S05 | P1 | XL | I30-S03, I18-S03, I27-S05 | Run a top-level SoC firmware smoke under Verilator. | The integrated top executes a firmware fixture that emits UART output, services a timer interrupt, exercises syscall/trap return, drives GPIO pass/fail, and preserves first-failure status. |
+| I30-S06 | P1 | M | I30-S05, I25-S04, I25-S05 | Archive SoC top integration closure evidence. | A closure record links RTL sources, Verilator logs, decoded UART/status or probe traces, replay mapping, remaining blockers, and retest commands. |
+| I31-S01 | P1 | M | I30-S06, I28-S05, I24-S01 | Prepare the first-pass board build evidence bundle. | The selected top, image, constraints, clock profile, loader status, and expected LED/UART/probe signatures are frozen before Gowin build. |
+| I31-S02 | P1 | L | I31-S01, I24-S02, I24-S03 | Run Gowin build and timing audit for the integrated SoC top. | Synthesis, place-route, timing, utilization, ports, warning policy, bitstream path, and bitstream hash are captured and fail on unconstrained or negative-slack results. |
+| I31-S03 | P1 | M | I31-S02, I24-S04 | Program SRAM and capture first integrated CPU observations. | Programming log, reset release, heartbeat, pass/fail, UART/status packets, and optional probe captures are recorded against the exact bitstream. |
+| I31-S04 | P1 | M | I31-S03, I25-S04, I25-S05 | Replay and classify any board failure capture. | Captured status selects a Verilator replay case, preserves the first mismatch, and classifies failures as clock/reset, memory, firmware, trap, translation, loader, or board integration. |
+| I31-S05 | P1 | M | I31-S03, I31-S04, I24-S05 | Archive first physical single-core CPU pass or blocker disposition. | Evidence links scan, reports, bitstream, programming, reset, LED/UART/probe, replay, pass/fail result, residual blockers, filed issues, and retest steps. |
+| I31-S06 | P1 | S | I31-S05 | Publish a board retest matrix. | A concise matrix names reproducible commands, required captures, known board assumptions, and exact criteria for rerunning or accepting the first CPU pass. |
+| I32-S01 | P1 | M | I26-S04, I30-S04 | Define the interactive monitor command and transport profile. | UART or JTAG commands cover hello, halt/resume, load-image, read-status, read-memory, write-memory where allowed, and error/status codes. |
+| I32-S02 | P1 | L | I32-S01, I14-S02, I25-S02 | Add ROM monitor and trap-shell firmware fixtures. | Monitor firmware can receive a bounded command stream, validate image metadata, report failures, and return to a safe idle or trap shell without corrupting architectural state. |
+| I32-S03 | P1 | L | I32-S02, I26-S02, I26-S05 | Load and execute multiple board-safe programs in one session. | A session installs at least two bounded images, verifies image hash/status, starts each program, and observes distinct pass/fail/debug signatures. |
+| I32-S04 | P1 | M | I32-S02, I09-S04, I25-S04 | Add debug snapshot and replay handoff for monitor sessions. | Monitor captures register, CSR/CCSR tag/slot, PC/slot, memory window, status packet, and nearest replay command without enabling tag forgery. |
+| I32-S05 | P1 | M | I32-S03, I17-S04, I26-S05 | Publish the interactive board program corpus. | The corpus covers scalar/control, capability memory, trap/syscall, loader rejection, and failure-path cases with manifest hashes and expected UART/probe observations. |
+| I32-S06 | P1 | M | I32-S05, I31-S05 | Capture an interactive multi-program board session. | Evidence shows loader connect, image load, run, pass/fail/status capture, snapshot or replay handoff, and any residual blockers or retest steps. |
+| I33-S01 | P2 | M | I31-S05, I32-S06 | Define the single-core v0.1 release-candidate checklist. | The checklist names required local checks, Verilator suites, FPGA evidence, docs, known limitations, and artifacts required before an RC tag. |
+| I33-S02 | P2 | L | I33-S01, I21-S05, I28-S05 | Run the full regression and artifact capture gate. | Full local checks, fast/slow Verilator suites, FPGA validators, reproducible-build metadata, and command logs are captured with no unexplained failures. |
+| I33-S03 | P2 | M | I33-S02, I01-S03, I12-S03 | Audit traceability from architecture stories to implementation artifacts. | Every implementation story, conformance test, litmus, RTL gate, and evidence note has indexed ownership, E15 coverage, and no stale references. |
+| I33-S04 | P2 | M | I33-S03 | Freeze known limitations and errata for the single-core release. | Unsupported features, board blockers, deferred multicore/fabric/DDR/cacheable-tag behavior, and any architecture errata are explicitly listed. |
+| I33-S05 | P2 | M | I33-S04 | Produce the reproducible release-candidate bundle. | The bundle records commit, tool versions, generated images, bitstream hashes, reports, evidence archives, docs, and rerun commands. |
+| I33-S06 | P2 | S | I33-S05 | Open the next backlog from release findings. | Remaining defects and deferred work are triaged into post-v0.1 implementation or architecture stories without silently changing the frozen v0.1 contract. |
 
 ## RTL Readiness Slice
 
@@ -313,6 +341,30 @@ The order is external-memory boundary definition, DDR controller/calibration
 wrapper, memory-test firmware, cache/order/tag policy, then first external
 memory board evidence. It is intentionally P2 because DDR failures are expensive
 to debug without I24-I28 in place.
+
+I30 should close the current top-level SoC blockers before another feature
+thread starts. The order is blocker matrix, data/MMIO decoder, UART/timer/GPIO
+and interrupt wiring, loader handoff, Verilator SoC smoke, then an evidence
+archive that proves the shortcuts were removed. It should not add new
+peripherals beyond the already defined minimal SoC profile.
+
+I31 should convert the simulated integrated CPU into a physical first-pass
+claim. The order is frozen build bundle, Gowin build/timing audit, SRAM
+programming and observations, replay/classification of any failure, archive of
+pass or blockers, then a retest matrix. It should avoid changing RTL behavior
+while collecting evidence unless the change is filed as a new story.
+
+I32 should make board iteration practical after first-pass evidence exists. The
+order is monitor command profile, ROM monitor/trap shell, multi-program
+load-and-run session, debug snapshot and replay handoff, interactive corpus,
+then board-session evidence. It must preserve capability tag policy and bounded
+image loading instead of becoming an unrestricted memory editor.
+
+I33 should turn the working single-core path into a release candidate. The
+order is release checklist, full regression/artifact capture, traceability
+audit, known-limitation freeze, reproducible bundle, then a next-backlog triage.
+It should document unsupported multicore, fabric, cacheable DDR, and future tag
+sidecar work rather than blending them into the v0.1 single-core claim.
 
 ## Near-term Sprint Plan
 
