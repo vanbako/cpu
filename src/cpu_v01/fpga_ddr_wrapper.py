@@ -22,6 +22,9 @@ FPGA_DDR_WRAPPER_TOOL = "python tools\\fpga_ddr_wrapper.py --check"
 FPGA_DDR_GATE_RTL = Path("rtl/cpu_v01_fpga_ddr_calibration_gate.sv")
 FPGA_DDR_GATE_TB = Path("rtl/cpu_v01_fpga_ddr_calibration_gate_tb.sv")
 FPGA_DDR_WRAPPER_STATUS = "rtl_calibration_gate_board_ip_blocked"
+FPGA_DDR_VERILATOR_MAKEFLAGS_PREFIX = (
+    "$env:MAKEFLAGS=\"PYTHON3=$((Get-Command python).Source.Replace('\\','/'))\"; "
+)
 
 
 @dataclass(frozen=True)
@@ -129,6 +132,12 @@ def fpga_ddr_wrapper_profile() -> FpgaDdrWrapperProfile:
             "verilator --lint-only --timing --top-module cpu_v01_fpga_ddr_calibration_gate_tb "
             "rtl/cpu_v01_pkg.sv rtl/cpu_v01_fpga_ddr_calibration_gate.sv "
             "rtl/cpu_v01_fpga_ddr_calibration_gate_tb.sv",
+            FPGA_DDR_VERILATOR_MAKEFLAGS_PREFIX
+            + "verilator --binary --timing --Mdir obj_dir\\ddr_gate "
+            "--top-module cpu_v01_fpga_ddr_calibration_gate_tb "
+            "rtl/cpu_v01_pkg.sv rtl/cpu_v01_fpga_ddr_calibration_gate.sv "
+            "rtl/cpu_v01_fpga_ddr_calibration_gate_tb.sv",
+            "obj_dir\\ddr_gate\\Vcpu_v01_fpga_ddr_calibration_gate_tb.exe",
         ),
         visibility_signals=_visibility_signals(),
         gate_rules=_gate_rules(),
@@ -385,6 +394,10 @@ def _validate_files(root: Path, profile: FpgaDdrWrapperProfile) -> tuple[str, ..
 
     if not profile.verilator_commands or "cpu_v01_fpga_ddr_calibration_gate_tb" not in profile.verilator_commands[0]:
         issues.append("DDR wrapper profile must name the calibration gate Verilator command")
+    if not any("MAKEFLAGS" in command and "PYTHON3" in command for command in profile.verilator_commands):
+        issues.append("DDR wrapper binary command must pass PYTHON3 through MAKEFLAGS")
+    if not any("--binary" in command and "--Mdir obj_dir\\ddr_gate" in command for command in profile.verilator_commands):
+        issues.append("DDR wrapper profile must name the fixed Verilator binary command")
 
     return tuple(issues)
 

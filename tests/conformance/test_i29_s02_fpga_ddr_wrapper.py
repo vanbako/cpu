@@ -46,6 +46,12 @@ class FpgaDdrWrapperTests(unittest.TestCase):
         self.assertTrue(
             any("cpu_v01_fpga_ddr_calibration_gate_tb" in command for command in profile.verilator_commands)
         )
+        self.assertTrue(any("MAKEFLAGS" in command and "PYTHON3" in command for command in profile.verilator_commands))
+        self.assertTrue(any("--binary" in command and "--Mdir obj_dir\\ddr_gate" in command for command in profile.verilator_commands))
+        self.assertIn(
+            "obj_dir\\ddr_gate\\Vcpu_v01_fpga_ddr_calibration_gate_tb.exe",
+            profile.verilator_commands,
+        )
 
     def test_visibility_signals_cover_calibration_ready_timeout_and_visible_fail(self) -> None:
         profile = fpga_ddr_wrapper.fpga_ddr_wrapper_profile()

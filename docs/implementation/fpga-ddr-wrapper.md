@@ -19,11 +19,17 @@ python tools\fpga_external_memory.py --check
 python tools\fpga_reset_cdc.py --check
 ```
 
-Optional Verilator lint command:
+Optional Verilator commands:
 
 ```text
 verilator --lint-only --timing --top-module cpu_v01_fpga_ddr_calibration_gate_tb rtl/cpu_v01_pkg.sv rtl/cpu_v01_fpga_ddr_calibration_gate.sv rtl/cpu_v01_fpga_ddr_calibration_gate_tb.sv
+$env:MAKEFLAGS="PYTHON3=$((Get-Command python).Source.Replace('\','/'))"; verilator --binary --timing --Mdir obj_dir\ddr_gate --top-module cpu_v01_fpga_ddr_calibration_gate_tb rtl/cpu_v01_pkg.sv rtl/cpu_v01_fpga_ddr_calibration_gate.sv rtl/cpu_v01_fpga_ddr_calibration_gate_tb.sv
+obj_dir\ddr_gate\Vcpu_v01_fpga_ddr_calibration_gate_tb.exe
 ```
+
+The `MAKEFLAGS` prefix is required on this MSYS2 Verilator install because the
+Verilator make include otherwise invokes the blocked WindowsApps `python3`
+shim during `verilator_includer`.
 
 ## Scope
 

@@ -102,6 +102,7 @@ module cpu_v01_fpga_ddr_calibration_gate_tb;
       repeat (3) @(posedge clk);
       rst_n = 1'b1;
       @(posedge clk);
+      #1;
     end
   endtask
 
@@ -111,11 +112,19 @@ module cpu_v01_fpga_ddr_calibration_gate_tb;
       cpu_req_addr = addr;
       cpu_req_wdata = data;
       cpu_req_valid = 1'b1;
-      @(posedge clk);
+      #1;
       if (!cpu_req_ready) begin
         $fatal(1, "FPGA DDR calibration gate did not accept CPU request");
       end
+    end
+  endtask
+
+  task automatic accept_cpu_request();
+    begin
+      @(posedge clk);
+      #1;
       cpu_req_valid = 1'b0;
+      #1;
     end
   endtask
 
@@ -124,6 +133,7 @@ module cpu_v01_fpga_ddr_calibration_gate_tb;
     reset_dut();
 
     issue_cpu_request(1'b0, 48'h0000_0100_0000, 24'h000000);
+    #1;
     if (ctrl_req_valid) begin
       $fatal(1, "FPGA DDR calibration gate forwarded request before controller_ready");
     end
@@ -133,11 +143,14 @@ module cpu_v01_fpga_ddr_calibration_gate_tb;
     if (!status_access_gate_closed || status_controller_ready) begin
       $fatal(1, "FPGA DDR calibration gate status did not show a closed access gate");
     end
+    cpu_req_valid = 1'b0;
+    #1;
 
     reset_dut();
     init_in_progress = 1'b0;
     calibration_done = 1'b1;
     @(posedge clk);
+    #1;
     if (!status_controller_ready || status_access_gate_closed) begin
       $fatal(1, "FPGA DDR calibration gate did not expose controller_ready");
     end
@@ -145,24 +158,28 @@ module cpu_v01_fpga_ddr_calibration_gate_tb;
     if (!ctrl_req_valid || !ctrl_req_write || ctrl_req_addr != 48'h0000_0100_0048) begin
       $fatal(1, "FPGA DDR calibration gate did not forward ready CPU request");
     end
-    @(posedge clk);
+    accept_cpu_request();
     ctrl_rsp_rdata = 24'h123456;
     ctrl_rsp_valid = 1'b1;
-    @(posedge clk);
+    #1;
     if (!cpu_rsp_valid || cpu_rsp_fault.valid || cpu_rsp_rdata != 24'h123456) begin
       $fatal(1, "FPGA DDR calibration gate did not pass through controller response");
     end
+    @(posedge clk);
+    #1;
     ctrl_rsp_valid = 1'b0;
 
     issue_cpu_request(1'b0, 48'h0000_0100_0050, 24'h000000);
-    @(posedge clk);
+    accept_cpu_request();
     controller_error_code = 16'h00D0;
     ctrl_rsp_error = 1'b1;
     ctrl_rsp_valid = 1'b1;
-    @(posedge clk);
+    #1;
     if (!cpu_rsp_valid || !cpu_rsp_fault.valid || cpu_rsp_fault.tval != 48'h0000_0100_0050) begin
       $fatal(1, "FPGA DDR calibration gate did not convert controller error to CPU fault");
     end
+    @(posedge clk);
+    #1;
     if (!fail_visible || status_error_code != 16'h00D0) begin
       $fatal(1, "FPGA DDR calibration gate did not expose controller failure visibly");
     end
@@ -171,16 +188,19 @@ module cpu_v01_fpga_ddr_calibration_gate_tb;
 
     reset_dut();
     repeat (5) @(posedge clk);
+    #1;
     if (!status_timeout || !fail_visible || status_error_code != 16'h0001) begin
       $fatal(1, "FPGA DDR calibration gate did not fail visibly on calibration timeout");
     end
     reset_request = 1'b1;
     @(posedge clk);
+    #1;
     if (!controller_reset) begin
       $fatal(1, "FPGA DDR calibration gate did not forward reset_request");
     end
     reset_request = 1'b0;
     @(posedge clk);
+    #1;
     if (status_timeout || fail_visible) begin
       $fatal(1, "FPGA DDR calibration gate did not clear sticky status after reset_request");
     end
