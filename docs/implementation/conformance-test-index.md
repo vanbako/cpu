@@ -329,3 +329,7 @@ table in the same change.
 | `src\cpu_v01\fpga_external_memory_policy.py` | `I29-S04` | `E10-S03`, `E10-S05`, `I06-S04`, `I15-S02`, `I29-S01`, `I29-S02`, `I29-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tools\fpga_external_memory_policy.py` | `I29-S04` | `E10-S03`, `E10-S05`, `I06-S04`, `I15-S02`, `I29-S01`, `I29-S02`, `I29-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i29_s04_fpga_external_memory_policy.py` | `I29-S04` | `E10-S03`, `E10-S05`, `I06-S04`, `I15-S02`, `I29-S01`, `I29-S02`, `I29-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `docs\implementation\fpga-external-memory-evidence.md` | `I29-S05` | `E10-S03`, `E10-S05`, `I28-S05`, `I29-S03`, `I29-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `src\cpu_v01\fpga_external_memory_evidence.py` | `I29-S05` | `E10-S03`, `E10-S05`, `I28-S05`, `I29-S03`, `I29-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tools\fpga_external_memory_evidence.py` | `I29-S05` | `E10-S03`, `E10-S05`, `I28-S05`, `I29-S03`, `I29-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i29_s05_fpga_external_memory_evidence.py` | `I29-S05` | `E10-S03`, `E10-S05`, `I28-S05`, `I29-S03`, `I29-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
