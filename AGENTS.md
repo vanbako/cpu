@@ -112,8 +112,11 @@ generation, bitstream memory updates, or multi-program smoke images. Use
 formats, write paths, or manifest hash checks. Use
 `docs/implementation/fpga-image-update-flow.md` and
 `python tools\fpga_image_update_flow.py --check` before changing the Gowin
-rebuild, memory-update, image identity, or bitstream hash handoff. Keep the
-device/package verification note in
+rebuild, memory-update, image identity, or bitstream hash handoff. Use
+`docs/implementation/fpga-smoke-program-corpus.md` and
+`python tools\fpga_smoke_corpus.py --check` before changing multi-program
+smoke cases or expected LED/UART/probe signatures. Keep the device/package
+verification note in
 `docs/implementation/fpga-first-test-plan.md` and the evidence contract in
 `docs/implementation/fpga-board-bringup.md` in mind before claiming a board
 pass.

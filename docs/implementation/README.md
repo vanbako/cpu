@@ -95,3 +95,4 @@ Current platform binding:
 - `docs/implementation/fpga-program-image-manifest.md`: I26-S01 FPGA program-image manifest binding toolchain fixtures to ROM/RAM/tag BRAM images, entry capability, hashes, and expected observations.
 - `docs/implementation/fpga-bram-image-generation.md`: I26-S02 deterministic ROM/RAM/tag `.mem` renderer, explicit write/verify CLI, and manifest hash checks.
 - `docs/implementation/fpga-image-update-flow.md`: I26-S03 Gowin rebuild versus memory-update gate, image identity evidence, and bitstream hash handoff.
+- `docs/implementation/fpga-smoke-program-corpus.md`: I26-S05 multi-program smoke corpus with image readiness, replay targets, and LED/UART/probe signatures.

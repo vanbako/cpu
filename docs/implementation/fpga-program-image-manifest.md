@@ -72,6 +72,8 @@ entry.
 | Program ID | Source | Memory binding | Expected observation |
 | --- | --- | --- | --- |
 | `reset_smoke.reset_to_trap_fpga` | `reset_smoke.reset_to_trap_image` | `main` and `trap_handler` sections in `instruction_rom`; zero `data_ram`; clear `tag_ram`. | Retire progress through the main path and trap handler; syscall trap evidence captured by UART or GAO/ILA. |
+| `call_return.direct_call_ret_fpga` | `call_return.direct_call_ret_binary` | Packed CALL/RET text in `instruction_rom`; zero `data_ram`; clear `tag_ram`. | Control-flow progress when I26-S05 wraps it with a bounded pass/fail harness. |
+| `capability_memory.csc_clc_st48_ld48_fpga` | `capability_memory.csc_clc_st48_ld48_binary` | Capability memory text in `instruction_rom`; zero `data_ram`; clear `tag_ram`. | Capability/tag-memory progress when I26-S05 supplies the required register setup. |
 | `syscall_trap.sys_pause_iret_fpga` | `syscall_trap.sys_pause_iret_binary` | Packed SYS/PAUSE/IRET text in `instruction_rom`; zero `data_ram`; clear `tag_ram`. | `status_fault_code_o` captures the syscall trap cause until I26-S05 adds a trap-aware pass harness. |
 | `relocation.branch_call_data_fpga` | `relocation.branch_call_data_object` | Linked text in `instruction_rom`, linked data payload in `data_ram`, clear `tag_ram`. | `image_sha256` matches the selected manifest before Gowin rebuild or memory update; direct board execution waits for an I26-S05 harness because the corpus branch placement is not the FPGA reset address. |
 

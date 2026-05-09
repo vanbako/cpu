@@ -284,6 +284,8 @@ def fpga_program_manifest_profile() -> FpgaProgramManifestProfile:
         tag_format=FPGA_PROGRAM_TAG_FORMAT,
         entries=(
             _reset_smoke_entry(),
+            _call_return_entry(),
+            _capability_memory_entry(),
             _syscall_trap_entry(),
             _relocation_entry(),
         ),
@@ -518,6 +520,68 @@ def _syscall_trap_entry() -> FpgaProgramManifestEntry:
         notes=(
             "The entry is intentionally not a first-board pass program yet.",
             "It exists so I26-S02 has a deterministic trap image to generate.",
+        ),
+    )
+
+
+def _call_return_entry() -> FpgaProgramManifestEntry:
+    case_id = "call_return.direct_call_ret_binary"
+    section = _binary_sections_by_name(case_id)["text"]
+    return FpgaProgramManifestEntry(
+        program_id="call_return.direct_call_ret_fpga",
+        source_case_id=case_id,
+        description="Direct CALL/RET control-flow binary fixture for FPGA smoke corpus use.",
+        board_run_class="control_flow_harness_required",
+        entry_capability=_entry_capability(),
+        sections=(
+            _section_from_binary(case_id, section, "instruction_rom", platform.RESET_VECTOR),
+        ),
+        expected_observations=(
+            FpgaProgramExpectedObservation(
+                "status_retire_count_o",
+                "shows CALL/RET progress when wrapped by a pass/fail harness",
+                "UART status packet or GAO/ILA retire capture",
+            ),
+            FpgaProgramExpectedObservation(
+                "status_fault_code_o",
+                "stays zero for the bounded control-flow harness",
+                "I26-S05 corpus observation record",
+            ),
+        ),
+        notes=(
+            "The raw fixture is a corpus image, not a standalone board pass program.",
+            "I26-S05 owns the expected control-flow observation signature.",
+        ),
+    )
+
+
+def _capability_memory_entry() -> FpgaProgramManifestEntry:
+    case_id = "capability_memory.csc_clc_st48_ld48_binary"
+    section = _binary_sections_by_name(case_id)["text"]
+    return FpgaProgramManifestEntry(
+        program_id="capability_memory.csc_clc_st48_ld48_fpga",
+        source_case_id=case_id,
+        description="Capability memory transfer and integer tag-clear binary fixture.",
+        board_run_class="capability_register_setup_required",
+        entry_capability=_entry_capability(),
+        sections=(
+            _section_from_binary(case_id, section, "instruction_rom", platform.RESET_VECTOR),
+        ),
+        expected_observations=(
+            FpgaProgramExpectedObservation(
+                "status_fault_code_o",
+                "stays zero only when the harness installs the expected capability registers",
+                "UART status packet or GAO/ILA fault capture",
+            ),
+            FpgaProgramExpectedObservation(
+                "tag_ram",
+                "starts clear and later shows CSC/tag-clear effects through probes or replay",
+                "I26-S05 corpus observation record",
+            ),
+        ),
+        notes=(
+            "The generated tag image remains clear; runtime CSC is responsible for valid tag creation.",
+            "The harness must install source capabilities before this becomes a board pass program.",
         ),
     )
 

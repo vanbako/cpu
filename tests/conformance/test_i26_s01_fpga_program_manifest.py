@@ -49,6 +49,8 @@ class FpgaProgramManifestTests(unittest.TestCase):
             {entry.program_id for entry in profile.entries},
             {
                 "reset_smoke.reset_to_trap_fpga",
+                "call_return.direct_call_ret_fpga",
+                "capability_memory.csc_clc_st48_ld48_fpga",
                 "syscall_trap.sys_pause_iret_fpga",
                 "relocation.branch_call_data_fpga",
             },
