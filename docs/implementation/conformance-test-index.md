@@ -253,3 +253,7 @@ table in the same change.
 | `src\cpu_v01\fpga_program_manifest.py` | `I26-S01` | `E11-S01`, `E11-S02`, `E14-S02`, `I17-S04`, `I23-S03` | `E15-S03`, `E15-S05`, `E15-S06`, `E15-S07` |
 | `tools\fpga_program_manifest.py` | `I26-S01` | `E11-S01`, `E11-S02`, `E14-S02`, `I17-S04`, `I23-S03` | `E15-S03`, `E15-S05`, `E15-S06`, `E15-S07` |
 | `tests\conformance\test_i26_s01_fpga_program_manifest.py` | `I26-S01` | `E11-S01`, `E11-S02`, `E14-S02`, `I17-S04`, `I23-S03` | `E15-S03`, `E15-S05`, `E15-S06`, `E15-S07` |
+| `docs\implementation\fpga-bram-image-generation.md` | `I26-S02` | `E11-S01`, `E11-S02`, `E14-S02`, `I23-S04`, `I26-S01` | `E15-S03`, `E15-S05`, `E15-S06`, `E15-S07` |
+| `src\cpu_v01\fpga_bram_images.py` | `I26-S02` | `E11-S01`, `E11-S02`, `E14-S02`, `I23-S04`, `I26-S01` | `E15-S03`, `E15-S05`, `E15-S06`, `E15-S07` |
+| `tools\fpga_bram_images.py` | `I26-S02` | `E11-S01`, `E11-S02`, `E14-S02`, `I23-S04`, `I26-S01` | `E15-S03`, `E15-S05`, `E15-S06`, `E15-S07` |
+| `tests\conformance\test_i26_s02_fpga_bram_images.py` | `I26-S02` | `E11-S01`, `E11-S02`, `E14-S02`, `I23-S04`, `I26-S01` | `E15-S03`, `E15-S05`, `E15-S06`, `E15-S07` |

@@ -106,8 +106,11 @@ to Verilator replay mapping. Use
 `python tools\fpga_debug_evidence.py --check` before changing failure evidence
 closure rules. Use `docs/implementation/fpga-program-image-manifest.md` and
 `python tools\fpga_program_manifest.py --check` before adding FPGA `.mem`
-generation, bitstream memory updates, or multi-program smoke images. Keep the
-device/package verification note in
+generation, bitstream memory updates, or multi-program smoke images. Use
+`docs/implementation/fpga-bram-image-generation.md` and
+`python tools\fpga_bram_images.py --check` before changing generated BRAM image
+formats, write paths, or manifest hash checks. Keep the device/package
+verification note in
 `docs/implementation/fpga-first-test-plan.md` and the evidence contract in
 `docs/implementation/fpga-board-bringup.md` in mind before claiming a board
 pass.
