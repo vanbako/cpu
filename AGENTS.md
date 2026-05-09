@@ -119,7 +119,10 @@ smoke cases or expected LED/UART/probe signatures. Use
 `docs/implementation/fpga-soc-platform.md` and
 `python tools\fpga_soc_platform.py --check` before changing FPGA SoC MMIO
 addresses, interrupt lines, reset-cause registers, or image-identity registers.
-Keep the device/package verification note in
+Use `docs/implementation/fpga-uart-mmio.md` and
+`python tools\fpga_uart_mmio.py --check` before changing firmware-visible UART
+MMIO registers, bounded TX/RX FIFO behavior, or the future SoC-shell UART pin
+arbitration. Keep the device/package verification note in
 `docs/implementation/fpga-first-test-plan.md` and the evidence contract in
 `docs/implementation/fpga-board-bringup.md` in mind before claiming a board
 pass.

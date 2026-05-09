@@ -347,7 +347,7 @@ def _uart_peripheral() -> FpgaSocPeripheral:
             FpgaSocRegister("UART_RXDATA", 0x01, 8, "ro", 0, "Read low byte from receive FIFO."),
             FpgaSocRegister("UART_STATUS", 0x02, 8, "ro", 0x01, "TX ready, RX valid, overrun, and frame error bits."),
             FpgaSocRegister("UART_CONTROL", 0x03, 8, "rw", 0, "Enable TX/RX interrupts and clear sticky errors."),
-            FpgaSocRegister("UART_BAUD_DIV", 0x04, 32, "rw", 0, "Board-clock baud-rate divisor selected by firmware."),
+            FpgaSocRegister("UART_BAUD_DIV", 0x04, 24, "rw", 0, "Board-clock baud-rate divisor selected by firmware."),
         ),
     )
 

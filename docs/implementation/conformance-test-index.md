@@ -269,3 +269,9 @@ table in the same change.
 | `src\cpu_v01\fpga_soc_platform.py` | `I27-S01` | `E11-S01`, `I23-S01`, `I24-S05` | `E15-S03`, `E15-S05`, `E15-S07` |
 | `tools\fpga_soc_platform.py` | `I27-S01` | `E11-S01`, `I23-S01`, `I24-S05` | `E15-S03`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i27_s01_fpga_soc_platform.py` | `I27-S01` | `E11-S01`, `I23-S01`, `I24-S05` | `E15-S03`, `E15-S05`, `E15-S07` |
+| `docs\implementation\fpga-uart-mmio.md` | `I27-S02` | `E11-S01`, `I25-S01`, `I27-S01` | `E15-S03`, `E15-S05`, `E15-S07` |
+| `rtl\cpu_v01_fpga_uart_mmio.sv` | `I27-S02` | `E11-S01`, `I25-S01`, `I27-S01` | `E15-S03`, `E15-S05`, `E15-S07` |
+| `rtl\cpu_v01_fpga_uart_mmio_tb.sv` | `I27-S02` | `E11-S01`, `I25-S01`, `I27-S01` | `E15-S03`, `E15-S05`, `E15-S07` |
+| `src\cpu_v01\fpga_uart_mmio.py` | `I27-S02` | `E11-S01`, `I25-S01`, `I27-S01` | `E15-S03`, `E15-S05`, `E15-S07` |
+| `tools\fpga_uart_mmio.py` | `I27-S02` | `E11-S01`, `I25-S01`, `I27-S01` | `E15-S03`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i27_s02_fpga_uart_mmio.py` | `I27-S02` | `E11-S01`, `I25-S01`, `I27-S01` | `E15-S03`, `E15-S05`, `E15-S07` |

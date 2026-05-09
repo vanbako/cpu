@@ -74,7 +74,7 @@ class FpgaSocPlatformTests(unittest.TestCase):
         uart = profile.peripheral_by_name("uart")
         self.assertEqual(uart.register_by_name("UART_TXDATA").access, "wo")
         self.assertEqual(uart.register_by_name("UART_RXDATA").access, "ro")
-        self.assertEqual(uart.register_by_name("UART_BAUD_DIV").width_bits, 32)
+        self.assertEqual(uart.register_by_name("UART_BAUD_DIV").width_bits, 24)
         self.assertIn("uart_rx_ready", uart.interrupt_lines)
 
         timer = profile.peripheral_by_name("timer")
