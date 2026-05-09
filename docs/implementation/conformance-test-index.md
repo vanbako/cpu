@@ -311,3 +311,7 @@ table in the same change.
 | `src\cpu_v01\fpga_reproducible_build.py` | `I28-S05` | `E11-S01`, `I24-S03`, `I24-S05`, `I28-S02`, `I28-S03`, `I28-S04` | `E15-S03`, `E15-S05`, `E15-S07` |
 | `tools\fpga_reproducible_build.py` | `I28-S05` | `E11-S01`, `I24-S03`, `I24-S05`, `I28-S02`, `I28-S03`, `I28-S04` | `E15-S03`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i28_s05_fpga_reproducible_build.py` | `I28-S05` | `E11-S01`, `I24-S03`, `I24-S05`, `I28-S02`, `I28-S03`, `I28-S04` | `E15-S03`, `E15-S05`, `E15-S07` |
+| `docs\implementation\fpga-external-memory.md` | `I29-S01` | `E10-S03`, `E10-S05`, `I06-S04`, `I19-S03`, `I27-S01`, `I28-S05` | `E15-S03`, `E15-S05`, `E15-S07` |
+| `src\cpu_v01\fpga_external_memory.py` | `I29-S01` | `E10-S03`, `E10-S05`, `I06-S04`, `I19-S03`, `I27-S01`, `I28-S05` | `E15-S03`, `E15-S05`, `E15-S07` |
+| `tools\fpga_external_memory.py` | `I29-S01` | `E10-S03`, `E10-S05`, `I06-S04`, `I19-S03`, `I27-S01`, `I28-S05` | `E15-S03`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i29_s01_fpga_external_memory.py` | `I29-S01` | `E10-S03`, `E10-S05`, `I06-S04`, `I19-S03`, `I27-S01`, `I28-S05` | `E15-S03`, `E15-S05`, `E15-S07` |

@@ -147,7 +147,11 @@ sweep evidence, maximum passing clock tracking, or conservative debug/release
 clock defaults. Use `docs/implementation/fpga-reproducible-build.md` and
 `python tools\fpga_reproducible_build.py --check` before changing reproducible
 FPGA build manifest fields, tool-version evidence, report/bitstream handoff,
-or board-evidence archive requirements. Keep the device/package verification
+or board-evidence archive requirements. Use
+`docs/implementation/fpga-external-memory.md` and
+`python tools\fpga_external_memory.py --check` before changing external-memory
+or DDR bring-up controller signals, calibration status, CPU-visible window,
+cacheability, tag policy, or CPU-owned fault behavior. Keep the device/package verification
 note in
 `docs/implementation/fpga-first-test-plan.md` and the evidence contract in
 `docs/implementation/fpga-board-bringup.md` in mind before claiming a board
