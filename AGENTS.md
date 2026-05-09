@@ -99,7 +99,9 @@ layout. Use `docs/implementation/fpga-uart-status-streamer.md` and
 transport around the status packet. Use
 `docs/implementation/fpga-probe-bundles.md` and
 `python tools\fpga_probe_bundles.py --check` before changing optional GAO/ILA
-probe definitions. Keep the device/package
+probe definitions. Use `docs/implementation/fpga-replay-mapper.md` and
+`python tools\fpga_replay_mapper.py --check` before changing captured-status
+to Verilator replay mapping. Keep the device/package
 verification note in
 `docs/implementation/fpga-first-test-plan.md` and the evidence contract in
 `docs/implementation/fpga-board-bringup.md` in mind before claiming a board

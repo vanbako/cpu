@@ -88,7 +88,9 @@ latest packet, and archive it with the failure evidence.
 3. Reset the board and capture several packets from `uart_tx_o`.
 4. Decode packet bytes with the I25-S01 layout and verify `idle_or_reset`,
    `first_pass`, or `failed` as appropriate.
-5. Preserve UART logs with the I25-S05 debug-evidence gate.
+5. Map failed packets with `python tools\fpga_replay_mapper.py --map-hex`
+   before filing the I25-S05 debug-evidence record.
+6. Preserve UART logs with the I25-S05 debug-evidence gate.
 
 ## Non-Interference
 

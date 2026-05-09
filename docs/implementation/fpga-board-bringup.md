@@ -116,7 +116,7 @@ locked.
 | `no_jtag_device` | USB cable/driver issue, board power missing, wrong programmer mode. | Verify power, try Gowin Programmer scan, and record scan failure as blocker. |
 | `programmer_rejects_device_or_package` | `PG484`/`FPG676` target mismatch, wrong Device Version B/C, stale CST/project. | Record the actual scan, update the target profile, and rerun I23-S05 before programming. |
 | `no_heartbeat` | `board_clk_i` not pinned, `board_reset_n_i` held active, PLL or clock constraint issue. | Probe clock/reset, inspect the port report, and rerun with reset held/released observations. |
-| `fail_led_asserted` | Smoke firmware trapped, memory image mismatch, tag RAM initialization mismatch. | Capture `status_fault_code_o`, capture `status_retire_count_o`, and replay the Verilator smoke. |
+| `fail_led_asserted` | Smoke firmware trapped, memory image mismatch, tag RAM initialization mismatch. | Capture `status_fault_code_o`, capture `status_retire_count_o`, map the packet with `python tools\fpga_replay_mapper.py --map-hex`, and replay the selected Verilator case. |
 | `pass_never_asserts` | ROM did not execute, retire path stalled, LED polarity inverted. | Check heartbeat, capture retire count, and verify LED polarity and ROM image. |
 | `timing_or_report_missing` | Gowin flow incomplete, report paths changed, negative timing slack. | Rerun report audit, fix the I23-S05 gate, and do not count board evidence. |
 
