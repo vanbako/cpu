@@ -261,6 +261,10 @@ table in the same change.
 | `src\cpu_v01\fpga_image_update_flow.py` | `I26-S03` | `E15-S07`, `I24-S03`, `I26-S02` | `E15-S03`, `E15-S05`, `E15-S06`, `E15-S07` |
 | `tools\fpga_image_update_flow.py` | `I26-S03` | `E15-S07`, `I24-S03`, `I26-S02` | `E15-S03`, `E15-S05`, `E15-S06`, `E15-S07` |
 | `tests\conformance\test_i26_s03_fpga_image_update_flow.py` | `I26-S03` | `E15-S07`, `I24-S03`, `I26-S02` | `E15-S03`, `E15-S05`, `E15-S06`, `E15-S07` |
+| `docs\implementation\fpga-program-loader.md` | `I26-S04` | `E11-S01`, `I25-S01`, `I25-S02`, `I26-S02`, `I27-S02` | `E15-S03`, `E15-S05`, `E15-S06`, `E15-S07` |
+| `src\cpu_v01\fpga_program_loader.py` | `I26-S04` | `E11-S01`, `I25-S01`, `I25-S02`, `I26-S02`, `I27-S02` | `E15-S03`, `E15-S05`, `E15-S06`, `E15-S07` |
+| `tools\fpga_program_loader.py` | `I26-S04` | `E11-S01`, `I25-S01`, `I25-S02`, `I26-S02`, `I27-S02` | `E15-S03`, `E15-S05`, `E15-S06`, `E15-S07` |
+| `tests\conformance\test_i26_s04_fpga_program_loader.py` | `I26-S04` | `E11-S01`, `I25-S01`, `I25-S02`, `I26-S02`, `I27-S02` | `E15-S03`, `E15-S05`, `E15-S06`, `E15-S07` |
 | `docs\implementation\fpga-smoke-program-corpus.md` | `I26-S05` | `E15-S07`, `I25-S04`, `I26-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `src\cpu_v01\fpga_smoke_corpus.py` | `I26-S05` | `E15-S07`, `I25-S04`, `I26-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tools\fpga_smoke_corpus.py` | `I26-S05` | `E15-S07`, `I25-S04`, `I26-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
