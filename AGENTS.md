@@ -141,7 +141,10 @@ generated-clock domains. Use
 `docs/implementation/fpga-gowin-report-parser.md` and
 `python tools\fpga_gowin_reports.py --check` before changing Gowin timing,
 utilization, port, warning, bitstream identity, or clock-summary parsing.
-Keep the device/package verification note in
+Use `docs/implementation/fpga-frequency-margin.md` and
+`python tools\fpga_frequency_margin.py --check` before changing frequency
+sweep evidence, maximum passing clock tracking, or conservative debug/release
+clock defaults. Keep the device/package verification note in
 `docs/implementation/fpga-first-test-plan.md` and the evidence contract in
 `docs/implementation/fpga-board-bringup.md` in mind before claiming a board
 pass.

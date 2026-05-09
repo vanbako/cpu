@@ -303,3 +303,7 @@ table in the same change.
 | `src\cpu_v01\fpga_gowin_reports.py` | `I28-S03` | `E11-S01`, `I24-S03`, `I28-S01` | `E15-S03`, `E15-S05`, `E15-S07` |
 | `tools\fpga_gowin_reports.py` | `I28-S03` | `E11-S01`, `I24-S03`, `I28-S01` | `E15-S03`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i28_s03_fpga_gowin_reports.py` | `I28-S03` | `E11-S01`, `I24-S03`, `I28-S01` | `E15-S03`, `E15-S05`, `E15-S07` |
+| `docs\implementation\fpga-frequency-margin.md` | `I28-S04` | `E11-S01`, `I28-S01`, `I28-S03` | `E15-S03`, `E15-S05`, `E15-S07` |
+| `src\cpu_v01\fpga_frequency_margin.py` | `I28-S04` | `E11-S01`, `I28-S01`, `I28-S03` | `E15-S03`, `E15-S05`, `E15-S07` |
+| `tools\fpga_frequency_margin.py` | `I28-S04` | `E11-S01`, `I28-S01`, `I28-S03` | `E15-S03`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i28_s04_fpga_frequency_margin.py` | `I28-S04` | `E11-S01`, `I28-S01`, `I28-S03` | `E15-S03`, `E15-S05`, `E15-S07` |
