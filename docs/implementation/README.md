@@ -101,3 +101,4 @@ Current platform binding:
 - `docs/implementation/fpga-timer-mmio.md`: I27-S03 firmware-visible timer MMIO peripheral, compare interrupt source, acknowledgement, and standalone RTL wrapper simulation.
 - `docs/implementation/fpga-gpio-status.md`: I27-S04 firmware-visible GPIO/status MMIO peripheral, status LEDs, board input interrupt, and diagnostic handoff.
 - `docs/implementation/fpga-soc-smoke.md`: I27-S05 minimal FPGA SoC smoke evidence profile for UART, timer, syscall/trap, GPIO pass/fail, and top-level blockers.
+- `docs/implementation/fpga-clock-profiles.md`: I28-S01 FPGA clock, PLL, generated-clock SDC, and timing-margin profile for debug and release builds.

@@ -291,3 +291,7 @@ table in the same change.
 | `src\cpu_v01\fpga_soc_smoke.py` | `I27-S05` | `E11-S01`, `I18-S03`, `I26-S05`, `I27-S02`, `I27-S03`, `I27-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tools\fpga_soc_smoke.py` | `I27-S05` | `E11-S01`, `I18-S03`, `I26-S05`, `I27-S02`, `I27-S03`, `I27-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i27_s05_fpga_soc_smoke.py` | `I27-S05` | `E11-S01`, `I18-S03`, `I26-S05`, `I27-S02`, `I27-S03`, `I27-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `docs\implementation\fpga-clock-profiles.md` | `I28-S01` | `E11-S01`, `I23-S05`, `I24-S02`, `I24-S03`, `I25-S02`, `I27-S02` | `E15-S03`, `E15-S05`, `E15-S07` |
+| `src\cpu_v01\fpga_clock_profiles.py` | `I28-S01` | `E11-S01`, `I23-S05`, `I24-S02`, `I24-S03`, `I25-S02`, `I27-S02` | `E15-S03`, `E15-S05`, `E15-S07` |
+| `tools\fpga_clock_profiles.py` | `I28-S01` | `E11-S01`, `I23-S05`, `I24-S02`, `I24-S03`, `I25-S02`, `I27-S02` | `E15-S03`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i28_s01_fpga_clock_profiles.py` | `I28-S01` | `E11-S01`, `I23-S05`, `I24-S02`, `I24-S03`, `I25-S02`, `I27-S02` | `E15-S03`, `E15-S05`, `E15-S07` |

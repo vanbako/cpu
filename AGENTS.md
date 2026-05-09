@@ -131,7 +131,10 @@ GPIO/status registers, LED mapping, input-change interrupt behavior, or debug
 status selection. Use `docs/implementation/fpga-soc-smoke.md` and
 `python tools\fpga_soc_smoke.py --check` before changing the minimal SoC smoke
 evidence contract, UART/timer/syscall/GPIO observations, or documented
-top-level blocker inventory. Keep the device/package verification note in
+top-level blocker inventory. Use `docs/implementation/fpga-clock-profiles.md`
+and `python tools\fpga_clock_profiles.py --check` before changing FPGA clock,
+PLL, generated-clock SDC, build-frequency, or timing-margin policy. Keep the
+device/package verification note in
 `docs/implementation/fpga-first-test-plan.md` and the evidence contract in
 `docs/implementation/fpga-board-bringup.md` in mind before claiming a board
 pass.
