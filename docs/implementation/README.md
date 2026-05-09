@@ -102,3 +102,4 @@ Current platform binding:
 - `docs/implementation/fpga-gpio-status.md`: I27-S04 firmware-visible GPIO/status MMIO peripheral, status LEDs, board input interrupt, and diagnostic handoff.
 - `docs/implementation/fpga-soc-smoke.md`: I27-S05 minimal FPGA SoC smoke evidence profile for UART, timer, syscall/trap, GPIO pass/fail, and top-level blockers.
 - `docs/implementation/fpga-clock-profiles.md`: I28-S01 FPGA clock, PLL, generated-clock SDC, and timing-margin profile for debug and release builds.
+- `docs/implementation/fpga-reset-cdc-audit.md`: I28-S02 FPGA reset, async input, UART/debug path, and generated-clock CDC audit profile.

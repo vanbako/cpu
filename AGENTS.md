@@ -133,8 +133,11 @@ status selection. Use `docs/implementation/fpga-soc-smoke.md` and
 evidence contract, UART/timer/syscall/GPIO observations, or documented
 top-level blocker inventory. Use `docs/implementation/fpga-clock-profiles.md`
 and `python tools\fpga_clock_profiles.py --check` before changing FPGA clock,
-PLL, generated-clock SDC, build-frequency, or timing-margin policy. Keep the
-device/package verification note in
+PLL, generated-clock SDC, build-frequency, or timing-margin policy. Use
+`docs/implementation/fpga-reset-cdc-audit.md` and
+`python tools\fpga_reset_cdc.py --check` before changing reset synchronizers,
+async board/debug inputs, PLL lock/reset sequencing, UART/debug crossings, or
+generated-clock domains. Keep the device/package verification note in
 `docs/implementation/fpga-first-test-plan.md` and the evidence contract in
 `docs/implementation/fpga-board-bringup.md` in mind before claiming a board
 pass.
