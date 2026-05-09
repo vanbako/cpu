@@ -103,3 +103,4 @@ Current platform binding:
 - `docs/implementation/fpga-soc-smoke.md`: I27-S05 minimal FPGA SoC smoke evidence profile for UART, timer, syscall/trap, GPIO pass/fail, and top-level blockers.
 - `docs/implementation/fpga-clock-profiles.md`: I28-S01 FPGA clock, PLL, generated-clock SDC, and timing-margin profile for debug and release builds.
 - `docs/implementation/fpga-reset-cdc-audit.md`: I28-S02 FPGA reset, async input, UART/debug path, and generated-clock CDC audit profile.
+- `docs/implementation/fpga-gowin-report-parser.md`: I28-S03 automated Gowin report parser for timing, utilization, ports, warnings, bitstream identity, and clock summary policy.
