@@ -100,3 +100,4 @@ Current platform binding:
 - `docs/implementation/fpga-uart-mmio.md`: I27-S02 firmware-visible UART TX/RX MMIO peripheral, bounded FIFOs, interrupt lines, and standalone RTL wrapper simulation.
 - `docs/implementation/fpga-timer-mmio.md`: I27-S03 firmware-visible timer MMIO peripheral, compare interrupt source, acknowledgement, and standalone RTL wrapper simulation.
 - `docs/implementation/fpga-gpio-status.md`: I27-S04 firmware-visible GPIO/status MMIO peripheral, status LEDs, board input interrupt, and diagnostic handoff.
+- `docs/implementation/fpga-soc-smoke.md`: I27-S05 minimal FPGA SoC smoke evidence profile for UART, timer, syscall/trap, GPIO pass/fail, and top-level blockers.

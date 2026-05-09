@@ -287,3 +287,7 @@ table in the same change.
 | `src\cpu_v01\fpga_gpio_status.py` | `I27-S04` | `E11-S01`, `I23-S04`, `I27-S01` | `E15-S03`, `E15-S05`, `E15-S07` |
 | `tools\fpga_gpio_status.py` | `I27-S04` | `E11-S01`, `I23-S04`, `I27-S01` | `E15-S03`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i27_s04_fpga_gpio_status.py` | `I27-S04` | `E11-S01`, `I23-S04`, `I27-S01` | `E15-S03`, `E15-S05`, `E15-S07` |
+| `docs\implementation\fpga-soc-smoke.md` | `I27-S05` | `E11-S01`, `I18-S03`, `I26-S05`, `I27-S02`, `I27-S03`, `I27-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `src\cpu_v01\fpga_soc_smoke.py` | `I27-S05` | `E11-S01`, `I18-S03`, `I26-S05`, `I27-S02`, `I27-S03`, `I27-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tools\fpga_soc_smoke.py` | `I27-S05` | `E11-S01`, `I18-S03`, `I26-S05`, `I27-S02`, `I27-S03`, `I27-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i27_s05_fpga_soc_smoke.py` | `I27-S05` | `E11-S01`, `I18-S03`, `I26-S05`, `I27-S02`, `I27-S03`, `I27-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |

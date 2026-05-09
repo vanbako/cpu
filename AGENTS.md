@@ -128,7 +128,10 @@ timer registers, compare interrupt behavior, or timer acknowledgement rules.
 Use `docs/implementation/fpga-gpio-status.md` and
 `python tools\fpga_gpio_status.py --check` before changing firmware-visible
 GPIO/status registers, LED mapping, input-change interrupt behavior, or debug
-status selection. Keep the device/package verification note in
+status selection. Use `docs/implementation/fpga-soc-smoke.md` and
+`python tools\fpga_soc_smoke.py --check` before changing the minimal SoC smoke
+evidence contract, UART/timer/syscall/GPIO observations, or documented
+top-level blocker inventory. Keep the device/package verification note in
 `docs/implementation/fpga-first-test-plan.md` and the evidence contract in
 `docs/implementation/fpga-board-bringup.md` in mind before claiming a board
 pass.
