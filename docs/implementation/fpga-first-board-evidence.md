@@ -33,6 +33,10 @@ The story is currently `blocked` because no physical I24-S04 programming
 evidence exists yet. Once the board run exists, this note requires links to
 the scan, constraints, Gowin reports, bitstream, programming log, reset
 observation, LED/probe capture, and any residual defects or retest steps.
+I25-S05 adds `python tools\fpga_debug_evidence.py --check` for nontrivial
+failure captures; first-board archives that are not `first_pass` should link
+that debug-evidence record before downstream FPGA work treats the failure as
+triaged.
 
 ## Artifacts
 

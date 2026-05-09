@@ -101,7 +101,10 @@ transport around the status packet. Use
 `python tools\fpga_probe_bundles.py --check` before changing optional GAO/ILA
 probe definitions. Use `docs/implementation/fpga-replay-mapper.md` and
 `python tools\fpga_replay_mapper.py --check` before changing captured-status
-to Verilator replay mapping. Keep the device/package
+to Verilator replay mapping. Use
+`docs/implementation/fpga-debug-evidence-gate.md` and
+`python tools\fpga_debug_evidence.py --check` before changing failure evidence
+closure rules. Keep the device/package
 verification note in
 `docs/implementation/fpga-first-test-plan.md` and the evidence contract in
 `docs/implementation/fpga-board-bringup.md` in mind before claiming a board

@@ -245,3 +245,7 @@ table in the same change.
 | `src\cpu_v01\fpga_replay_mapper.py` | `I25-S04` | `E12-S01`, `E15-S07`, `I22-S08`, `I23-S06`, `I25-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tools\fpga_replay_mapper.py` | `I25-S04` | `E12-S01`, `E15-S07`, `I22-S08`, `I23-S06`, `I25-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i25_s04_fpga_replay_mapper.py` | `I25-S04` | `E12-S01`, `E15-S07`, `I22-S08`, `I23-S06`, `I25-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `docs\implementation\fpga-debug-evidence-gate.md` | `I25-S05` | `E12-S01`, `E15-S07`, `I24-S05`, `I25-S02`, `I25-S03`, `I25-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `src\cpu_v01\fpga_debug_evidence.py` | `I25-S05` | `E12-S01`, `E15-S07`, `I24-S05`, `I25-S02`, `I25-S03`, `I25-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tools\fpga_debug_evidence.py` | `I25-S05` | `E12-S01`, `E15-S07`, `I24-S05`, `I25-S02`, `I25-S03`, `I25-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i25_s05_fpga_debug_evidence.py` | `I25-S05` | `E12-S01`, `E15-S07`, `I24-S05`, `I25-S02`, `I25-S03`, `I25-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |

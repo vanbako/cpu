@@ -107,6 +107,7 @@ locked.
 | `reset_observation` | Yes | `docs/implementation/evidence/i23_s06_reset_observation.txt` | Records reset assertion/release timing and the first 10 seconds of observation. |
 | `led_photo_or_video` | Yes | `docs/implementation/evidence/i23_s06_led_evidence.*` | Shows `heartbeat_led_o` activity, `pass_led_o` asserted, and `fail_led_o` deasserted on the programmed board. |
 | `first_board_archive` | Yes | `docs/implementation/evidence/i24_s05_first_board_archive.txt` | Links scan, reports, bitstream, programming, reset, LED/probe evidence, and residual blocker disposition accepted by `python tools\fpga_first_board_archive.py --check`. |
+| `debug_evidence` | Failure only | `docs/implementation/evidence/i25_s05_debug_evidence.txt` | Required for nontrivial failures; accepted by `python tools\fpga_debug_evidence.py --check` and records UART or GAO/ILA capture plus replay mapping. |
 | `documented_blocker` | Yes | `docs/implementation/fpga-board-bringup.md#current-blocker` | Acceptable instead of physical pass evidence only when board execution cannot yet be performed. |
 
 ## Triage
@@ -116,8 +117,8 @@ locked.
 | `no_jtag_device` | USB cable/driver issue, board power missing, wrong programmer mode. | Verify power, try Gowin Programmer scan, and record scan failure as blocker. |
 | `programmer_rejects_device_or_package` | `PG484`/`FPG676` target mismatch, wrong Device Version B/C, stale CST/project. | Record the actual scan, update the target profile, and rerun I23-S05 before programming. |
 | `no_heartbeat` | `board_clk_i` not pinned, `board_reset_n_i` held active, PLL or clock constraint issue. | Probe clock/reset, inspect the port report, and rerun with reset held/released observations. |
-| `fail_led_asserted` | Smoke firmware trapped, memory image mismatch, tag RAM initialization mismatch. | Capture `status_fault_code_o`, capture `status_retire_count_o`, map the packet with `python tools\fpga_replay_mapper.py --map-hex`, and replay the selected Verilator case. |
-| `pass_never_asserts` | ROM did not execute, retire path stalled, LED polarity inverted. | Check heartbeat, capture retire count, and verify LED polarity and ROM image. |
+| `fail_led_asserted` | Smoke firmware trapped, memory image mismatch, tag RAM initialization mismatch. | Capture `status_fault_code_o`, capture `status_retire_count_o`, map the packet with `python tools\fpga_replay_mapper.py --map-hex`, replay the selected Verilator case, and file I25-S05 debug evidence. |
+| `pass_never_asserts` | ROM did not execute, retire path stalled, LED polarity inverted. | Check heartbeat, capture retire count, classify with I25-S05 as `firmware`, `memory`, `trap`, or `translation`, and verify LED polarity and ROM image. |
 | `timing_or_report_missing` | Gowin flow incomplete, report paths changed, negative timing slack. | Rerun report audit, fix the I23-S05 gate, and do not count board evidence. |
 
 ## Current Blocker

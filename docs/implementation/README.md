@@ -91,3 +91,4 @@ Current platform binding:
 - `docs/implementation/fpga-uart-status-streamer.md`: I25-S02 UART status packet streamer, idle/pass/fault scenarios, and board decode procedure.
 - `docs/implementation/fpga-probe-bundles.md`: I25-S03 optional GAO/ILA probe bundles, triggers, and release-build non-interference profile.
 - `docs/implementation/fpga-replay-mapper.md`: I25-S04 captured status to Verilator replay mapping, ranked cases, and first-mismatch preservation rules.
+- `docs/implementation/fpga-debug-evidence-gate.md`: I25-S05 debug-evidence gate for UART/probe captures, failure classification, replay, and first-mismatch closure.
