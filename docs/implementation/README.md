@@ -109,3 +109,4 @@ Current platform binding:
 - `docs/implementation/fpga-external-memory.md`: I29-S01 external-memory and DDR bring-up boundary for controller signals, calibration status, window, cacheability, tag policy, and CPU-owned faults.
 - `docs/implementation/fpga-ddr-wrapper.md`: I29-S02 DDR calibration gate and visibility wrapper for controller-ready access gating, timeout/error status, and visible failure handoff.
 - `docs/implementation/fpga-external-memory-tests.md`: I29-S03 BRAM-resident external-memory test firmware profile for walking-pattern, address-line, burst, alignment, and fault-injection DDR cases.
+- `docs/implementation/fpga-external-memory-policy.md`: I29-S04 conservative external-memory policy for normal-uncacheable DDR payload access, cache-maintenance requirements, and no-tag-sidecar behavior.
