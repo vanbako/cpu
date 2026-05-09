@@ -107,3 +107,4 @@ Current platform binding:
 - `docs/implementation/fpga-frequency-margin.md`: I28-S04 FPGA frequency sweep tracking, maximum passing clock, and conservative debug/release default policy.
 - `docs/implementation/fpga-reproducible-build.md`: I28-S05 reproducible FPGA build manifest profile for tools, device/package, constraints, reports, bitstream hash, and board evidence.
 - `docs/implementation/fpga-external-memory.md`: I29-S01 external-memory and DDR bring-up boundary for controller signals, calibration status, window, cacheability, tag policy, and CPU-owned faults.
+- `docs/implementation/fpga-ddr-wrapper.md`: I29-S02 DDR calibration gate and visibility wrapper for controller-ready access gating, timeout/error status, and visible failure handoff.

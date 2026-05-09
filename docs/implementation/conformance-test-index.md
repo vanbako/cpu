@@ -315,3 +315,9 @@ table in the same change.
 | `src\cpu_v01\fpga_external_memory.py` | `I29-S01` | `E10-S03`, `E10-S05`, `I06-S04`, `I19-S03`, `I27-S01`, `I28-S05` | `E15-S03`, `E15-S05`, `E15-S07` |
 | `tools\fpga_external_memory.py` | `I29-S01` | `E10-S03`, `E10-S05`, `I06-S04`, `I19-S03`, `I27-S01`, `I28-S05` | `E15-S03`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i29_s01_fpga_external_memory.py` | `I29-S01` | `E10-S03`, `E10-S05`, `I06-S04`, `I19-S03`, `I27-S01`, `I28-S05` | `E15-S03`, `E15-S05`, `E15-S07` |
+| `docs\implementation\fpga-ddr-wrapper.md` | `I29-S02` | `E10-S03`, `E10-S05`, `I28-S02`, `I29-S01` | `E15-S03`, `E15-S05`, `E15-S07` |
+| `rtl\cpu_v01_fpga_ddr_calibration_gate.sv` | `I29-S02` | `E10-S03`, `E10-S05`, `I28-S02`, `I29-S01` | `E15-S03`, `E15-S05`, `E15-S07` |
+| `rtl\cpu_v01_fpga_ddr_calibration_gate_tb.sv` | `I29-S02` | `E10-S03`, `E10-S05`, `I28-S02`, `I29-S01` | `E15-S03`, `E15-S05`, `E15-S07` |
+| `src\cpu_v01\fpga_ddr_wrapper.py` | `I29-S02` | `E10-S03`, `E10-S05`, `I28-S02`, `I29-S01` | `E15-S03`, `E15-S05`, `E15-S07` |
+| `tools\fpga_ddr_wrapper.py` | `I29-S02` | `E10-S03`, `E10-S05`, `I28-S02`, `I29-S01` | `E15-S03`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i29_s02_fpga_ddr_wrapper.py` | `I29-S02` | `E10-S03`, `E10-S05`, `I28-S02`, `I29-S01` | `E15-S03`, `E15-S05`, `E15-S07` |

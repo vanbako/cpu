@@ -151,7 +151,11 @@ or board-evidence archive requirements. Use
 `docs/implementation/fpga-external-memory.md` and
 `python tools\fpga_external_memory.py --check` before changing external-memory
 or DDR bring-up controller signals, calibration status, CPU-visible window,
-cacheability, tag policy, or CPU-owned fault behavior. Keep the device/package verification
+cacheability, tag policy, or CPU-owned fault behavior. Use
+`docs/implementation/fpga-ddr-wrapper.md` and
+`python tools\fpga_ddr_wrapper.py --check` before changing the DDR calibration
+gate, controller-ready access gating, timeout/error visibility, reset-request
+behavior, or visible failure handoff. Keep the device/package verification
 note in
 `docs/implementation/fpga-first-test-plan.md` and the evidence contract in
 `docs/implementation/fpga-board-bringup.md` in mind before claiming a board
