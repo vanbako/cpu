@@ -2,6 +2,7 @@ module cpu_v01_fpga_first_test_tb;
   logic board_clk_i;
   logic board_reset_n_i;
   logic debug_halt_request_i;
+  logic uart_rx_i;
   logic uart_tx_o;
   logic pass_led_o;
   logic fail_led_o;
@@ -30,6 +31,7 @@ module cpu_v01_fpga_first_test_tb;
     .board_clk_i(board_clk_i),
     .board_reset_n_i(board_reset_n_i),
     .debug_halt_request_i(debug_halt_request_i),
+    .uart_rx_i(uart_rx_i),
     .uart_tx_o(uart_tx_o),
     .pass_led_o(pass_led_o),
     .fail_led_o(fail_led_o),
@@ -68,6 +70,7 @@ module cpu_v01_fpga_first_test_tb;
 
   initial begin
     debug_halt_request_i = 1'b0;
+    uart_rx_i = 1'b1;
     board_reset_n_i = 1'b0;
     repeat (2) @(posedge board_clk_i);
     board_reset_n_i = 1'b1;

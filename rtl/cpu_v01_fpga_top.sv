@@ -20,6 +20,7 @@ module cpu_v01_fpga_top #(
   input  logic board_clk_i,
   input  logic board_reset_n_i,
   input  logic debug_halt_request_i,
+  input  logic uart_rx_i,
 
   output logic uart_tx_o,
   output logic pass_led_o,
@@ -155,10 +156,13 @@ module cpu_v01_fpga_top #(
   logic [STATUS_PACKET_BITS-1:0] uart_status_packet;
   logic [31:0] uart_status_sequence_q;
   logic uart_status_packet_started;
+  logic status_uart_tx;
   logic uart_mmio_tx;
   logic uart_rx_ready_irq;
   logic uart_tx_ready_irq;
   logic timer_compare_irq;
+  logic timer_interrupt_pending;
+  logic external_interrupt_pending;
   logic timer_pending;
   logic [15:0] gpio_out;
   logic [15:0] gpio_oe;
@@ -173,9 +177,10 @@ module cpu_v01_fpga_top #(
 
   assign core_rst_n = reset_sync_q[RESET_SYNC_STAGES-1];
 
-  assign pass_led_o = pass_sticky_q && !fault_sticky_q;
-  assign fail_led_o = fault_sticky_q;
-  assign heartbeat_led_o = debug_retire_sequence[0];
+  assign uart_tx_o = uart_mmio_tx & status_uart_tx;
+  assign pass_led_o = pass_sticky_q && !fault_sticky_q || gpio_pass_led;
+  assign fail_led_o = fault_sticky_q || gpio_fail_led;
+  assign heartbeat_led_o = debug_retire_sequence[0] || gpio_heartbeat_led;
   assign status_reset_observed_o = reset_observed;
   assign status_core_idle_o = core_idle;
   assign status_retire_valid_o = retire_valid;
@@ -194,6 +199,8 @@ module cpu_v01_fpga_top #(
     uart_tx_ready_irq,
     uart_rx_ready_irq
   };
+  assign timer_interrupt_pending = timer_compare_irq;
+  assign external_interrupt_pending = |(irq_pending_enabled & 16'h000B);
   assign tagmem_req_in_data_ram =
       tagmem_req_slot_addr >= DATA_RAM_BASE &&
       tagmem_req_slot_addr < DATA_RAM_BASE + addr_t'(DATA_RAM_CELLS);
@@ -410,7 +417,7 @@ module cpu_v01_fpga_top #(
     .rsp_valid(uart_rsp_valid),
     .rsp_rdata(uart_rsp_rdata),
     .rsp_fault(uart_rsp_fault),
-    .uart_rx_i(1'b1),
+    .uart_rx_i(uart_rx_i),
     .uart_tx_o(uart_mmio_tx),
     .irq_rx_ready_o(uart_rx_ready_irq),
     .irq_tx_ready_o(uart_tx_ready_irq)
@@ -512,21 +519,16 @@ module cpu_v01_fpga_top #(
     .rst_n(core_rst_n),
     .packet_i(uart_status_packet),
     .packet_started_o(uart_status_packet_started),
-    .uart_tx_o(uart_tx_o)
+    .uart_tx_o(status_uart_tx)
   );
 
   // verilator lint_off UNUSEDSIGNAL
   wire logic unused_i30_s02_outputs = &{
-    uart_mmio_tx,
     timer_pending,
     gpio_out,
     gpio_oe,
-    gpio_pass_led,
-    gpio_fail_led,
-    gpio_heartbeat_led,
     gpio_status_leds,
-    gpio_debug_status_select,
-    irq_pending_enabled
+    gpio_debug_status_select
   };
   // verilator lint_on UNUSEDSIGNAL
 
@@ -559,9 +561,9 @@ module cpu_v01_fpga_top #(
     .tagmem_req_wtag(tagmem_req_wtag),
     .tagmem_rsp_valid(tagmem_rsp_valid),
     .tagmem_rsp_rtag(tagmem_rsp_rtag),
-    .timer_interrupt_pending(1'b0),
+    .timer_interrupt_pending(timer_interrupt_pending),
     .software_interrupt_pending(1'b0),
-    .external_interrupt_pending(1'b0),
+    .external_interrupt_pending(external_interrupt_pending),
     .external_event_valid(1'b0),
     .external_event_cause(16'd0),
     .debug_halt_request(debug_halt_request_i),

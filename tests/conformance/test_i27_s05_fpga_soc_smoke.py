@@ -51,8 +51,8 @@ class FpgaSocSmokeTests(unittest.TestCase):
         self.assertEqual(profile.smoke_case_id, "trap_syscall.sys_pause_iret")
         self.assertEqual(profile.board_status, "documented_blocker_run")
         self.assertEqual(len(profile.steps), 4)
-        self.assertTrue(any("MMIO decoder" in blocker for blocker in profile.documented_blockers))
-        self.assertTrue(any("timer_interrupt_pending" in blocker for blocker in profile.documented_blockers))
+        self.assertTrue(any("I30-S05" in blocker for blocker in profile.documented_blockers))
+        self.assertTrue(any("I30-S04" in blocker for blocker in profile.documented_blockers))
 
     def test_run_evidence_covers_uart_timer_syscall_and_gpio(self) -> None:
         run = fpga_soc_smoke.run_fpga_soc_smoke()
@@ -75,12 +75,13 @@ class FpgaSocSmokeTests(unittest.TestCase):
         self.assertTrue(run.gpio_heartbeat_led)
         self.assertTrue(run.gpio_interrupt_seen)
 
-    def test_top_level_blocker_tokens_are_still_visible(self) -> None:
+    def test_top_level_integration_tokens_are_visible(self) -> None:
         top = (ROOT / "rtl" / "cpu_v01_fpga_top.sv").read_text(encoding="utf-8")
 
-        self.assertIn("cpu_v01_fpga_data_ram #(", top)
-        self.assertIn(".timer_interrupt_pending(1'b0)", top)
-        self.assertIn(".uart_tx_o(uart_tx_o)", top)
+        self.assertIn("cpu_v01_fpga_soc_dmem_decoder #(", top)
+        self.assertIn(".timer_interrupt_pending(timer_interrupt_pending)", top)
+        self.assertIn("assign uart_tx_o = uart_mmio_tx & status_uart_tx;", top)
+        self.assertIn("assign pass_led_o = pass_sticky_q && !fault_sticky_q || gpio_pass_led;", top)
         self.assertIn("status_core_port_activity_o", top)
 
     def test_cli_validates_json_run_steps_and_blockers(self) -> None:
@@ -124,7 +125,7 @@ class FpgaSocSmokeTests(unittest.TestCase):
             result = tool.main(["--blockers"])
 
         self.assertEqual(result, 0)
-        self.assertIn("MMIO decoder", stream.getvalue())
+        self.assertIn("I30-S05", stream.getvalue())
 
     def test_documentation_names_commands_observations_and_handoffs(self) -> None:
         text = (ROOT / "docs" / "implementation" / "fpga-soc-smoke.md").read_text(
@@ -146,11 +147,11 @@ class FpgaSocSmokeTests(unittest.TestCase):
             "GPIO pass/fail",
             "documented_blocker_run",
             "cpu_v01_fpga_top",
-            "dmem directly",
             "timer_interrupt_pending",
-            "UART firmware/status TX mux",
+            "UART firmware/status TX combine",
             "I26-S04",
-            "I28-S01",
+            "I30-S03",
+            "I30-S05",
         ):
             self.assertIn(token, text)
 

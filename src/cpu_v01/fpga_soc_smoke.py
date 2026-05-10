@@ -40,10 +40,9 @@ SMOKE_CASE_ID = "trap_syscall.sys_pause_iret"
 BOARD_STATUS = "documented_blocker_run"
 
 TOP_LEVEL_BLOCKERS = (
-    "cpu_v01_fpga_top still connects dmem directly to cpu_v01_fpga_data_ram instead of an MMIO decoder",
-    "cpu_v01_fpga_top still ties timer_interrupt_pending to 1'b0",
-    "cpu_v01_fpga_top still has no UART firmware/status TX mux or UART RX input",
-    "cpu_v01_fpga_top still has no firmware GPIO/status LED mux",
+    "I30-S05 top-level RTL firmware smoke has not yet proven the modeled I27-S05 run",
+    "I30-S04 bounded loader handoff is still absent from cpu_v01_fpga_top",
+    "Gowin bitstream and physical board evidence remain deferred to I31",
 )
 
 
@@ -374,9 +373,10 @@ def _executable_capability(cursor: int) -> caps.Capability:
 def _validate_top_blockers(root: Path) -> tuple[str, ...]:
     top = _read_if_exists(root / "rtl" / "cpu_v01_fpga_top.sv")
     checks = (
-        "cpu_v01_fpga_data_ram #(",
-        ".timer_interrupt_pending(1'b0)",
-        ".uart_tx_o(uart_tx_o)",
+        "cpu_v01_fpga_soc_dmem_decoder #(",
+        ".timer_interrupt_pending(timer_interrupt_pending)",
+        "assign uart_tx_o = uart_mmio_tx & status_uart_tx;",
+        "assign pass_led_o = pass_sticky_q && !fault_sticky_q || gpio_pass_led;",
         "status_core_port_activity_o",
     )
     issues: list[str] = []
@@ -404,11 +404,11 @@ def _validate_doc(root: Path) -> tuple[str, ...]:
         "GPIO pass/fail",
         "documented_blocker_run",
         "cpu_v01_fpga_top",
-        "dmem directly",
         "timer_interrupt_pending",
-        "UART firmware/status TX mux",
+        "UART firmware/status TX combine",
         "I26-S04",
-        "I28-S01",
+        "I30-S03",
+        "I30-S05",
     ):
         if token not in doc:
             issues.append(f"{FPGA_SOC_SMOKE_DOC.as_posix()} missing {token}")

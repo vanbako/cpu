@@ -347,3 +347,9 @@ table in the same change.
 | `src\cpu_v01\fpga_soc_top_decoder.py` | `I30-S02` | `E11-S01`, `I23-S03`, `I27-S01`, `I27-S02`, `I27-S03`, `I27-S04`, `I30-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tools\fpga_soc_top_decoder.py` | `I30-S02` | `E11-S01`, `I23-S03`, `I27-S01`, `I27-S02`, `I27-S03`, `I27-S04`, `I30-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i30_s02_fpga_soc_top_decoder.py` | `I30-S02` | `E11-S01`, `I23-S03`, `I27-S01`, `I27-S02`, `I27-S03`, `I27-S04`, `I30-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `docs\implementation\fpga-soc-top-peripherals.md` | `I30-S03` | `E11-S01`, `I25-S02`, `I27-S01`, `I27-S02`, `I27-S03`, `I27-S04`, `I28-S02`, `I30-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `rtl\cpu_v01_fpga_top.sv` | `I30-S03` | `E11-S01`, `I25-S02`, `I27-S01`, `I27-S02`, `I27-S03`, `I27-S04`, `I28-S02`, `I30-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `rtl\cpu_v01_fpga_top_soc_peripherals_tb.sv` | `I30-S03` | `E11-S01`, `I25-S02`, `I27-S01`, `I27-S02`, `I27-S03`, `I27-S04`, `I28-S02`, `I30-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `src\cpu_v01\fpga_soc_top_peripherals.py` | `I30-S03` | `E11-S01`, `I25-S02`, `I27-S01`, `I27-S02`, `I27-S03`, `I27-S04`, `I28-S02`, `I30-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tools\fpga_soc_top_peripherals.py` | `I30-S03` | `E11-S01`, `I25-S02`, `I27-S01`, `I27-S02`, `I27-S03`, `I27-S04`, `I28-S02`, `I30-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i30_s03_fpga_soc_top_peripherals.py` | `I30-S03` | `E11-S01`, `I25-S02`, `I27-S01`, `I27-S02`, `I27-S03`, `I27-S04`, `I28-S02`, `I30-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |

@@ -90,10 +90,10 @@ def fpga_soc_top_closure_profile() -> SocTopClosureProfile:
             SocTopClosureShortcut(
                 shortcut_id="data_mmio_decoder_bypass",
                 current_shortcut=(
-                    "cpu_v01_fpga_top connects core dmem requests directly to "
-                    "cpu_v01_fpga_data_ram"
+                    "cpu_v01_fpga_top originally connected core dmem requests directly to "
+                    "cpu_v01_fpga_data_ram; I30-S02 replaced this with a decoder"
                 ),
-                rtl_token="cpu_v01_fpga_data_ram #(",
+                rtl_token="cpu_v01_fpga_soc_dmem_decoder #(",
                 risk=(
                     "firmware cannot reach UART, timer, GPIO/status, or system identity MMIO, "
                     "and reserved windows cannot fault deterministically"
@@ -115,8 +115,11 @@ def fpga_soc_top_closure_profile() -> SocTopClosureProfile:
             ),
             SocTopClosureShortcut(
                 shortcut_id="timer_interrupt_tied_off",
-                current_shortcut="cpu_v01_fpga_top ties timer_interrupt_pending to 1'b0",
-                rtl_token=".timer_interrupt_pending(1'b0)",
+                current_shortcut=(
+                    "cpu_v01_fpga_top originally tied timer_interrupt_pending to 1'b0; "
+                    "I30-S03 routes timer_compare_irq into the core"
+                ),
+                rtl_token=".timer_interrupt_pending(timer_interrupt_pending)",
                 risk="firmware timer interrupts cannot be observed by the integrated CPU top",
                 owner_story="I30-S03",
                 rtl_change=(
@@ -135,10 +138,10 @@ def fpga_soc_top_closure_profile() -> SocTopClosureProfile:
             SocTopClosureShortcut(
                 shortcut_id="uart_pin_mux_missing",
                 current_shortcut=(
-                    "cpu_v01_fpga_top drives uart_tx_o only from the I25-S02 status streamer "
-                    "and has no firmware UART RX input"
+                    "cpu_v01_fpga_top originally drove uart_tx_o only from the I25-S02 "
+                    "status streamer and had no firmware UART RX input; I30-S03 adds both"
                 ),
-                rtl_token=".uart_tx_o(uart_tx_o)",
+                rtl_token="assign uart_tx_o = uart_mmio_tx & status_uart_tx;",
                 risk="firmware UART output, loader traffic, and debug/status packets cannot share the board UART safely",
                 owner_story="I30-S03",
                 rtl_change=(
@@ -157,10 +160,10 @@ def fpga_soc_top_closure_profile() -> SocTopClosureProfile:
             SocTopClosureShortcut(
                 shortcut_id="gpio_status_led_mux_missing",
                 current_shortcut=(
-                    "cpu_v01_fpga_top drives LEDs only from first-test sticky pass/fail and "
-                    "retire heartbeat state"
+                    "cpu_v01_fpga_top originally drove LEDs only from first-test sticky "
+                    "pass/fail and retire heartbeat state; I30-S03 adds firmware GPIO/status"
                 ),
-                rtl_token="assign pass_led_o = pass_sticky_q && !fault_sticky_q;",
+                rtl_token="assign pass_led_o = pass_sticky_q && !fault_sticky_q || gpio_pass_led;",
                 risk="firmware-visible GPIO/status LED requests cannot be observed at the integrated top",
                 owner_story="I30-S03",
                 rtl_change=(

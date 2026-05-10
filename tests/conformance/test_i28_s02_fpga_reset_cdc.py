@@ -61,6 +61,7 @@ class FpgaResetCdcTests(unittest.TestCase):
             "core_rst_n",
             "debug_halt_request_i",
             "uart_tx_o",
+            "uart_rx_i",
             "status_debug_outputs",
             "release_pll_domain",
         ):
@@ -73,17 +74,19 @@ class FpgaResetCdcTests(unittest.TestCase):
         self.assertEqual(items["debug_halt_request_i"].status, "documented_open_issue")
         self.assertIn("two-flop synchronizer", items["debug_halt_request_i"].required_action)
         self.assertEqual(items["uart_tx_o"].status, "implemented_same_domain_output")
+        self.assertEqual(items["uart_rx_i"].status, "implemented_two_stage_sync")
+        self.assertIn("uart_rx_sync_q", " ".join(items["uart_rx_i"].evidence_tokens))
         self.assertEqual(items["status_debug_outputs"].status, "implemented_same_domain_outputs")
         self.assertEqual(items["release_pll_domain"].status, "blocked_until_pll_wrapper")
         self.assertIn("create_generated_clock", " ".join(items["release_pll_domain"].evidence_tokens))
 
-    def test_open_issues_record_raw_halt_pll_and_future_uart_rx(self) -> None:
+    def test_open_issues_record_raw_halt_pll_and_future_loader_inputs(self) -> None:
         profile = fpga_reset_cdc.fpga_reset_cdc_profile()
         text = " ".join(profile.open_issues)
 
         self.assertIn("debug_halt_request_i", text)
         self.assertIn("release_pll_25mhz", text)
-        self.assertIn("future UART RX", text)
+        self.assertIn("future loader inputs", text)
         self.assertIn("I28-S03", " ".join(profile.handoffs))
         self.assertIn("I28-S05", " ".join(profile.handoffs))
 
@@ -127,7 +130,7 @@ class FpgaResetCdcTests(unittest.TestCase):
             result = tool.main(["--open-issues"])
 
         self.assertEqual(result, 0)
-        self.assertIn("future UART RX", stream.getvalue())
+        self.assertIn("future loader inputs", stream.getvalue())
 
     def test_documentation_names_reset_cdc_items_evidence_and_handoffs(self) -> None:
         text = (ROOT / "docs" / "implementation" / "fpga-reset-cdc-audit.md").read_text(
@@ -145,10 +148,12 @@ class FpgaResetCdcTests(unittest.TestCase):
         self.assertIn("debug_halt_request_i", text)
         self.assertIn("documented_open_issue", text)
         self.assertIn("uart_tx_o", text)
+        self.assertIn("uart_rx_i", text)
+        self.assertIn("implemented_two_stage_sync", text)
         self.assertIn("status_debug_outputs", text)
         self.assertIn("release_pll_25mhz", text)
         self.assertIn("create_generated_clock", text)
-        self.assertIn("future UART RX", text)
+        self.assertIn("future loader inputs", text)
         self.assertIn("I28-S03", text)
         self.assertIn("I28-S05", text)
 

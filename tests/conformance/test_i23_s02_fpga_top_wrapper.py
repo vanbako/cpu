@@ -43,6 +43,7 @@ class FpgaTopWrapperTests(unittest.TestCase):
 
         self.assertEqual(by_name["board_clk_i"].group, "clock_reset")
         self.assertEqual(by_name["board_reset_n_i"].group, "clock_reset")
+        self.assertEqual(by_name["uart_rx_i"].direction, "input")
         self.assertEqual(by_name["uart_tx_o"].group, "debug")
         self.assertEqual(by_name["pass_led_o"].group, "status")
         self.assertEqual(by_name["fail_led_o"].width, "1")
@@ -72,17 +73,20 @@ class FpgaTopWrapperTests(unittest.TestCase):
             "cpu_v01_fpga_imem_rom",
             "cpu_v01_fpga_data_ram",
             "cpu_v01_fpga_tag_ram",
-            ".timer_interrupt_pending(1'b0)",
+            "assign timer_interrupt_pending = timer_compare_irq;",
+            ".timer_interrupt_pending(timer_interrupt_pending)",
             ".software_interrupt_pending(1'b0)",
-            ".external_interrupt_pending(1'b0)",
+            "assign external_interrupt_pending = |(irq_pending_enabled & 16'h000B);",
+            ".external_interrupt_pending(external_interrupt_pending)",
             ".external_event_valid(1'b0)",
             ".external_event_cause(16'd0)",
             ".debug_halt_request(debug_halt_request_i)",
             ".retire_ready(1'b1)",
             "assign pass_led_o = pass_sticky_q && !fault_sticky_q",
             "assign fail_led_o = fault_sticky_q",
+            "assign uart_tx_o = uart_mmio_tx & status_uart_tx;",
             "cpu_v01_fpga_uart_status_streamer #(",
-            ".uart_tx_o(uart_tx_o)",
+            ".uart_tx_o(status_uart_tx)",
             "debug_pcc_cursor_low_o",
             "debug_sr_low_o",
         ):
@@ -124,6 +128,7 @@ class FpgaTopWrapperTests(unittest.TestCase):
         names = {row["name"] for row in parsed}
         self.assertIn("board_clk_i", names)
         self.assertIn("board_reset_n_i", names)
+        self.assertIn("uart_rx_i", names)
         self.assertIn("pass_led_o", names)
         self.assertIn("status_core_port_activity_o", names)
         self.assertIn("uart_tx_o", names)
@@ -142,6 +147,7 @@ class FpgaTopWrapperTests(unittest.TestCase):
         self.assertIn("cpu_v01_core", text)
         self.assertIn("board_clk_i", text)
         self.assertIn("board_reset_n_i", text)
+        self.assertIn("uart_rx_i", text)
         self.assertIn("pass_led_o", text)
         self.assertIn("fail_led_o", text)
         self.assertIn("uart_tx_o", text)

@@ -167,19 +167,36 @@ def fpga_reset_cdc_profile() -> ResetCdcProfile:
             ),
             ResetCdcItem(
                 name="uart_tx_o",
-                kind="debug_uart_output",
-                source="cpu_v01_fpga_uart_status_streamer",
+                kind="shared_uart_output",
+                source="cpu_v01_fpga_uart_status_streamer and cpu_v01_fpga_uart_mmio",
                 destination="board UART or PMOD output",
                 clock_domain="board_clk_i",
-                handling="transmit-only output registered in the same current clock domain",
+                handling="idle-high firmware/status TX combine in the same current clock domain",
                 status="implemented_same_domain_output",
                 evidence_tokens=(
                     "cpu_v01_fpga_uart_status_streamer #(",
                     ".clk(board_clk_i)",
-                    "assign uart_tx_o = (!ENABLE || !tx_busy_q) ? 1'b1 : tx_shift_q[0]",
+                    "assign uart_tx_o = uart_mmio_tx & status_uart_tx;",
                 ),
                 risk="UART baud changes must follow the selected clock profile",
                 required_action="recompute UART divisors when a non-25 MHz profile is selected",
+            ),
+            ResetCdcItem(
+                name="uart_rx_i",
+                kind="async_uart_input",
+                source="board UART RX input",
+                destination="cpu_v01_fpga_uart_mmio RX sampler",
+                clock_domain="board_clk_i",
+                handling="two-flop input synchronizer inside the UART MMIO block before RX sampling",
+                status="implemented_two_stage_sync",
+                evidence_tokens=(
+                    "input  logic uart_rx_i",
+                    ".uart_rx_i(uart_rx_i)",
+                    "uart_rx_meta_q <= uart_rx_i",
+                    "uart_rx_sync_q <= uart_rx_meta_q",
+                ),
+                risk="board UART RX is asynchronous to board_clk_i and can metastabilize without the synchronizer",
+                required_action="preserve the two-stage RX synchronizer when changing UART or loader ingress",
             ),
             ResetCdcItem(
                 name="status_debug_outputs",
@@ -217,7 +234,7 @@ def fpga_reset_cdc_profile() -> ResetCdcProfile:
         open_issues=(
             "debug_halt_request_i is raw in cpu_v01_fpga_top and must be tied low or synchronized before board use",
             "release_pll_25mhz has no RTL PLL wrapper, lock signal, or active generated-clock SDC yet",
-            "future UART RX or loader inputs must add explicit synchronizers before entering the SoC domain",
+            "future loader inputs beyond uart_rx_i must add explicit synchronizers before entering the SoC domain",
         ),
         handoffs=(
             "I28-S03 should flag unconstrained generated clocks and missing reset/clock report evidence",
@@ -296,6 +313,7 @@ def validate_fpga_reset_cdc(root: Path | None = None) -> tuple[str, ...]:
         "core_rst_n",
         "debug_halt_request_i",
         "uart_tx_o",
+        "uart_rx_i",
         "status_debug_outputs",
         "release_pll_domain",
     ):
@@ -303,9 +321,15 @@ def validate_fpga_reset_cdc(root: Path | None = None) -> tuple[str, ...]:
             issues.append(f"missing reset/CDC item {required}")
 
     top = _read_if_exists(root / "rtl" / "cpu_v01_fpga_top.sv")
+    uart_mmio = _read_if_exists(root / "rtl" / "cpu_v01_fpga_uart_mmio.sv")
     clock_doc = _read_if_exists(root / fpga_clock_profiles.FPGA_CLOCK_PROFILES_DOC)
     for item in profile.items:
-        haystack = clock_doc if item.name == "release_pll_domain" else top
+        if item.name == "release_pll_domain":
+            haystack = clock_doc
+        elif item.name == "uart_rx_i":
+            haystack = top + "\n" + uart_mmio
+        else:
+            haystack = top
         for token in item.evidence_tokens:
             if token not in haystack:
                 issues.append(f"{item.name} missing evidence token {token}")
@@ -318,8 +342,9 @@ def validate_fpga_reset_cdc(root: Path | None = None) -> tuple[str, ...]:
     release = profile.item_by_name("release_pll_domain")
     if "blocked" not in release.status:
         issues.append("release PLL domain must remain blocked until RTL exists")
-    if not any("future UART RX" in issue for issue in profile.open_issues):
-        issues.append("future UART RX synchronizer requirement must be documented")
+    uart_rx = profile.item_by_name("uart_rx_i")
+    if uart_rx.status != "implemented_two_stage_sync":
+        issues.append("uart_rx_i must be audited as an implemented two-stage synchronizer")
 
     doc = _read_if_exists(root / FPGA_RESET_CDC_DOC)
     for token in (
@@ -334,10 +359,11 @@ def validate_fpga_reset_cdc(root: Path | None = None) -> tuple[str, ...]:
         "debug_halt_request_i",
         "documented_open_issue",
         "uart_tx_o",
+        "uart_rx_i",
         "status_debug_outputs",
         "release_pll_25mhz",
         "create_generated_clock",
-        "future UART RX",
+        "future loader inputs",
         "I28-S03",
         "I28-S05",
     ):

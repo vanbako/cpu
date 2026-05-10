@@ -55,17 +55,17 @@ The JSON output includes:
 
 ## Documented Blockers
 
-This is not yet a board pass. The validator requires these blockers to stay
-visible until a later shell integration removes them:
+This is not yet a board pass. I30-S02 and I30-S03 close the data/MMIO decoder,
+`timer_interrupt_pending`, UART firmware/status TX combine, UART RX, and
+GPIO/status LED handoffs in `cpu_v01_fpga_top`. The remaining blockers are:
 
-- `cpu_v01_fpga_top` still connects dmem directly to `cpu_v01_fpga_data_ram`
-  instead of an MMIO decoder.
-- `cpu_v01_fpga_top` still ties `timer_interrupt_pending` to `1'b0`.
-- `cpu_v01_fpga_top` still has no UART firmware/status TX mux or UART RX input.
-- `cpu_v01_fpga_top` still has no firmware GPIO/status LED mux.
+- I30-S05 top-level RTL firmware smoke has not yet proven this modeled I27-S05
+  run under Verilator.
+- I30-S04 bounded loader handoff is still absent from `cpu_v01_fpga_top`.
+- Gowin bitstream and physical board evidence remain deferred to I31.
 
-Because of those blockers, the first actual board run still needs a later RTL
-SoC shell integration before Gowin/bitstream evidence can show combined UART
+Because of those blockers, the first actual board run still needs the I30-S05
+RTL smoke and I31 Gowin/bitstream evidence before it can claim combined UART
 output, timer interrupt handling, syscall/trap progress, and GPIO pass/fail on
 the Tang Mega 138K.
 
@@ -73,7 +73,7 @@ the Tang Mega 138K.
 
 - I26-S04 can now build a bounded loader protocol on top of I27-S02 UART RX
   and this smoke evidence contract.
-- I28-S01 should own the MMIO data-path decoder and top-level peripheral mux
-  integration needed to turn this documented-blocker run into a board run.
+- I30-S03 owns the MMIO peripheral handoffs needed to turn the original
+  documented-blocker run into an RTL smoke candidate.
 - I24-S05 remains the archive gate for physical board evidence once the shell
   is wired and a bitstream exists.
