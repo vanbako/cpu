@@ -112,3 +112,4 @@ Current platform binding:
 - `docs/implementation/fpga-external-memory-tests.md`: I29-S03 BRAM-resident external-memory test firmware profile for walking-pattern, address-line, burst, alignment, and fault-injection DDR cases.
 - `docs/implementation/fpga-external-memory-policy.md`: I29-S04 conservative external-memory policy for normal-uncacheable DDR payload access, cache-maintenance requirements, and no-tag-sidecar behavior.
 - `docs/implementation/fpga-external-memory-evidence.md`: I29-S05 external-memory board evidence archive gate for DDR calibration, memory-test pass/fail, timing, debug/status, UART/status, probes, bitstream hash, and residual blockers.
+- `docs/implementation/fpga-soc-top-closure.md`: I30-S01 top-level SoC closure matrix mapping current `cpu_v01_fpga_top` shortcuts to owner stories, testbenches, validators, and evidence handoffs.

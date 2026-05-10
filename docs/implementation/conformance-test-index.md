@@ -337,3 +337,7 @@ table in the same change.
 | `src\cpu_v01\fpga_external_memory_evidence.py` | `I29-S05` | `E10-S03`, `E10-S05`, `I28-S05`, `I29-S03`, `I29-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tools\fpga_external_memory_evidence.py` | `I29-S05` | `E10-S03`, `E10-S05`, `I28-S05`, `I29-S03`, `I29-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i29_s05_fpga_external_memory_evidence.py` | `I29-S05` | `E10-S03`, `E10-S05`, `I28-S05`, `I29-S03`, `I29-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `docs\implementation\fpga-soc-top-closure.md` | `I30-S01` | `I25-S05`, `I26-S04`, `I27-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `src\cpu_v01\fpga_soc_top_closure.py` | `I30-S01` | `I25-S05`, `I26-S04`, `I27-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tools\fpga_soc_top_closure.py` | `I30-S01` | `I25-S05`, `I26-S04`, `I27-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i30_s01_fpga_soc_top_closure.py` | `I30-S01` | `I25-S05`, `I26-S04`, `I27-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
