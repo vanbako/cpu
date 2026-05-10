@@ -120,3 +120,4 @@ Current platform binding:
 - `docs/implementation/fpga-soc-top-archive.md`: I30-S06 SoC top integration closure archive gate for RTL sources, Verilator logs, decoded UART/status traces, replay mapping, debug evidence, blockers, and retest commands.
 - `docs/implementation/fpga-first-pass-build-bundle.md`: I31-S01 first-pass board build bundle gate for selected top, image, constraints, clock profile, loader status, expected signatures, and Gowin handoff.
 - `docs/implementation/fpga-first-pass-gowin-build.md`: I31-S02 first-pass integrated SoC Gowin report/timing gate for synthesis, place-route, utilization, ports, warnings, bitstream identity, and programming handoff.
+- `docs/implementation/fpga-first-pass-programming.md`: I31-S03 first integrated CPU SRAM programming observation gate for bitstream identity, reset, heartbeat, LEDs, UART/status packets, probes, and pass/failure handoff.
