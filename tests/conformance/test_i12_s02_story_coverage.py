@@ -110,8 +110,9 @@ class StoryCoverageReportTests(unittest.TestCase):
         self.assertEqual(rows["I30-S04"].status, "tested")
         self.assertEqual(rows["I30-S05"].status, "tested")
         self.assertEqual(rows["I30-S06"].status, "tested")
+        self.assertEqual(rows["I31-S01"].status, "tested")
         self.assertGreater(report.tested_count, 0)
-        self.assertEqual(report.missing_count, 18)
+        self.assertEqual(report.missing_count, 17)
 
     def test_rendered_report_lists_artifacts_and_next_rtl_story(self) -> None:
         tool = load_story_coverage_module()
@@ -244,6 +245,9 @@ class StoryCoverageReportTests(unittest.TestCase):
         self.assertIn("`I30-S06` | tested", rendered)
         self.assertIn("fpga-soc-top-archive.md", rendered)
         self.assertIn("test_i30_s06_fpga_soc_top_archive.py", rendered)
+        self.assertIn("`I31-S01` | tested", rendered)
+        self.assertIn("fpga-first-pass-build-bundle.md", rendered)
+        self.assertIn("test_i31_s01_fpga_first_pass_bundle.py", rendered)
 
     def test_missing_only_cli_filters_report_rows(self) -> None:
         tool = load_story_coverage_module()
@@ -254,9 +258,10 @@ class StoryCoverageReportTests(unittest.TestCase):
 
         output = stream.getvalue()
         self.assertEqual(result, 0)
-        self.assertIn("Stories: 18", output)
-        self.assertIn("Missing: 18", output)
+        self.assertIn("Stories: 17", output)
+        self.assertIn("Missing: 17", output)
         self.assertIn("`I33-S06` | missing", output)
+        self.assertNotIn("`I31-S01` | missing", output)
         self.assertNotIn("`I30-S06` | missing", output)
         self.assertNotIn("`I30-S04` | missing", output)
         self.assertNotIn("`I21-S01` | tested", output)
