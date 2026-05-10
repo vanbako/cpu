@@ -113,3 +113,4 @@ Current platform binding:
 - `docs/implementation/fpga-external-memory-policy.md`: I29-S04 conservative external-memory policy for normal-uncacheable DDR payload access, cache-maintenance requirements, and no-tag-sidecar behavior.
 - `docs/implementation/fpga-external-memory-evidence.md`: I29-S05 external-memory board evidence archive gate for DDR calibration, memory-test pass/fail, timing, debug/status, UART/status, probes, bitstream hash, and residual blockers.
 - `docs/implementation/fpga-soc-top-closure.md`: I30-S01 top-level SoC closure matrix mapping current `cpu_v01_fpga_top` shortcuts to owner stories, testbenches, validators, and evidence handoffs.
+- `docs/implementation/fpga-soc-top-decoder.md`: I30-S02 top-level data/MMIO decoder routing for BRAM data, UART, timer, GPIO/status, interrupt controller, system identity, reserved faults, and tag sidecar gating.

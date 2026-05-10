@@ -30,7 +30,7 @@ python tools\fpga_smoke_firmware.py --check
 Verilator lint:
 
 ```text
-verilator --lint-only --timing --top-module cpu_v01_fpga_first_test_tb rtl/cpu_v01_pkg.sv rtl/cpu_v01_core.sv rtl/cpu_v01_fpga_memories.sv rtl/cpu_v01_fpga_top.sv rtl/cpu_v01_fpga_first_test_tb.sv
+verilator --lint-only --timing --top-module cpu_v01_fpga_first_test_tb rtl/cpu_v01_pkg.sv rtl/cpu_v01_core.sv rtl/cpu_v01_fpga_memories.sv rtl/cpu_v01_fpga_uart_mmio.sv rtl/cpu_v01_fpga_timer_mmio.sv rtl/cpu_v01_fpga_gpio_status.sv rtl/cpu_v01_fpga_top.sv rtl/cpu_v01_fpga_first_test_tb.sv
 ```
 
 ## Firmware Contract

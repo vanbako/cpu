@@ -337,7 +337,13 @@ table in the same change.
 | `src\cpu_v01\fpga_external_memory_evidence.py` | `I29-S05` | `E10-S03`, `E10-S05`, `I28-S05`, `I29-S03`, `I29-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tools\fpga_external_memory_evidence.py` | `I29-S05` | `E10-S03`, `E10-S05`, `I28-S05`, `I29-S03`, `I29-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i29_s05_fpga_external_memory_evidence.py` | `I29-S05` | `E10-S03`, `E10-S05`, `I28-S05`, `I29-S03`, `I29-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
-| `docs\implementation\fpga-soc-top-closure.md` | `I30-S01` | `I25-S05`, `I26-S04`, `I27-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
-| `src\cpu_v01\fpga_soc_top_closure.py` | `I30-S01` | `I25-S05`, `I26-S04`, `I27-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
-| `tools\fpga_soc_top_closure.py` | `I30-S01` | `I25-S05`, `I26-S04`, `I27-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
-| `tests\conformance\test_i30_s01_fpga_soc_top_closure.py` | `I30-S01` | `I25-S05`, `I26-S04`, `I27-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `docs\implementation\fpga-soc-top-closure.md` | `I30-S01` | `E15-S07`, `I25-S05`, `I26-S04`, `I27-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `src\cpu_v01\fpga_soc_top_closure.py` | `I30-S01` | `E15-S07`, `I25-S05`, `I26-S04`, `I27-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tools\fpga_soc_top_closure.py` | `I30-S01` | `E15-S07`, `I25-S05`, `I26-S04`, `I27-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i30_s01_fpga_soc_top_closure.py` | `I30-S01` | `E15-S07`, `I25-S05`, `I26-S04`, `I27-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `docs\implementation\fpga-soc-top-decoder.md` | `I30-S02` | `E11-S01`, `I23-S03`, `I27-S01`, `I27-S02`, `I27-S03`, `I27-S04`, `I30-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `rtl\cpu_v01_fpga_top.sv` | `I30-S02` | `E11-S01`, `I23-S03`, `I27-S01`, `I27-S02`, `I27-S03`, `I27-S04`, `I30-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `rtl\cpu_v01_fpga_top_soc_decoder_tb.sv` | `I30-S02` | `E11-S01`, `I23-S03`, `I27-S01`, `I27-S02`, `I27-S03`, `I27-S04`, `I30-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `src\cpu_v01\fpga_soc_top_decoder.py` | `I30-S02` | `E11-S01`, `I23-S03`, `I27-S01`, `I27-S02`, `I27-S03`, `I27-S04`, `I30-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tools\fpga_soc_top_decoder.py` | `I30-S02` | `E11-S01`, `I23-S03`, `I27-S01`, `I27-S02`, `I27-S03`, `I27-S04`, `I30-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i30_s02_fpga_soc_top_decoder.py` | `I30-S02` | `E11-S01`, `I23-S03`, `I27-S01`, `I27-S02`, `I27-S03`, `I27-S04`, `I30-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |

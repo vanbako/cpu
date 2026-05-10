@@ -96,6 +96,8 @@ def fpga_reset_cdc_profile() -> ResetCdcProfile:
             fpga_top.fpga_top_verilator_command(),
             "verilator --lint-only --timing --top-module cpu_v01_fpga_top_tb "
             "rtl/cpu_v01_pkg.sv rtl/cpu_v01_core.sv rtl/cpu_v01_fpga_memories.sv "
+            "rtl/cpu_v01_fpga_uart_mmio.sv rtl/cpu_v01_fpga_timer_mmio.sv "
+            "rtl/cpu_v01_fpga_gpio_status.sv "
             "rtl/cpu_v01_fpga_top.sv rtl/cpu_v01_fpga_top_tb.sv",
         ),
         items=(

@@ -87,7 +87,7 @@ I23-S05 implementation gate.
 
 | Step | Command | Pass criteria |
 | --- | --- | --- |
-| `rtl_preflight` | `verilator --lint-only --timing --top-module cpu_v01_fpga_first_test_tb rtl/cpu_v01_pkg.sv rtl/cpu_v01_core.sv rtl/cpu_v01_fpga_memories.sv rtl/cpu_v01_fpga_top.sv rtl/cpu_v01_fpga_first_test_tb.sv` | Verilator exits 0 for the first-test smoke testbench. |
+| `rtl_preflight` | `verilator --lint-only --timing --top-module cpu_v01_fpga_first_test_tb rtl/cpu_v01_pkg.sv rtl/cpu_v01_core.sv rtl/cpu_v01_fpga_memories.sv rtl/cpu_v01_fpga_uart_mmio.sv rtl/cpu_v01_fpga_timer_mmio.sv rtl/cpu_v01_fpga_gpio_status.sv rtl/cpu_v01_fpga_top.sv rtl/cpu_v01_fpga_first_test_tb.sv` | Verilator exits 0 for the first-test smoke testbench. |
 | `gate_profile_check` | `python tools\fpga_synthesis_gate.py --check` | The checker reports zero profile issues. |
 | `emit_gowin_tcl` | `python tools\fpga_synthesis_gate.py --gowin-tcl` | The template names every RTL source, `cpu_v01_fpga_top`, the constraints, and `run all`. |
 | `gowin_synth_place_route` | `gw_sh build/fpga/tang_mega_138k/first_test/run_gowin.tcl` | Gowin emits synthesis, timing, port, utilization, and bitstream outputs. |

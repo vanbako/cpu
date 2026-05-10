@@ -14,7 +14,8 @@ module cpu_v01_fpga_top #(
   parameter int UART_STATUS_CLOCK_HZ = 25_000_000,
   parameter int UART_STATUS_BAUD = 115_200,
   parameter int UART_STATUS_INTERVAL_CYCLES = 25_000,
-  parameter logic [31:0] DEBUG_BUILD_ID = 32'h2501_C0DE
+  parameter logic [31:0] DEBUG_BUILD_ID = 32'h2501_C0DE,
+  parameter logic [255:0] IMAGE_SHA256 = 256'd0
 ) (
   input  logic board_clk_i,
   input  logic board_reset_n_i,
@@ -66,6 +67,63 @@ module cpu_v01_fpga_top #(
   cell_t dmem_rsp_rdata [CAPABILITY_OBJECT_CELLS];
   fault_packet_t dmem_rsp_fault;
 
+  logic ram_req_valid;
+  logic ram_req_ready;
+  logic ram_req_write;
+  addr_t ram_req_addr;
+  logic [2:0] ram_req_len_cells;
+  cell_t ram_req_wdata [CAPABILITY_OBJECT_CELLS];
+  logic ram_rsp_valid;
+  cell_t ram_rsp_rdata [CAPABILITY_OBJECT_CELLS];
+  fault_packet_t ram_rsp_fault;
+
+  logic uart_req_valid;
+  logic uart_req_ready;
+  logic uart_req_write;
+  addr_t uart_req_addr;
+  cell_t uart_req_wdata;
+  logic uart_rsp_valid;
+  cell_t uart_rsp_rdata;
+  fault_packet_t uart_rsp_fault;
+
+  logic timer_req_valid;
+  logic timer_req_ready;
+  logic timer_req_write;
+  addr_t timer_req_addr;
+  logic [2:0] timer_req_len_cells;
+  cell_t timer_req_wdata [INTEGER_OBJECT_CELLS];
+  logic timer_rsp_valid;
+  cell_t timer_rsp_rdata [INTEGER_OBJECT_CELLS];
+  fault_packet_t timer_rsp_fault;
+
+  logic gpio_req_valid;
+  logic gpio_req_ready;
+  logic gpio_req_write;
+  addr_t gpio_req_addr;
+  cell_t gpio_req_wdata;
+  logic gpio_rsp_valid;
+  cell_t gpio_rsp_rdata;
+  fault_packet_t gpio_rsp_fault;
+
+  logic irq_req_valid;
+  logic irq_req_ready;
+  logic irq_req_write;
+  addr_t irq_req_addr;
+  cell_t irq_req_wdata;
+  logic irq_rsp_valid;
+  cell_t irq_rsp_rdata;
+  fault_packet_t irq_rsp_fault;
+
+  logic identity_req_valid;
+  logic identity_req_ready;
+  logic identity_req_write;
+  addr_t identity_req_addr;
+  logic [2:0] identity_req_len_cells;
+  cell_t identity_req_wdata [CAPABILITY_OBJECT_CELLS];
+  logic identity_rsp_valid;
+  cell_t identity_rsp_rdata [CAPABILITY_OBJECT_CELLS];
+  fault_packet_t identity_rsp_fault;
+
   logic tagmem_req_valid;
   logic tagmem_req_ready;
   logic tagmem_req_write;
@@ -73,6 +131,12 @@ module cpu_v01_fpga_top #(
   logic tagmem_req_wtag;
   logic tagmem_rsp_valid;
   logic tagmem_rsp_rtag;
+  logic tagmem_req_in_data_ram;
+  logic tagram_req_valid;
+  logic tagram_req_ready;
+  logic tagram_rsp_valid;
+  logic tagram_rsp_rtag;
+  logic tagmem_bypass_rsp_valid_q;
 
   logic retire_valid;
   retire_packet_t retire_packet;
@@ -91,6 +155,21 @@ module cpu_v01_fpga_top #(
   logic [STATUS_PACKET_BITS-1:0] uart_status_packet;
   logic [31:0] uart_status_sequence_q;
   logic uart_status_packet_started;
+  logic uart_mmio_tx;
+  logic uart_rx_ready_irq;
+  logic uart_tx_ready_irq;
+  logic timer_compare_irq;
+  logic timer_pending;
+  logic [15:0] gpio_out;
+  logic [15:0] gpio_oe;
+  logic gpio_pass_led;
+  logic gpio_fail_led;
+  logic gpio_heartbeat_led;
+  logic [3:0] gpio_status_leds;
+  logic [7:0] gpio_debug_status_select;
+  logic gpio_status_irq;
+  logic [15:0] irq_sources;
+  logic [15:0] irq_pending_enabled;
 
   assign core_rst_n = reset_sync_q[RESET_SYNC_STAGES-1];
 
@@ -108,6 +187,19 @@ module cpu_v01_fpga_top #(
   assign debug_pcc_cursor_low_o = debug_pcc.payload.cursor[31:0];
   assign debug_pcc_permissions_o = debug_pcc.payload.permissions;
   assign debug_sr_low_o = debug_sr[7:0];
+  assign irq_sources = {
+    12'd0,
+    gpio_status_irq,
+    timer_compare_irq,
+    uart_tx_ready_irq,
+    uart_rx_ready_irq
+  };
+  assign tagmem_req_in_data_ram =
+      tagmem_req_slot_addr >= DATA_RAM_BASE &&
+      tagmem_req_slot_addr < DATA_RAM_BASE + addr_t'(DATA_RAM_CELLS);
+  assign tagmem_req_ready = tagmem_req_in_data_ram ? tagram_req_ready : 1'b1;
+  assign tagmem_rsp_valid = tagram_rsp_valid || tagmem_bypass_rsp_valid_q;
+  assign tagmem_rsp_rtag = tagram_rsp_valid ? tagram_rsp_rtag : 1'b0;
 
   always_comb begin
     uart_status_flags = 16'd0;
@@ -178,6 +270,15 @@ module cpu_v01_fpga_top #(
     end
   end
 
+  always_ff @(posedge board_clk_i or negedge core_rst_n) begin
+    if (!core_rst_n) begin
+      tagmem_bypass_rsp_valid_q <= 1'b0;
+    end else begin
+      tagmem_bypass_rsp_valid_q <=
+          tagmem_req_valid && tagmem_req_ready && !tagmem_req_write && !tagmem_req_in_data_ram;
+    end
+  end
+
   always_comb begin
     core_port_activity =
         imem_req_valid || imem_rsp_ready || (imem_req_valid && (|imem_req_addr)) ||
@@ -216,15 +317,173 @@ module cpu_v01_fpga_top #(
   ) data_ram (
     .clk(board_clk_i),
     .rst_n(core_rst_n),
-    .req_valid(dmem_req_valid),
-    .req_ready(dmem_req_ready),
-    .req_write(dmem_req_write),
-    .req_addr(dmem_req_addr),
-    .req_len_cells(dmem_req_len_cells),
-    .req_wdata(dmem_req_wdata),
-    .rsp_valid(dmem_rsp_valid),
-    .rsp_rdata(dmem_rsp_rdata),
-    .rsp_fault(dmem_rsp_fault)
+    .req_valid(ram_req_valid),
+    .req_ready(ram_req_ready),
+    .req_write(ram_req_write),
+    .req_addr(ram_req_addr),
+    .req_len_cells(ram_req_len_cells),
+    .req_wdata(ram_req_wdata),
+    .rsp_valid(ram_rsp_valid),
+    .rsp_rdata(ram_rsp_rdata),
+    .rsp_fault(ram_rsp_fault)
+  );
+
+  cpu_v01_fpga_soc_dmem_decoder #(
+    .DATA_RAM_BASE(DATA_RAM_BASE),
+    .DATA_RAM_CELLS(DATA_RAM_CELLS)
+  ) soc_dmem_decoder (
+    .clk(board_clk_i),
+    .rst_n(core_rst_n),
+    .core_req_valid(dmem_req_valid),
+    .core_req_ready(dmem_req_ready),
+    .core_req_write(dmem_req_write),
+    .core_req_addr(dmem_req_addr),
+    .core_req_len_cells(dmem_req_len_cells),
+    .core_req_wdata(dmem_req_wdata),
+    .core_rsp_valid(dmem_rsp_valid),
+    .core_rsp_rdata(dmem_rsp_rdata),
+    .core_rsp_fault(dmem_rsp_fault),
+    .ram_req_valid(ram_req_valid),
+    .ram_req_ready(ram_req_ready),
+    .ram_req_write(ram_req_write),
+    .ram_req_addr(ram_req_addr),
+    .ram_req_len_cells(ram_req_len_cells),
+    .ram_req_wdata(ram_req_wdata),
+    .ram_rsp_valid(ram_rsp_valid),
+    .ram_rsp_rdata(ram_rsp_rdata),
+    .ram_rsp_fault(ram_rsp_fault),
+    .uart_req_valid(uart_req_valid),
+    .uart_req_ready(uart_req_ready),
+    .uart_req_write(uart_req_write),
+    .uart_req_addr(uart_req_addr),
+    .uart_req_wdata(uart_req_wdata),
+    .uart_rsp_valid(uart_rsp_valid),
+    .uart_rsp_rdata(uart_rsp_rdata),
+    .uart_rsp_fault(uart_rsp_fault),
+    .timer_req_valid(timer_req_valid),
+    .timer_req_ready(timer_req_ready),
+    .timer_req_write(timer_req_write),
+    .timer_req_addr(timer_req_addr),
+    .timer_req_len_cells(timer_req_len_cells),
+    .timer_req_wdata(timer_req_wdata),
+    .timer_rsp_valid(timer_rsp_valid),
+    .timer_rsp_rdata(timer_rsp_rdata),
+    .timer_rsp_fault(timer_rsp_fault),
+    .gpio_req_valid(gpio_req_valid),
+    .gpio_req_ready(gpio_req_ready),
+    .gpio_req_write(gpio_req_write),
+    .gpio_req_addr(gpio_req_addr),
+    .gpio_req_wdata(gpio_req_wdata),
+    .gpio_rsp_valid(gpio_rsp_valid),
+    .gpio_rsp_rdata(gpio_rsp_rdata),
+    .gpio_rsp_fault(gpio_rsp_fault),
+    .irq_req_valid(irq_req_valid),
+    .irq_req_ready(irq_req_ready),
+    .irq_req_write(irq_req_write),
+    .irq_req_addr(irq_req_addr),
+    .irq_req_wdata(irq_req_wdata),
+    .irq_rsp_valid(irq_rsp_valid),
+    .irq_rsp_rdata(irq_rsp_rdata),
+    .irq_rsp_fault(irq_rsp_fault),
+    .identity_req_valid(identity_req_valid),
+    .identity_req_ready(identity_req_ready),
+    .identity_req_write(identity_req_write),
+    .identity_req_addr(identity_req_addr),
+    .identity_req_len_cells(identity_req_len_cells),
+    .identity_req_wdata(identity_req_wdata),
+    .identity_rsp_valid(identity_rsp_valid),
+    .identity_rsp_rdata(identity_rsp_rdata),
+    .identity_rsp_fault(identity_rsp_fault)
+  );
+
+  cpu_v01_fpga_uart_mmio #(
+    .CLOCK_HZ(UART_STATUS_CLOCK_HZ),
+    .BAUD(UART_STATUS_BAUD)
+  ) firmware_uart (
+    .clk(board_clk_i),
+    .rst_n(core_rst_n),
+    .req_valid(uart_req_valid),
+    .req_ready(uart_req_ready),
+    .req_write(uart_req_write),
+    .req_addr(uart_req_addr),
+    .req_wdata(uart_req_wdata),
+    .rsp_valid(uart_rsp_valid),
+    .rsp_rdata(uart_rsp_rdata),
+    .rsp_fault(uart_rsp_fault),
+    .uart_rx_i(1'b1),
+    .uart_tx_o(uart_mmio_tx),
+    .irq_rx_ready_o(uart_rx_ready_irq),
+    .irq_tx_ready_o(uart_tx_ready_irq)
+  );
+
+  cpu_v01_fpga_timer_mmio firmware_timer (
+    .clk(board_clk_i),
+    .rst_n(core_rst_n),
+    .req_valid(timer_req_valid),
+    .req_ready(timer_req_ready),
+    .req_write(timer_req_write),
+    .req_addr(timer_req_addr),
+    .req_len_cells(timer_req_len_cells),
+    .req_wdata(timer_req_wdata),
+    .rsp_valid(timer_rsp_valid),
+    .rsp_rdata(timer_rsp_rdata),
+    .rsp_fault(timer_rsp_fault),
+    .timer_interrupt_o(timer_compare_irq),
+    .timer_pending_o(timer_pending)
+  );
+
+  cpu_v01_fpga_gpio_status firmware_gpio_status (
+    .clk(board_clk_i),
+    .rst_n(core_rst_n),
+    .req_valid(gpio_req_valid),
+    .req_ready(gpio_req_ready),
+    .req_write(gpio_req_write),
+    .req_addr(gpio_req_addr),
+    .req_wdata(gpio_req_wdata),
+    .rsp_valid(gpio_rsp_valid),
+    .rsp_rdata(gpio_rsp_rdata),
+    .rsp_fault(gpio_rsp_fault),
+    .board_gpio_i(16'd0),
+    .gpio_out_o(gpio_out),
+    .gpio_oe_o(gpio_oe),
+    .pass_led_o(gpio_pass_led),
+    .fail_led_o(gpio_fail_led),
+    .heartbeat_led_o(gpio_heartbeat_led),
+    .status_leds_o(gpio_status_leds),
+    .debug_status_select_o(gpio_debug_status_select),
+    .gpio_status_irq_o(gpio_status_irq)
+  );
+
+  cpu_v01_fpga_irq_mmio firmware_irq (
+    .clk(board_clk_i),
+    .rst_n(core_rst_n),
+    .req_valid(irq_req_valid),
+    .req_ready(irq_req_ready),
+    .req_write(irq_req_write),
+    .req_addr(irq_req_addr),
+    .req_wdata(irq_req_wdata),
+    .rsp_valid(irq_rsp_valid),
+    .rsp_rdata(irq_rsp_rdata),
+    .rsp_fault(irq_rsp_fault),
+    .irq_sources_i(irq_sources),
+    .irq_pending_enabled_o(irq_pending_enabled)
+  );
+
+  cpu_v01_fpga_system_identity_mmio #(
+    .BUILD_ID({64'd0, DEBUG_BUILD_ID}),
+    .IMAGE_SHA256(IMAGE_SHA256)
+  ) system_identity (
+    .clk(board_clk_i),
+    .rst_n(core_rst_n),
+    .req_valid(identity_req_valid),
+    .req_ready(identity_req_ready),
+    .req_write(identity_req_write),
+    .req_addr(identity_req_addr),
+    .req_len_cells(identity_req_len_cells),
+    .req_wdata(identity_req_wdata),
+    .rsp_valid(identity_rsp_valid),
+    .rsp_rdata(identity_rsp_rdata),
+    .rsp_fault(identity_rsp_fault)
   );
 
   cpu_v01_fpga_tag_ram #(
@@ -233,14 +492,15 @@ module cpu_v01_fpga_top #(
   ) tag_ram (
     .clk(board_clk_i),
     .rst_n(core_rst_n),
-    .req_valid(tagmem_req_valid),
-    .req_ready(tagmem_req_ready),
+    .req_valid(tagram_req_valid),
+    .req_ready(tagram_req_ready),
     .req_write(tagmem_req_write),
     .req_slot_addr(tagmem_req_slot_addr),
     .req_wtag(tagmem_req_wtag),
-    .rsp_valid(tagmem_rsp_valid),
-    .rsp_rtag(tagmem_rsp_rtag)
+    .rsp_valid(tagram_rsp_valid),
+    .rsp_rtag(tagram_rsp_rtag)
   );
+  assign tagram_req_valid = tagmem_req_valid && tagmem_req_in_data_ram;
 
   cpu_v01_fpga_uart_status_streamer #(
     .ENABLE(UART_STATUS_ENABLE),
@@ -254,6 +514,21 @@ module cpu_v01_fpga_top #(
     .packet_started_o(uart_status_packet_started),
     .uart_tx_o(uart_tx_o)
   );
+
+  // verilator lint_off UNUSEDSIGNAL
+  wire logic unused_i30_s02_outputs = &{
+    uart_mmio_tx,
+    timer_pending,
+    gpio_out,
+    gpio_oe,
+    gpio_pass_led,
+    gpio_fail_led,
+    gpio_heartbeat_led,
+    gpio_status_leds,
+    gpio_debug_status_select,
+    irq_pending_enabled
+  };
+  // verilator lint_on UNUSEDSIGNAL
 
   cpu_v01_core #(
     .RESET_VECTOR(RESET_VECTOR),
@@ -300,6 +575,481 @@ module cpu_v01_fpga_top #(
     .debug_sr(debug_sr),
     .debug_retire_sequence(debug_retire_sequence)
   );
+endmodule
+
+module cpu_v01_fpga_soc_dmem_decoder #(
+  parameter cpu_v01_pkg::addr_t DATA_RAM_BASE = 48'h0000_0001_0000,
+  parameter int DATA_RAM_CELLS = 4096,
+  parameter cpu_v01_pkg::addr_t UART_BASE = 48'h0000_00F0_0000,
+  parameter cpu_v01_pkg::addr_t TIMER_BASE = 48'h0000_00F0_0100,
+  parameter cpu_v01_pkg::addr_t GPIO_STATUS_BASE = 48'h0000_00F0_0200,
+  parameter cpu_v01_pkg::addr_t IRQ_BASE = 48'h0000_00F0_0300,
+  parameter cpu_v01_pkg::addr_t SYSTEM_IDENTITY_BASE = 48'h0000_00F0_0400,
+  parameter int SOC_PERIPHERAL_CELLS = 256
+) (
+  input  logic clk,
+  input  logic rst_n,
+
+  input  logic core_req_valid,
+  output logic core_req_ready,
+  input  logic core_req_write,
+  input  cpu_v01_pkg::addr_t core_req_addr,
+  input  logic [2:0] core_req_len_cells,
+  input  cpu_v01_pkg::cell_t core_req_wdata [cpu_v01_pkg::CAPABILITY_OBJECT_CELLS],
+
+  output logic core_rsp_valid,
+  output cpu_v01_pkg::cell_t core_rsp_rdata [cpu_v01_pkg::CAPABILITY_OBJECT_CELLS],
+  output cpu_v01_pkg::fault_packet_t core_rsp_fault,
+
+  output logic ram_req_valid,
+  input  logic ram_req_ready,
+  output logic ram_req_write,
+  output cpu_v01_pkg::addr_t ram_req_addr,
+  output logic [2:0] ram_req_len_cells,
+  output cpu_v01_pkg::cell_t ram_req_wdata [cpu_v01_pkg::CAPABILITY_OBJECT_CELLS],
+  input  logic ram_rsp_valid,
+  input  cpu_v01_pkg::cell_t ram_rsp_rdata [cpu_v01_pkg::CAPABILITY_OBJECT_CELLS],
+  input  cpu_v01_pkg::fault_packet_t ram_rsp_fault,
+
+  output logic uart_req_valid,
+  input  logic uart_req_ready,
+  output logic uart_req_write,
+  output cpu_v01_pkg::addr_t uart_req_addr,
+  output cpu_v01_pkg::cell_t uart_req_wdata,
+  input  logic uart_rsp_valid,
+  input  cpu_v01_pkg::cell_t uart_rsp_rdata,
+  input  cpu_v01_pkg::fault_packet_t uart_rsp_fault,
+
+  output logic timer_req_valid,
+  input  logic timer_req_ready,
+  output logic timer_req_write,
+  output cpu_v01_pkg::addr_t timer_req_addr,
+  output logic [2:0] timer_req_len_cells,
+  output cpu_v01_pkg::cell_t timer_req_wdata [cpu_v01_pkg::INTEGER_OBJECT_CELLS],
+  input  logic timer_rsp_valid,
+  input  cpu_v01_pkg::cell_t timer_rsp_rdata [cpu_v01_pkg::INTEGER_OBJECT_CELLS],
+  input  cpu_v01_pkg::fault_packet_t timer_rsp_fault,
+
+  output logic gpio_req_valid,
+  input  logic gpio_req_ready,
+  output logic gpio_req_write,
+  output cpu_v01_pkg::addr_t gpio_req_addr,
+  output cpu_v01_pkg::cell_t gpio_req_wdata,
+  input  logic gpio_rsp_valid,
+  input  cpu_v01_pkg::cell_t gpio_rsp_rdata,
+  input  cpu_v01_pkg::fault_packet_t gpio_rsp_fault,
+
+  output logic irq_req_valid,
+  input  logic irq_req_ready,
+  output logic irq_req_write,
+  output cpu_v01_pkg::addr_t irq_req_addr,
+  output cpu_v01_pkg::cell_t irq_req_wdata,
+  input  logic irq_rsp_valid,
+  input  cpu_v01_pkg::cell_t irq_rsp_rdata,
+  input  cpu_v01_pkg::fault_packet_t irq_rsp_fault,
+
+  output logic identity_req_valid,
+  input  logic identity_req_ready,
+  output logic identity_req_write,
+  output cpu_v01_pkg::addr_t identity_req_addr,
+  output logic [2:0] identity_req_len_cells,
+  output cpu_v01_pkg::cell_t identity_req_wdata [cpu_v01_pkg::CAPABILITY_OBJECT_CELLS],
+  input  logic identity_rsp_valid,
+  input  cpu_v01_pkg::cell_t identity_rsp_rdata [cpu_v01_pkg::CAPABILITY_OBJECT_CELLS],
+  input  cpu_v01_pkg::fault_packet_t identity_rsp_fault
+);
+  import cpu_v01_pkg::*;
+
+  typedef enum logic [2:0] {
+    TARGET_FAULT = 3'd0,
+    TARGET_RAM = 3'd1,
+    TARGET_UART = 3'd2,
+    TARGET_TIMER = 3'd3,
+    TARGET_GPIO = 3'd4,
+    TARGET_IRQ = 3'd5,
+    TARGET_IDENTITY = 3'd6
+  } dmem_target_t;
+
+  dmem_target_t selected_target;
+  logic invalid_len;
+  logic fault_rsp_valid_q;
+  fault_packet_t fault_rsp_fault_q;
+
+  assign invalid_len = core_req_len_cells == 3'd0 || core_req_len_cells > 3'd4;
+  assign selected_target = target_for(core_req_addr);
+
+  assign ram_req_valid =
+      core_req_valid && !invalid_len && selected_target == TARGET_RAM;
+  assign uart_req_valid =
+      core_req_valid && !invalid_len && selected_target == TARGET_UART;
+  assign timer_req_valid =
+      core_req_valid && !invalid_len && selected_target == TARGET_TIMER;
+  assign gpio_req_valid =
+      core_req_valid && !invalid_len && selected_target == TARGET_GPIO;
+  assign irq_req_valid =
+      core_req_valid && !invalid_len && selected_target == TARGET_IRQ;
+  assign identity_req_valid =
+      core_req_valid && !invalid_len && selected_target == TARGET_IDENTITY;
+
+  assign ram_req_write = core_req_write;
+  assign ram_req_addr = core_req_addr;
+  assign ram_req_len_cells = core_req_len_cells;
+  assign uart_req_write = core_req_write;
+  assign uart_req_addr = core_req_addr;
+  assign uart_req_wdata = core_req_wdata[0];
+  assign timer_req_write = core_req_write;
+  assign timer_req_addr = core_req_addr;
+  assign timer_req_len_cells = core_req_len_cells;
+  assign gpio_req_write = core_req_write;
+  assign gpio_req_addr = core_req_addr;
+  assign gpio_req_wdata = core_req_wdata[0];
+  assign irq_req_write = core_req_write;
+  assign irq_req_addr = core_req_addr;
+  assign irq_req_wdata = core_req_wdata[0];
+  assign identity_req_write = core_req_write;
+  assign identity_req_addr = core_req_addr;
+  assign identity_req_len_cells = core_req_len_cells;
+
+  function automatic logic window_contains(
+      input addr_t addr,
+      input addr_t base,
+      input int cells
+  );
+    return addr >= base && addr < base + addr_t'(cells);
+  endfunction
+
+  function automatic dmem_target_t target_for(input addr_t addr);
+    if (window_contains(addr, DATA_RAM_BASE, DATA_RAM_CELLS)) begin
+      return TARGET_RAM;
+    end
+    if (window_contains(addr, UART_BASE, SOC_PERIPHERAL_CELLS)) begin
+      return TARGET_UART;
+    end
+    if (window_contains(addr, TIMER_BASE, SOC_PERIPHERAL_CELLS)) begin
+      return TARGET_TIMER;
+    end
+    if (window_contains(addr, GPIO_STATUS_BASE, SOC_PERIPHERAL_CELLS)) begin
+      return TARGET_GPIO;
+    end
+    if (window_contains(addr, IRQ_BASE, SOC_PERIPHERAL_CELLS)) begin
+      return TARGET_IRQ;
+    end
+    if (window_contains(addr, SYSTEM_IDENTITY_BASE, SOC_PERIPHERAL_CELLS)) begin
+      return TARGET_IDENTITY;
+    end
+    return TARGET_FAULT;
+  endfunction
+
+  function automatic fault_packet_t access_fault(input addr_t addr);
+    fault_packet_t fault;
+    fault = '0;
+    fault.valid = 1'b1;
+    fault.cause = EXC_ACCESS_FAULT;
+    fault.tval = addr;
+    return fault;
+  endfunction
+
+  always_comb begin
+    unique case (selected_target)
+      TARGET_RAM: core_req_ready = invalid_len ? 1'b1 : ram_req_ready;
+      TARGET_UART: core_req_ready = invalid_len ? 1'b1 : uart_req_ready;
+      TARGET_TIMER: core_req_ready = invalid_len ? 1'b1 : timer_req_ready;
+      TARGET_GPIO: core_req_ready = invalid_len ? 1'b1 : gpio_req_ready;
+      TARGET_IRQ: core_req_ready = invalid_len ? 1'b1 : irq_req_ready;
+      TARGET_IDENTITY: core_req_ready = invalid_len ? 1'b1 : identity_req_ready;
+      default: core_req_ready = 1'b1;
+    endcase
+  end
+
+  always_comb begin
+    for (int i = 0; i < CAPABILITY_OBJECT_CELLS; i++) begin
+      ram_req_wdata[i] = core_req_wdata[i];
+      identity_req_wdata[i] = core_req_wdata[i];
+      core_rsp_rdata[i] = '0;
+    end
+    for (int i = 0; i < INTEGER_OBJECT_CELLS; i++) begin
+      timer_req_wdata[i] = core_req_wdata[i];
+    end
+
+    core_rsp_valid = 1'b0;
+    core_rsp_fault = '0;
+
+    if (ram_rsp_valid) begin
+      core_rsp_valid = 1'b1;
+      core_rsp_fault = ram_rsp_fault;
+      for (int i = 0; i < CAPABILITY_OBJECT_CELLS; i++) begin
+        core_rsp_rdata[i] = ram_rsp_rdata[i];
+      end
+    end else if (uart_rsp_valid) begin
+      core_rsp_valid = 1'b1;
+      core_rsp_fault = uart_rsp_fault;
+      core_rsp_rdata[0] = uart_rsp_rdata;
+    end else if (timer_rsp_valid) begin
+      core_rsp_valid = 1'b1;
+      core_rsp_fault = timer_rsp_fault;
+      for (int i = 0; i < INTEGER_OBJECT_CELLS; i++) begin
+        core_rsp_rdata[i] = timer_rsp_rdata[i];
+      end
+    end else if (gpio_rsp_valid) begin
+      core_rsp_valid = 1'b1;
+      core_rsp_fault = gpio_rsp_fault;
+      core_rsp_rdata[0] = gpio_rsp_rdata;
+    end else if (irq_rsp_valid) begin
+      core_rsp_valid = 1'b1;
+      core_rsp_fault = irq_rsp_fault;
+      core_rsp_rdata[0] = irq_rsp_rdata;
+    end else if (identity_rsp_valid) begin
+      core_rsp_valid = 1'b1;
+      core_rsp_fault = identity_rsp_fault;
+      for (int i = 0; i < CAPABILITY_OBJECT_CELLS; i++) begin
+        core_rsp_rdata[i] = identity_rsp_rdata[i];
+      end
+    end else if (fault_rsp_valid_q) begin
+      core_rsp_valid = 1'b1;
+      core_rsp_fault = fault_rsp_fault_q;
+    end
+  end
+
+  always_ff @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+      fault_rsp_valid_q <= 1'b0;
+      fault_rsp_fault_q <= '0;
+    end else begin
+      fault_rsp_valid_q <=
+          core_req_valid && core_req_ready && !core_req_write &&
+          (invalid_len || selected_target == TARGET_FAULT);
+      if (core_req_valid && core_req_ready && !core_req_write &&
+          (invalid_len || selected_target == TARGET_FAULT)) begin
+        fault_rsp_fault_q <= access_fault(core_req_addr);
+      end else if (fault_rsp_valid_q) begin
+        fault_rsp_fault_q <= '0;
+      end
+    end
+  end
+endmodule
+
+module cpu_v01_fpga_irq_mmio #(
+  parameter cpu_v01_pkg::addr_t BASE_CELL = 48'h0000_00F0_0300
+) (
+  input  logic clk,
+  input  logic rst_n,
+
+  input  logic req_valid,
+  output logic req_ready,
+  input  logic req_write,
+  input  cpu_v01_pkg::addr_t req_addr,
+  input  cpu_v01_pkg::cell_t req_wdata,
+
+  output logic rsp_valid,
+  output cpu_v01_pkg::cell_t rsp_rdata,
+  output cpu_v01_pkg::fault_packet_t rsp_fault,
+
+  input  logic [15:0] irq_sources_i,
+  output logic [15:0] irq_pending_enabled_o
+);
+  import cpu_v01_pkg::*;
+
+  localparam addr_t IRQ_PENDING_OFFSET = 48'd0;
+  localparam addr_t IRQ_ENABLE_OFFSET = 48'd1;
+  localparam addr_t IRQ_ACK_OFFSET = 48'd2;
+  localparam addr_t IRQ_FORCE_OFFSET = 48'd3;
+  localparam addr_t IRQ_REGISTER_CELLS = 48'd4;
+
+  logic [15:0] irq_enable_q;
+  logic [15:0] irq_force_q;
+  logic [15:0] irq_pending_raw;
+
+  assign req_ready = 1'b1;
+  assign irq_pending_raw = irq_sources_i | irq_force_q;
+  assign irq_pending_enabled_o = irq_pending_raw & irq_enable_q;
+
+  function automatic logic register_address(input addr_t addr);
+    return addr >= BASE_CELL && addr < BASE_CELL + IRQ_REGISTER_CELLS;
+  endfunction
+
+  function automatic addr_t register_offset(input addr_t addr);
+    return addr - BASE_CELL;
+  endfunction
+
+  function automatic fault_packet_t access_fault(input addr_t addr);
+    fault_packet_t fault;
+    fault = '0;
+    fault.valid = 1'b1;
+    fault.cause = EXC_ACCESS_FAULT;
+    fault.tval = addr;
+    return fault;
+  endfunction
+
+  always_ff @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+      irq_enable_q <= 16'd0;
+      irq_force_q <= 16'd0;
+      rsp_valid <= 1'b0;
+      rsp_rdata <= '0;
+      rsp_fault <= '0;
+    end else begin
+      automatic addr_t offset;
+      offset = register_offset(req_addr);
+      rsp_valid <= 1'b0;
+      rsp_rdata <= '0;
+      rsp_fault <= '0;
+
+      if (req_valid && req_ready) begin
+        if (!register_address(req_addr)) begin
+          if (!req_write) begin
+            rsp_valid <= 1'b1;
+            rsp_fault <= access_fault(req_addr);
+          end
+        end else if (req_write) begin
+          unique case (offset)
+            IRQ_ENABLE_OFFSET: irq_enable_q <= req_wdata[15:0];
+            IRQ_ACK_OFFSET: irq_force_q <= irq_force_q & ~req_wdata[15:0];
+            IRQ_FORCE_OFFSET: irq_force_q <= irq_force_q | req_wdata[15:0];
+            default: begin
+            end
+          endcase
+        end else begin
+          rsp_valid <= 1'b1;
+          unique case (offset)
+            IRQ_PENDING_OFFSET: rsp_rdata <= {8'd0, irq_pending_raw};
+            IRQ_ENABLE_OFFSET: rsp_rdata <= {8'd0, irq_enable_q};
+            IRQ_ACK_OFFSET: rsp_rdata <= '0;
+            IRQ_FORCE_OFFSET: rsp_rdata <= {8'd0, irq_force_q};
+            default: begin
+              rsp_fault <= access_fault(req_addr);
+            end
+          endcase
+        end
+      end
+    end
+  end
+endmodule
+
+module cpu_v01_fpga_system_identity_mmio #(
+  parameter cpu_v01_pkg::addr_t BASE_CELL = 48'h0000_00F0_0400,
+  parameter logic [95:0] BUILD_ID = 96'd0,
+  parameter logic [255:0] IMAGE_SHA256 = 256'd0
+) (
+  input  logic clk,
+  input  logic rst_n,
+
+  input  logic req_valid,
+  output logic req_ready,
+  input  logic req_write,
+  input  cpu_v01_pkg::addr_t req_addr,
+  input  logic [2:0] req_len_cells,
+  input  cpu_v01_pkg::cell_t req_wdata [cpu_v01_pkg::CAPABILITY_OBJECT_CELLS],
+
+  output logic rsp_valid,
+  output cpu_v01_pkg::cell_t rsp_rdata [cpu_v01_pkg::CAPABILITY_OBJECT_CELLS],
+  output cpu_v01_pkg::fault_packet_t rsp_fault
+);
+  import cpu_v01_pkg::*;
+
+  localparam addr_t RESET_CAUSE_OFFSET = 48'h00;
+  localparam addr_t BUILD_ID_LO_OFFSET = 48'h01;
+  localparam addr_t BUILD_ID_HI_OFFSET = 48'h02;
+  localparam addr_t IMAGE_SHA256_0_OFFSET = 48'h10;
+  localparam addr_t IMAGE_SHA256_1_OFFSET = 48'h11;
+  localparam addr_t IMAGE_SHA256_2_OFFSET = 48'h12;
+  localparam addr_t IMAGE_SHA256_3_OFFSET = 48'h13;
+  localparam addr_t IMAGE_SHA256_4_OFFSET = 48'h14;
+  localparam addr_t IMAGE_SHA256_5_OFFSET = 48'h15;
+  localparam addr_t IDENTITY_REGISTER_CELLS = 48'h16;
+
+  logic [15:0] reset_cause_q;
+
+  assign req_ready = 1'b1;
+
+  function automatic logic register_address(input addr_t addr);
+    return addr >= BASE_CELL && addr < BASE_CELL + IDENTITY_REGISTER_CELLS;
+  endfunction
+
+  function automatic addr_t register_offset(input addr_t addr);
+    return addr - BASE_CELL;
+  endfunction
+
+  function automatic fault_packet_t access_fault(input addr_t addr);
+    fault_packet_t fault;
+    fault = '0;
+    fault.valid = 1'b1;
+    fault.cause = EXC_ACCESS_FAULT;
+    fault.tval = addr;
+    return fault;
+  endfunction
+
+  always_ff @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+      reset_cause_q <= 16'h0001;
+      rsp_valid <= 1'b0;
+      rsp_fault <= '0;
+      for (int i = 0; i < CAPABILITY_OBJECT_CELLS; i++) begin
+        rsp_rdata[i] <= '0;
+      end
+    end else begin
+      automatic addr_t offset;
+      offset = register_offset(req_addr);
+      rsp_valid <= 1'b0;
+      rsp_fault <= '0;
+      for (int i = 0; i < CAPABILITY_OBJECT_CELLS; i++) begin
+        rsp_rdata[i] <= '0;
+      end
+
+      if (req_valid && req_ready) begin
+        if (!register_address(req_addr) || req_len_cells == 3'd0) begin
+          if (!req_write) begin
+            rsp_valid <= 1'b1;
+            rsp_fault <= access_fault(req_addr);
+          end
+        end else if (req_write) begin
+          if (offset == RESET_CAUSE_OFFSET) begin
+            reset_cause_q <= reset_cause_q & ~req_wdata[0][15:0];
+          end
+        end else begin
+          rsp_valid <= 1'b1;
+          unique case (offset)
+            RESET_CAUSE_OFFSET: begin
+              rsp_rdata[0] <= {8'd0, reset_cause_q};
+            end
+            BUILD_ID_LO_OFFSET: begin
+              rsp_rdata[0] <= BUILD_ID[23:0];
+              rsp_rdata[1] <= BUILD_ID[47:24];
+            end
+            BUILD_ID_HI_OFFSET: begin
+              rsp_rdata[0] <= BUILD_ID[71:48];
+              rsp_rdata[1] <= BUILD_ID[95:72];
+            end
+            IMAGE_SHA256_0_OFFSET: begin
+              rsp_rdata[0] <= IMAGE_SHA256[23:0];
+              rsp_rdata[1] <= IMAGE_SHA256[47:24];
+            end
+            IMAGE_SHA256_1_OFFSET: begin
+              rsp_rdata[0] <= IMAGE_SHA256[71:48];
+              rsp_rdata[1] <= IMAGE_SHA256[95:72];
+            end
+            IMAGE_SHA256_2_OFFSET: begin
+              rsp_rdata[0] <= IMAGE_SHA256[119:96];
+              rsp_rdata[1] <= IMAGE_SHA256[143:120];
+            end
+            IMAGE_SHA256_3_OFFSET: begin
+              rsp_rdata[0] <= IMAGE_SHA256[167:144];
+              rsp_rdata[1] <= IMAGE_SHA256[191:168];
+            end
+            IMAGE_SHA256_4_OFFSET: begin
+              rsp_rdata[0] <= IMAGE_SHA256[215:192];
+              rsp_rdata[1] <= IMAGE_SHA256[239:216];
+            end
+            IMAGE_SHA256_5_OFFSET: begin
+              rsp_rdata[0] <= {8'd0, IMAGE_SHA256[255:240]};
+            end
+            default: begin
+              rsp_fault <= access_fault(req_addr);
+            end
+          endcase
+        end
+      end
+    end
+  end
 endmodule
 
 module cpu_v01_fpga_uart_status_streamer #(

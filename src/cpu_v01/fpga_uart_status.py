@@ -86,9 +86,13 @@ def fpga_uart_status_profile() -> FpgaUartStatusProfile:
         verilator_commands=(
             "verilator --lint-only --timing --top-module cpu_v01_fpga_top_tb "
             "rtl/cpu_v01_pkg.sv rtl/cpu_v01_core.sv rtl/cpu_v01_fpga_memories.sv "
+            "rtl/cpu_v01_fpga_uart_mmio.sv rtl/cpu_v01_fpga_timer_mmio.sv "
+            "rtl/cpu_v01_fpga_gpio_status.sv "
             "rtl/cpu_v01_fpga_top.sv rtl/cpu_v01_fpga_top_tb.sv",
             "verilator --lint-only --timing --top-module cpu_v01_fpga_first_test_tb "
             "rtl/cpu_v01_pkg.sv rtl/cpu_v01_core.sv rtl/cpu_v01_fpga_memories.sv "
+            "rtl/cpu_v01_fpga_uart_mmio.sv rtl/cpu_v01_fpga_timer_mmio.sv "
+            "rtl/cpu_v01_fpga_gpio_status.sv "
             "rtl/cpu_v01_fpga_top.sv rtl/cpu_v01_fpga_first_test_tb.sv",
         ),
         scenarios=(

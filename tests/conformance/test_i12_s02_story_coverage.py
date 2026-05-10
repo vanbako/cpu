@@ -102,10 +102,13 @@ class StoryCoverageReportTests(unittest.TestCase):
         self.assertEqual(rows["I23-S02"].status, "tested")
         self.assertEqual(rows["I23-S03"].status, "tested")
         self.assertEqual(rows["I23-S04"].status, "tested")
-        for story in ("I23-S05", "I23-S06"):
-            self.assertEqual(rows[story].status, "docs/tool")
+        self.assertEqual(rows["I23-S05"].status, "tested")
+        self.assertEqual(rows["I23-S06"].status, "tested")
+        self.assertEqual(rows["I30-S01"].status, "tested")
+        self.assertEqual(rows["I30-S02"].status, "tested")
+        self.assertEqual(rows["I30-S03"].status, "missing")
         self.assertGreater(report.tested_count, 0)
-        self.assertEqual(report.missing_count, 0)
+        self.assertEqual(report.missing_count, 22)
 
     def test_rendered_report_lists_artifacts_and_next_rtl_story(self) -> None:
         tool = load_story_coverage_module()
@@ -219,8 +222,14 @@ class StoryCoverageReportTests(unittest.TestCase):
         self.assertIn("cpu_v01_fpga_first_test_tb.sv", rendered)
         self.assertIn("fpga_smoke.py", rendered)
         self.assertIn("fpga_smoke_firmware.py", rendered)
-        self.assertIn("`I23-S06` | docs/tool", rendered)
+        self.assertIn("`I23-S06` | tested", rendered)
         self.assertIn("fpga-first-test-plan.md", rendered)
+        self.assertIn("`I30-S01` | tested", rendered)
+        self.assertIn("fpga-soc-top-closure.md", rendered)
+        self.assertIn("`I30-S02` | tested", rendered)
+        self.assertIn("fpga-soc-top-decoder.md", rendered)
+        self.assertIn("test_i30_s02_fpga_soc_top_decoder.py", rendered)
+        self.assertIn("`I30-S03` | missing", rendered)
 
     def test_missing_only_cli_filters_report_rows(self) -> None:
         tool = load_story_coverage_module()
@@ -231,8 +240,10 @@ class StoryCoverageReportTests(unittest.TestCase):
 
         output = stream.getvalue()
         self.assertEqual(result, 0)
-        self.assertIn("Stories: 0", output)
-        self.assertIn("Missing: 0", output)
+        self.assertIn("Stories: 22", output)
+        self.assertIn("Missing: 22", output)
+        self.assertIn("`I30-S03` | missing", output)
+        self.assertIn("`I33-S06` | missing", output)
         self.assertNotIn("`I21-S01` | tested", output)
         self.assertNotIn("`I21-S02` | tested", output)
         self.assertNotIn("`I21-S03` | tested", output)
@@ -251,8 +262,8 @@ class StoryCoverageReportTests(unittest.TestCase):
         self.assertNotIn("`I23-S02` | tested", output)
         self.assertNotIn("`I23-S03` | tested", output)
         self.assertNotIn("`I23-S04` | tested", output)
-        for story in ("I23-S05", "I23-S06"):
-            self.assertNotIn(f"`{story}` | docs/tool", output)
+        for story in ("I23-S05", "I23-S06", "I30-S01", "I30-S02"):
+            self.assertNotIn(f"`{story}` | tested", output)
         self.assertNotIn("`I18-S01` | tested", output)
         self.assertNotIn("`I18-S02` | tested", output)
         self.assertNotIn("`I18-S03` | tested", output)

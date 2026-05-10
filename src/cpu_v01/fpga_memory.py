@@ -23,6 +23,9 @@ FPGA_MEMORY_TOP_SOURCE_FILES = (
     Path("rtl/cpu_v01_pkg.sv"),
     Path("rtl/cpu_v01_core.sv"),
     Path("rtl/cpu_v01_fpga_memories.sv"),
+    Path("rtl/cpu_v01_fpga_uart_mmio.sv"),
+    Path("rtl/cpu_v01_fpga_timer_mmio.sv"),
+    Path("rtl/cpu_v01_fpga_gpio_status.sv"),
     Path("rtl/cpu_v01_fpga_top.sv"),
     Path("rtl/cpu_v01_fpga_top_tb.sv"),
 )
