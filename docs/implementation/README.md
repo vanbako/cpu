@@ -121,3 +121,4 @@ Current platform binding:
 - `docs/implementation/fpga-first-pass-build-bundle.md`: I31-S01 first-pass board build bundle gate for selected top, image, constraints, clock profile, loader status, expected signatures, and Gowin handoff.
 - `docs/implementation/fpga-first-pass-gowin-build.md`: I31-S02 first-pass integrated SoC Gowin report/timing gate for synthesis, place-route, utilization, ports, warnings, bitstream identity, and programming handoff.
 - `docs/implementation/fpga-first-pass-programming.md`: I31-S03 first integrated CPU SRAM programming observation gate for bitstream identity, reset, heartbeat, LEDs, UART/status packets, probes, and pass/failure handoff.
+- `docs/implementation/fpga-first-pass-replay.md`: I31-S04 first-pass board failure replay classification gate for captured status packets, replay case selection, first mismatch preservation, failure classes, and I31-S05 handoff.

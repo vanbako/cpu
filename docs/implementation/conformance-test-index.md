@@ -381,3 +381,7 @@ table in the same change.
 | `src\cpu_v01\fpga_first_pass_programming.py` | `I31-S03` | `E11-S01`, `I24-S04`, `I25-S02`, `I31-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tools\fpga_first_pass_programming.py` | `I31-S03` | `E11-S01`, `I24-S04`, `I25-S02`, `I31-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i31_s03_fpga_first_pass_programming.py` | `I31-S03` | `E11-S01`, `I24-S04`, `I25-S02`, `I31-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `docs\implementation\fpga-first-pass-replay.md` | `I31-S04` | `E11-S01`, `I25-S04`, `I25-S05`, `I31-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `src\cpu_v01\fpga_first_pass_replay.py` | `I31-S04` | `E11-S01`, `I25-S04`, `I25-S05`, `I31-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tools\fpga_first_pass_replay.py` | `I31-S04` | `E11-S01`, `I25-S04`, `I25-S05`, `I31-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i31_s04_fpga_first_pass_replay.py` | `I31-S04` | `E11-S01`, `I25-S04`, `I25-S05`, `I31-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
