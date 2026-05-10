@@ -74,6 +74,8 @@ module cpu_v01_core #(
   localparam int_reg_t MMU_TLB_PERMISSION_ROOT_PPN = 48'h0000_0000_0011;
   localparam int_reg_t MMU_TLB_MEMTYPE_ROOT_PPN = 48'h0000_0000_0012;
   localparam addr_t ATOMIC_CACHE_DEVICE_PA = 48'h0000_0000_F000;
+  localparam addr_t SOC_MMIO_BASE = 48'h0000_00F0_0000;
+  localparam addr_t SOC_MMIO_LIMIT = 48'h0000_00F0_1000;
 
   typedef enum logic [3:0] {
     ST_RESET,
@@ -542,6 +544,11 @@ module cpu_v01_core #(
       return result;
     end
 
+    if (virtual_address >= SOC_MMIO_BASE && virtual_address < SOC_MMIO_LIMIT) begin
+      result.memory_type = MEMORY_TYPE_DEVICE_ORDERED;
+      return result;
+    end
+
     if (satp_mode_value() == SATP_MODE_BARE) begin
       return result;
     end
@@ -609,6 +616,10 @@ module cpu_v01_core #(
     return (address % alignment) == 0;
   endfunction
 
+  function automatic logic address_allows_unaligned_integer_mmio(input addr_t address);
+    return address >= SOC_MMIO_BASE && address < SOC_MMIO_LIMIT;
+  endfunction
+
   function automatic logic reservation_overlaps(
     input addr_t base_address,
     input addr_t length_cells
@@ -659,7 +670,8 @@ module cpu_v01_core #(
       return check;
     end
 
-    if (!address_aligned(address, alignment_cells)) begin
+    if (!address_aligned(address, alignment_cells) &&
+        !address_allows_unaligned_integer_mmio(address)) begin
       check.fault = 1'b1;
       check.cause = EXC_ALIGN_FAULT;
       check.tval = address;

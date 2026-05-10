@@ -116,3 +116,4 @@ Current platform binding:
 - `docs/implementation/fpga-soc-top-decoder.md`: I30-S02 top-level data/MMIO decoder routing for BRAM data, UART, timer, GPIO/status, interrupt controller, system identity, reserved faults, and tag sidecar gating.
 - `docs/implementation/fpga-soc-top-peripherals.md`: I30-S03 top-level UART RX/TX, timer interrupt, external interrupt, GPIO/status LED, and system-identity handoffs.
 - `docs/implementation/fpga-soc-loader-handoff.md`: I30-S04 top-level board-safe loader handoff, bounded data-RAM writes, tag-sidecar clearing, status reporting, and UART arbitration.
+- `docs/implementation/fpga-soc-top-smoke.md`: I30-S05 top-level SoC firmware smoke for UART output, timer acknowledgement, syscall/IRET progress, GPIO pass/fail, and first-failure status under Verilator.
