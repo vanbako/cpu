@@ -52,7 +52,7 @@ class FpgaSocSmokeTests(unittest.TestCase):
         self.assertEqual(profile.board_status, "documented_blocker_run")
         self.assertEqual(len(profile.steps), 4)
         self.assertTrue(any("I30-S05" in blocker for blocker in profile.documented_blockers))
-        self.assertTrue(any("I30-S04" in blocker for blocker in profile.documented_blockers))
+        self.assertFalse(any("I30-S04" in blocker for blocker in profile.documented_blockers))
 
     def test_run_evidence_covers_uart_timer_syscall_and_gpio(self) -> None:
         run = fpga_soc_smoke.run_fpga_soc_smoke()
@@ -80,7 +80,7 @@ class FpgaSocSmokeTests(unittest.TestCase):
 
         self.assertIn("cpu_v01_fpga_soc_dmem_decoder #(", top)
         self.assertIn(".timer_interrupt_pending(timer_interrupt_pending)", top)
-        self.assertIn("assign uart_tx_o = uart_mmio_tx & status_uart_tx;", top)
+        self.assertIn("assign uart_tx_o = uart_mmio_tx & status_uart_tx & loader_uart_tx_i;", top)
         self.assertIn("assign pass_led_o = pass_sticky_q && !fault_sticky_q || gpio_pass_led;", top)
         self.assertIn("status_core_port_activity_o", top)
 
@@ -148,7 +148,7 @@ class FpgaSocSmokeTests(unittest.TestCase):
             "documented_blocker_run",
             "cpu_v01_fpga_top",
             "timer_interrupt_pending",
-            "UART firmware/status TX combine",
+            "UART firmware/status/loader TX combine",
             "I26-S04",
             "I30-S03",
             "I30-S05",

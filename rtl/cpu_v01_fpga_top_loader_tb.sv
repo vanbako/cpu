@@ -1,4 +1,9 @@
-module cpu_v01_fpga_top_soc_peripherals_tb;
+module cpu_v01_fpga_top_loader_tb;
+  import cpu_v01_pkg::*;
+
+  localparam addr_t DATA_RAM_BASE = 48'h0000_0001_0000;
+  localparam addr_t ROM_BASE = 48'h0000_0000_1000;
+
   logic board_clk_i;
   logic board_reset_n_i;
   logic debug_halt_request_i;
@@ -6,8 +11,8 @@ module cpu_v01_fpga_top_soc_peripherals_tb;
   logic loader_req_valid_i;
   logic loader_req_ready_o;
   logic loader_req_write_i;
-  cpu_v01_pkg::addr_t loader_req_addr_i;
-  cpu_v01_pkg::cell_t loader_req_wdata_i;
+  addr_t loader_req_addr_i;
+  cell_t loader_req_wdata_i;
   logic loader_req_tag_i;
   logic loader_uart_tx_i;
   logic uart_tx_o;
@@ -69,61 +74,102 @@ module cpu_v01_fpga_top_soc_peripherals_tb;
     forever #5 board_clk_i = ~board_clk_i;
   end
 
-  initial begin
-    debug_halt_request_i = 1'b0;
-    uart_rx_i = 1'b1;
+  task automatic clear_loader_request();
     loader_req_valid_i = 1'b0;
     loader_req_write_i = 1'b0;
     loader_req_addr_i = '0;
     loader_req_wdata_i = '0;
     loader_req_tag_i = 1'b0;
+  endtask
+
+  task automatic send_loader_request(
+      input addr_t addr,
+      input cell_t wdata,
+      input logic tag,
+      input logic write
+  );
+    loader_req_addr_i = addr;
+    loader_req_wdata_i = wdata;
+    loader_req_tag_i = tag;
+    loader_req_write_i = write;
+    loader_req_valid_i = 1'b1;
+    #1;
+    if (!loader_req_ready_o) begin
+      $fatal(1, "FPGA SoC loader handoff request was not ready");
+    end
+    @(posedge board_clk_i);
+    #1;
+    clear_loader_request();
+    repeat (2) @(posedge board_clk_i);
+    #1;
+  endtask
+
+  initial begin
+    debug_halt_request_i = 1'b0;
+    uart_rx_i = 1'b1;
     loader_uart_tx_i = 1'b1;
+    clear_loader_request();
     board_reset_n_i = 1'b0;
     repeat (2) @(posedge board_clk_i);
     board_reset_n_i = 1'b1;
-    repeat (6) @(posedge board_clk_i);
+    repeat (4) @(posedge board_clk_i);
     #1;
 
-    if (dut.firmware_uart.uart_rx_i !== uart_rx_i) begin
-      $fatal(1, "FPGA SoC top peripherals did not wire firmware UART RX");
+    dut.tag_ram.tag_q[4] = 1'b1;
+    send_loader_request(DATA_RAM_BASE + 48'd4, 24'h123456, 1'b0, 1'b1);
+    if (!loader_status_valid_o || loader_status_code_o != 16'h0000) begin
+      $fatal(1, "FPGA SoC loader handoff did not report LOAD OK");
     end
-    if (uart_tx_o !== (dut.uart_mmio_tx & dut.status_uart_tx & loader_uart_tx_i)) begin
-      $fatal(1, "FPGA SoC top peripherals UART TX mux policy mismatch");
+    if (dut.data_ram.ram_q[4] != 24'h123456 || dut.tag_ram.tag_q[4] != 1'b0) begin
+      $fatal(1, "FPGA SoC loader handoff did not write data_ram and clear tag_ram");
     end
-    if (dut.timer_interrupt_pending !== dut.timer_compare_irq) begin
-      $fatal(1, "FPGA SoC top peripherals did not route timer interrupt pending");
+
+    send_loader_request(ROM_BASE, 24'h654321, 1'b0, 1'b1);
+    if (!loader_status_valid_o || loader_status_code_o != 16'h2603) begin
+      $fatal(1, "FPGA SoC loader handoff did not reject instruction_rom target");
     end
-    if (dut.external_interrupt_pending !== |(dut.irq_pending_enabled & 16'h000B)) begin
-      $fatal(1, "FPGA SoC top peripherals external interrupt aggregate mismatch");
+    if (!status_fault_valid_o || status_fault_code_o != 16'h2603) begin
+      $fatal(1, "FPGA SoC loader handoff did not expose debug/status failure code");
     end
-    if (pass_led_o !== ((dut.pass_sticky_q && !dut.fault_sticky_q) || dut.gpio_pass_led)) begin
-      $fatal(1, "FPGA SoC top peripherals GPIO pass LED mux mismatch");
+
+    send_loader_request(DATA_RAM_BASE + 48'd5, 24'h0BADF0, 1'b1, 1'b1);
+    if (!loader_status_valid_o || loader_status_code_o != 16'h2605) begin
+      $fatal(1, "FPGA SoC loader handoff did not reject tag-bearing traffic");
     end
-    if (fail_led_o !== (dut.fault_sticky_q || dut.gpio_fail_led)) begin
-      $fatal(1, "FPGA SoC top peripherals GPIO fail LED mux mismatch");
+    if (dut.data_ram.ram_q[5] == 24'h0BADF0) begin
+      $fatal(1, "FPGA SoC loader handoff wrote data for a tag-policy rejection");
     end
-    if (heartbeat_led_o !== (dut.debug_retire_sequence[0] || dut.gpio_heartbeat_led)) begin
-      $fatal(1, "FPGA SoC top peripherals GPIO heartbeat LED mux mismatch");
+
+    send_loader_request(DATA_RAM_BASE + 48'd6, 24'h0D00D0, 1'b0, 1'b0);
+    if (!loader_status_valid_o || loader_status_code_o != 16'h2607) begin
+      $fatal(1, "FPGA SoC loader handoff did not reject malformed non-write traffic");
     end
-    if (status_fault_code_o != 16'd0 || status_retire_count_o != 32'd0) begin
-      $fatal(1, "FPGA SoC top peripherals reset-idle status projection changed");
+
+    loader_uart_tx_i = 1'b0;
+    #1;
+    if (uart_tx_o !== 1'b0) begin
+      $fatal(1, "FPGA SoC loader handoff did not arbitrate loader UART TX");
     end
+    loader_uart_tx_i = 1'b1;
+    #1;
 
     $finish;
   end
 
   // verilator lint_off UNUSEDSIGNAL
-  wire logic unused_soc_peripheral_outputs = &{
+  wire logic unused_loader_tb_outputs = &{
+    pass_led_o,
+    fail_led_o,
+    heartbeat_led_o,
     status_reset_observed_o,
     status_core_idle_o,
     status_retire_valid_o,
-    status_fault_valid_o,
     status_core_port_activity_o,
+    status_retire_count_o,
     debug_pcc_valid_o,
     debug_pcc_cursor_low_o,
     debug_pcc_permissions_o,
     debug_sr_low_o
   };
-  wire logic unused_loader_outputs = &{loader_req_ready_o, loader_status_valid_o, loader_status_code_o};
   // verilator lint_on UNUSEDSIGNAL
 endmodule

@@ -125,4 +125,4 @@ remains owned by I25-S01 and the UART streamer remains owned by I25-S02.
 | Malformed images are rejected. | Met by rejection fixtures for unknown program, stale hash, bad target, bounds, tag policy, and overlarge chunks. |
 | Tag policy is preserved. | Met by rejecting nonzero tag bits and clearing matching `tag_ram` sidecar bits on success. |
 | Success/failure is reported over debug/status. | Met by UART ASCII status text plus I25-S01 debug packet status fields. |
-| SoC-top and monitor handoffs are explicit. | Deferred to I30-S04 and I32-S01. |
+| SoC-top and monitor handoffs are explicit. | I30-S04 integrates the SoC-top handoff; I32-S01 remains the monitor command-profile handoff. |

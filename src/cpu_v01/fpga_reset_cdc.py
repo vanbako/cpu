@@ -168,15 +168,15 @@ def fpga_reset_cdc_profile() -> ResetCdcProfile:
             ResetCdcItem(
                 name="uart_tx_o",
                 kind="shared_uart_output",
-                source="cpu_v01_fpga_uart_status_streamer and cpu_v01_fpga_uart_mmio",
+                source="cpu_v01_fpga_uart_status_streamer, cpu_v01_fpga_uart_mmio, and loader_uart_tx_i",
                 destination="board UART or PMOD output",
                 clock_domain="board_clk_i",
-                handling="idle-high firmware/status TX combine in the same current clock domain",
+                handling="idle-high firmware/status/loader TX combine in the same current clock domain",
                 status="implemented_same_domain_output",
                 evidence_tokens=(
                     "cpu_v01_fpga_uart_status_streamer #(",
                     ".clk(board_clk_i)",
-                    "assign uart_tx_o = uart_mmio_tx & status_uart_tx;",
+                    "assign uart_tx_o = uart_mmio_tx & status_uart_tx & loader_uart_tx_i;",
                 ),
                 risk="UART baud changes must follow the selected clock profile",
                 required_action="recompute UART divisors when a non-25 MHz profile is selected",
@@ -197,6 +197,22 @@ def fpga_reset_cdc_profile() -> ResetCdcProfile:
                 ),
                 risk="board UART RX is asynchronous to board_clk_i and can metastabilize without the synchronizer",
                 required_action="preserve the two-stage RX synchronizer when changing UART or loader ingress",
+            ),
+            ResetCdcItem(
+                name="loader_handoff_inputs",
+                kind="external_loader_control",
+                source="I26-S04 loader transport or testbench",
+                destination="cpu_v01_fpga_soc_loader_handoff",
+                clock_domain="board_clk_i",
+                handling="sampled in the board clock domain after the external monitor presents stable request signals",
+                status="documented_synchronous_boundary",
+                evidence_tokens=(
+                    "input  logic loader_req_valid_i",
+                    ".loader_req_valid(loader_req_valid_i)",
+                    "cpu_v01_fpga_soc_loader_handoff #(",
+                ),
+                risk="an asynchronous host bridge can metastabilize loader request or status handoff signals",
+                required_action="synchronize future UART/JTAG monitor command outputs before driving loader_req_*",
             ),
             ResetCdcItem(
                 name="status_debug_outputs",
@@ -234,7 +250,7 @@ def fpga_reset_cdc_profile() -> ResetCdcProfile:
         open_issues=(
             "debug_halt_request_i is raw in cpu_v01_fpga_top and must be tied low or synchronized before board use",
             "release_pll_25mhz has no RTL PLL wrapper, lock signal, or active generated-clock SDC yet",
-            "future loader inputs beyond uart_rx_i must add explicit synchronizers before entering the SoC domain",
+            "external loader transports must synchronize command outputs before driving loader handoff inputs",
         ),
         handoffs=(
             "I28-S03 should flag unconstrained generated clocks and missing reset/clock report evidence",
@@ -314,6 +330,7 @@ def validate_fpga_reset_cdc(root: Path | None = None) -> tuple[str, ...]:
         "debug_halt_request_i",
         "uart_tx_o",
         "uart_rx_i",
+        "loader_handoff_inputs",
         "status_debug_outputs",
         "release_pll_domain",
     ):
@@ -360,10 +377,10 @@ def validate_fpga_reset_cdc(root: Path | None = None) -> tuple[str, ...]:
         "documented_open_issue",
         "uart_tx_o",
         "uart_rx_i",
+        "loader handoff inputs",
         "status_debug_outputs",
         "release_pll_25mhz",
         "create_generated_clock",
-        "future loader inputs",
         "I28-S03",
         "I28-S05",
     ):

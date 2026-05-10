@@ -58,7 +58,7 @@ class FpgaSocTopPeripheralsTests(unittest.TestCase):
             "system_identity",
         ):
             self.assertIn(name, handoffs)
-        self.assertIn("I30-S04", profile.remaining_handoffs[0])
+        self.assertIn("I30-S05", profile.remaining_handoffs[0])
 
     def test_executable_handoff_model_covers_uart_interrupts_and_leds(self) -> None:
         result = fpga_soc_top_peripherals.evaluate_soc_top_peripherals(
@@ -92,7 +92,7 @@ class FpgaSocTopPeripheralsTests(unittest.TestCase):
         for token in (
             "input  logic uart_rx_i",
             "logic status_uart_tx",
-            "assign uart_tx_o = uart_mmio_tx & status_uart_tx;",
+            "assign uart_tx_o = uart_mmio_tx & status_uart_tx & loader_uart_tx_i;",
             ".uart_rx_i(uart_rx_i)",
             ".uart_tx_o(status_uart_tx)",
             "assign timer_interrupt_pending = timer_compare_irq;",
@@ -181,7 +181,7 @@ class FpgaSocTopPeripheralsTests(unittest.TestCase):
         self.assertIn("rtl/cpu_v01_fpga_top_soc_peripherals_tb.sv", text)
         for token in (
             "uart_rx_i",
-            "assign uart_tx_o = uart_mmio_tx & status_uart_tx;",
+            "assign uart_tx_o = uart_mmio_tx & status_uart_tx & loader_uart_tx_i;",
             "timer_interrupt_pending",
             "external_interrupt_pending",
             "GPIO/status LEDs",

@@ -21,8 +21,17 @@ module cpu_v01_fpga_top #(
   input  logic board_reset_n_i,
   input  logic debug_halt_request_i,
   input  logic uart_rx_i,
+  input  logic loader_req_valid_i,
+  output logic loader_req_ready_o,
+  input  logic loader_req_write_i,
+  input  cpu_v01_pkg::addr_t loader_req_addr_i,
+  input  cpu_v01_pkg::cell_t loader_req_wdata_i,
+  input  logic loader_req_tag_i,
+  input  logic loader_uart_tx_i,
 
   output logic uart_tx_o,
+  output logic loader_status_valid_o,
+  output logic [15:0] loader_status_code_o,
   output logic pass_led_o,
   output logic fail_led_o,
   output logic heartbeat_led_o,
@@ -77,6 +86,21 @@ module cpu_v01_fpga_top #(
   logic ram_rsp_valid;
   cell_t ram_rsp_rdata [CAPABILITY_OBJECT_CELLS];
   fault_packet_t ram_rsp_fault;
+  logic loader_ram_req_valid;
+  addr_t loader_ram_req_addr;
+  cell_t loader_ram_req_wdata;
+  cell_t loader_ram_req_wdata_cells [CAPABILITY_OBJECT_CELLS];
+  cell_t data_ram_req_wdata [CAPABILITY_OBJECT_CELLS];
+  logic loader_tag_clear_valid;
+  addr_t loader_tag_clear_addr;
+  logic loader_status_pulse;
+  logic [15:0] loader_status_code;
+  logic loader_status_valid_q;
+  logic [15:0] loader_status_code_q;
+  logic core_tagram_req_valid;
+  logic tagram_req_write;
+  addr_t tagram_req_slot_addr;
+  logic tagram_req_wtag;
 
   logic uart_req_valid;
   logic uart_req_ready;
@@ -177,16 +201,21 @@ module cpu_v01_fpga_top #(
 
   assign core_rst_n = reset_sync_q[RESET_SYNC_STAGES-1];
 
-  assign uart_tx_o = uart_mmio_tx & status_uart_tx;
+  assign uart_tx_o = uart_mmio_tx & status_uart_tx & loader_uart_tx_i;
+  assign loader_status_valid_o = loader_status_valid_q;
+  assign loader_status_code_o = loader_status_code_q;
   assign pass_led_o = pass_sticky_q && !fault_sticky_q || gpio_pass_led;
   assign fail_led_o = fault_sticky_q || gpio_fail_led;
   assign heartbeat_led_o = debug_retire_sequence[0] || gpio_heartbeat_led;
   assign status_reset_observed_o = reset_observed;
   assign status_core_idle_o = core_idle;
   assign status_retire_valid_o = retire_valid;
-  assign status_fault_valid_o = fault_sticky_q;
+  assign status_fault_valid_o =
+      fault_sticky_q || (loader_status_valid_q && loader_status_code_q != 16'h0000);
   assign status_core_port_activity_o = core_port_activity;
-  assign status_fault_code_o = fault_code_q;
+  assign status_fault_code_o =
+      (loader_status_valid_q && loader_status_code_q != 16'h0000)
+          ? loader_status_code_q : fault_code_q;
   assign status_retire_count_o = debug_retire_sequence[31:0];
   assign debug_pcc_valid_o = debug_pcc.tag && !debug_pcc_slot;
   assign debug_pcc_cursor_low_o = debug_pcc.payload.cursor[31:0];
@@ -214,7 +243,8 @@ module cpu_v01_fpga_top #(
     uart_status_flags[1] = reset_observed;
     uart_status_flags[2] = core_idle;
     uart_status_flags[3] = retire_valid;
-    uart_status_flags[4] = fault_sticky_q;
+    uart_status_flags[4] = fault_sticky_q ||
+        (loader_status_valid_q && loader_status_code_q != 16'h0000);
     uart_status_flags[5] = pass_led_o;
     uart_status_flags[6] = fail_led_o;
     uart_status_flags[7] = heartbeat_led_o;
@@ -241,7 +271,9 @@ module cpu_v01_fpga_top #(
     uart_status_packet[64 +: 64] =
         {16'd0, (retire_valid ? retire_packet.pc_cell : debug_pcc.payload.cursor)};
     uart_status_packet[128 +: 32] = debug_retire_sequence[31:0];
-    uart_status_packet[160 +: 16] = fault_code_q;
+    uart_status_packet[160 +: 16] =
+        (loader_status_valid_q && loader_status_code_q != 16'h0000)
+            ? loader_status_code_q : fault_code_q;
     uart_status_packet[176 +: 16] =
         retire_packet.fault.valid ? retire_packet.fault.cause : 16'd0;
     uart_status_packet[192 +: 32] = DEBUG_BUILD_ID;
@@ -279,6 +311,16 @@ module cpu_v01_fpga_top #(
 
   always_ff @(posedge board_clk_i or negedge core_rst_n) begin
     if (!core_rst_n) begin
+      loader_status_valid_q <= 1'b0;
+      loader_status_code_q <= 16'd0;
+    end else if (loader_status_pulse) begin
+      loader_status_valid_q <= 1'b1;
+      loader_status_code_q <= loader_status_code;
+    end
+  end
+
+  always_ff @(posedge board_clk_i or negedge core_rst_n) begin
+    if (!core_rst_n) begin
       tagmem_bypass_rsp_valid_q <= 1'b0;
     end else begin
       tagmem_bypass_rsp_valid_q <=
@@ -293,7 +335,7 @@ module cpu_v01_fpga_top #(
         (dmem_req_valid && (|dmem_req_len_cells)) ||
         tagmem_req_valid || tagmem_req_write ||
         (tagmem_req_valid && (|tagmem_req_slot_addr)) ||
-        tagmem_req_wtag || retire_valid;
+        tagmem_req_wtag || loader_req_valid_i || loader_status_valid_q || retire_valid;
     for (int i = 0; i < CAPABILITY_OBJECT_CELLS; i++) begin
       core_port_activity = core_port_activity || (dmem_req_valid && (|dmem_req_wdata[i]));
     end
@@ -324,16 +366,26 @@ module cpu_v01_fpga_top #(
   ) data_ram (
     .clk(board_clk_i),
     .rst_n(core_rst_n),
-    .req_valid(ram_req_valid),
+    .req_valid(loader_ram_req_valid || ram_req_valid),
     .req_ready(ram_req_ready),
-    .req_write(ram_req_write),
-    .req_addr(ram_req_addr),
-    .req_len_cells(ram_req_len_cells),
-    .req_wdata(ram_req_wdata),
+    .req_write(loader_ram_req_valid ? 1'b1 : ram_req_write),
+    .req_addr(loader_ram_req_valid ? loader_ram_req_addr : ram_req_addr),
+    .req_len_cells(loader_ram_req_valid ? 3'd1 : ram_req_len_cells),
+    .req_wdata(data_ram_req_wdata),
     .rsp_valid(ram_rsp_valid),
     .rsp_rdata(ram_rsp_rdata),
     .rsp_fault(ram_rsp_fault)
   );
+
+  always_comb begin
+    for (int i = 0; i < CAPABILITY_OBJECT_CELLS; i++) begin
+      loader_ram_req_wdata_cells[i] = '0;
+      data_ram_req_wdata[i] =
+          loader_ram_req_valid ? loader_ram_req_wdata_cells[i] : ram_req_wdata[i];
+    end
+    loader_ram_req_wdata_cells[0] = loader_ram_req_wdata;
+    data_ram_req_wdata[0] = loader_ram_req_valid ? loader_ram_req_wdata : ram_req_wdata[0];
+  end
 
   cpu_v01_fpga_soc_dmem_decoder #(
     .DATA_RAM_BASE(DATA_RAM_BASE),
@@ -501,13 +553,40 @@ module cpu_v01_fpga_top #(
     .rst_n(core_rst_n),
     .req_valid(tagram_req_valid),
     .req_ready(tagram_req_ready),
-    .req_write(tagmem_req_write),
-    .req_slot_addr(tagmem_req_slot_addr),
-    .req_wtag(tagmem_req_wtag),
+    .req_write(tagram_req_write),
+    .req_slot_addr(tagram_req_slot_addr),
+    .req_wtag(tagram_req_wtag),
     .rsp_valid(tagram_rsp_valid),
     .rsp_rtag(tagram_rsp_rtag)
   );
-  assign tagram_req_valid = tagmem_req_valid && tagmem_req_in_data_ram;
+  assign core_tagram_req_valid = tagmem_req_valid && tagmem_req_in_data_ram;
+  assign tagram_req_valid = loader_tag_clear_valid || core_tagram_req_valid;
+  assign tagram_req_write = loader_tag_clear_valid ? 1'b1 : tagmem_req_write;
+  assign tagram_req_slot_addr =
+      loader_tag_clear_valid ? loader_tag_clear_addr : tagmem_req_slot_addr;
+  assign tagram_req_wtag = loader_tag_clear_valid ? 1'b0 : tagmem_req_wtag;
+
+  cpu_v01_fpga_soc_loader_handoff #(
+    .DATA_RAM_BASE(DATA_RAM_BASE),
+    .DATA_RAM_CELLS(DATA_RAM_CELLS)
+  ) loader_handoff (
+    .clk(board_clk_i),
+    .rst_n(core_rst_n),
+    .loader_req_valid(loader_req_valid_i),
+    .loader_req_ready(loader_req_ready_o),
+    .loader_req_write(loader_req_write_i),
+    .loader_req_addr(loader_req_addr_i),
+    .loader_req_wdata(loader_req_wdata_i),
+    .loader_req_tag(loader_req_tag_i),
+    .loader_path_ready(!ram_req_valid && !core_tagram_req_valid),
+    .ram_req_valid(loader_ram_req_valid),
+    .ram_req_addr(loader_ram_req_addr),
+    .ram_req_wdata(loader_ram_req_wdata),
+    .tag_clear_valid(loader_tag_clear_valid),
+    .tag_clear_addr(loader_tag_clear_addr),
+    .status_valid(loader_status_pulse),
+    .status_code(loader_status_code)
+  );
 
   cpu_v01_fpga_uart_status_streamer #(
     .ENABLE(UART_STATUS_ENABLE),
@@ -577,6 +656,79 @@ module cpu_v01_fpga_top #(
     .debug_sr(debug_sr),
     .debug_retire_sequence(debug_retire_sequence)
   );
+endmodule
+
+module cpu_v01_fpga_soc_loader_handoff #(
+  parameter cpu_v01_pkg::addr_t DATA_RAM_BASE = 48'h0000_0001_0000,
+  parameter int DATA_RAM_CELLS = 4096
+) (
+  input  logic clk,
+  input  logic rst_n,
+
+  input  logic loader_req_valid,
+  output logic loader_req_ready,
+  input  logic loader_req_write,
+  input  cpu_v01_pkg::addr_t loader_req_addr,
+  input  cpu_v01_pkg::cell_t loader_req_wdata,
+  input  logic loader_req_tag,
+  input  logic loader_path_ready,
+
+  output logic ram_req_valid,
+  output cpu_v01_pkg::addr_t ram_req_addr,
+  output cpu_v01_pkg::cell_t ram_req_wdata,
+  output logic tag_clear_valid,
+  output cpu_v01_pkg::addr_t tag_clear_addr,
+
+  output logic status_valid,
+  output logic [15:0] status_code
+);
+  import cpu_v01_pkg::*;
+
+  localparam logic [15:0] LOAD_STATUS_OK = 16'h0000;
+  localparam logic [15:0] LOAD_STATUS_BAD_TARGET = 16'h2603;
+  localparam logic [15:0] LOAD_STATUS_TAG_POLICY = 16'h2605;
+  localparam logic [15:0] LOAD_STATUS_MALFORMED = 16'h2607;
+
+  logic request_accepted;
+  logic request_allowed;
+  logic target_in_data_ram;
+  logic [15:0] next_status_code;
+
+  assign loader_req_ready = loader_path_ready;
+  assign request_accepted = loader_req_valid && loader_req_ready;
+  assign target_in_data_ram =
+      loader_req_addr >= DATA_RAM_BASE &&
+      loader_req_addr < DATA_RAM_BASE + addr_t'(DATA_RAM_CELLS);
+  assign request_allowed = loader_req_write && target_in_data_ram && !loader_req_tag;
+  assign ram_req_valid = request_accepted && request_allowed;
+  assign ram_req_addr = loader_req_addr;
+  assign ram_req_wdata = loader_req_wdata;
+  assign tag_clear_valid = request_accepted && request_allowed;
+  assign tag_clear_addr = loader_req_addr;
+
+  always_comb begin
+    if (!loader_req_write) begin
+      next_status_code = LOAD_STATUS_MALFORMED;
+    end else if (!target_in_data_ram) begin
+      next_status_code = LOAD_STATUS_BAD_TARGET;
+    end else if (loader_req_tag) begin
+      next_status_code = LOAD_STATUS_TAG_POLICY;
+    end else begin
+      next_status_code = LOAD_STATUS_OK;
+    end
+  end
+
+  always_ff @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+      status_valid <= 1'b0;
+      status_code <= LOAD_STATUS_OK;
+    end else begin
+      status_valid <= request_accepted;
+      if (request_accepted) begin
+        status_code <= next_status_code;
+      end
+    end
+  end
 endmodule
 
 module cpu_v01_fpga_soc_dmem_decoder #(

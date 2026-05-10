@@ -3,7 +3,16 @@ module cpu_v01_fpga_first_test_tb;
   logic board_reset_n_i;
   logic debug_halt_request_i;
   logic uart_rx_i;
+  logic loader_req_valid_i;
+  logic loader_req_ready_o;
+  logic loader_req_write_i;
+  cpu_v01_pkg::addr_t loader_req_addr_i;
+  cpu_v01_pkg::cell_t loader_req_wdata_i;
+  logic loader_req_tag_i;
+  logic loader_uart_tx_i;
   logic uart_tx_o;
+  logic loader_status_valid_o;
+  logic [15:0] loader_status_code_o;
   logic pass_led_o;
   logic fail_led_o;
   logic heartbeat_led_o;
@@ -32,7 +41,16 @@ module cpu_v01_fpga_first_test_tb;
     .board_reset_n_i(board_reset_n_i),
     .debug_halt_request_i(debug_halt_request_i),
     .uart_rx_i(uart_rx_i),
+    .loader_req_valid_i(loader_req_valid_i),
+    .loader_req_ready_o(loader_req_ready_o),
+    .loader_req_write_i(loader_req_write_i),
+    .loader_req_addr_i(loader_req_addr_i),
+    .loader_req_wdata_i(loader_req_wdata_i),
+    .loader_req_tag_i(loader_req_tag_i),
+    .loader_uart_tx_i(loader_uart_tx_i),
     .uart_tx_o(uart_tx_o),
+    .loader_status_valid_o(loader_status_valid_o),
+    .loader_status_code_o(loader_status_code_o),
     .pass_led_o(pass_led_o),
     .fail_led_o(fail_led_o),
     .heartbeat_led_o(heartbeat_led_o),
@@ -71,6 +89,12 @@ module cpu_v01_fpga_first_test_tb;
   initial begin
     debug_halt_request_i = 1'b0;
     uart_rx_i = 1'b1;
+    loader_req_valid_i = 1'b0;
+    loader_req_write_i = 1'b0;
+    loader_req_addr_i = '0;
+    loader_req_wdata_i = '0;
+    loader_req_tag_i = 1'b0;
+    loader_uart_tx_i = 1'b1;
     board_reset_n_i = 1'b0;
     repeat (2) @(posedge board_clk_i);
     board_reset_n_i = 1'b1;
@@ -108,4 +132,8 @@ module cpu_v01_fpga_first_test_tb;
 
     $finish;
   end
+
+  // verilator lint_off UNUSEDSIGNAL
+  wire logic unused_loader_outputs = &{loader_req_ready_o, loader_status_valid_o, loader_status_code_o};
+  // verilator lint_on UNUSEDSIGNAL
 endmodule

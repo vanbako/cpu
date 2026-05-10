@@ -32,8 +32,9 @@ lock/reset sequencing, generated-clock SDC, and Gowin timing evidence exist.
 | `board_reset_n_i` | async reset input | `board_clk_i` | `implemented_two_stage_sync_release` | Asynchronous assert and synchronized release through `RESET_SYNC_STAGES`. |
 | `core_rst_n` | synchronized reset | `board_clk_i` | `implemented_same_domain_fanout` | Reset fanout to the core, BRAM adapters, UART status streamer, and wrapper status flops. |
 | `debug_halt_request_i` | async debug input | `board_clk_i` | `documented_open_issue` | Currently passed through to `cpu_v01_core`; tie low for first board smoke or add a two-flop synchronizer before board use. |
-| `uart_tx_o` | shared UART output | `board_clk_i` | `implemented_same_domain_output` | Idle-high firmware/status TX combine in the current clock domain. |
+| `uart_tx_o` | shared UART output | `board_clk_i` | `implemented_same_domain_output` | Idle-high firmware/status/loader TX combine in the current clock domain. |
 | `uart_rx_i` | async UART input | `board_clk_i` | `implemented_two_stage_sync` | Board UART RX enters the two-flop synchronizer inside `cpu_v01_fpga_uart_mmio` before RX sampling. |
+| `loader_handoff_inputs` | external loader control | `board_clk_i` | `documented_synchronous_boundary` | Loader handoff inputs are sampled in the board clock domain after the external monitor presents stable request signals. |
 | `status_debug_outputs` | debug/status outputs | `board_clk_i` | `implemented_same_domain_outputs` | LED, fault, retire-count, PCC, and SR projections leave the current domain as outputs only. |
 | `release_pll_domain` | generated clock domain | `cpu_clk` | `blocked_until_pll_wrapper` | `release_pll_25mhz` is defined by I28-S01 but no active PLL wrapper or generated-clock SDC is selected. |
 
@@ -49,7 +50,9 @@ The gate checks these current RTL facts:
 - `uart_rx_i` reaches `cpu_v01_fpga_uart_mmio`, where `uart_rx_meta_q` and
   `uart_rx_sync_q` synchronize the input before sampling;
 - `uart_tx_o`, LED/status outputs, and debug projections are current-domain
-  output paths.
+  output paths;
+- loader handoff inputs reach `cpu_v01_fpga_soc_loader_handoff` and require a
+  synchronous external monitor boundary before board use.
 
 ## Open Issues
 
@@ -57,8 +60,8 @@ The gate checks these current RTL facts:
   synchronized before it is board-driven.
 - `release_pll_25mhz` has no RTL PLL wrapper, lock signal, or active
   `create_generated_clock` SDC yet.
-- Any future loader inputs beyond `uart_rx_i` must add explicit synchronizers
-  before it enters the SoC clock domain.
+- External loader transports must synchronize command outputs before driving
+  loader handoff inputs.
 
 ## Command Plan
 
@@ -87,7 +90,7 @@ The default I23-S02 binary smoke command remains owned by
 
 | Acceptance criterion | Result |
 | --- | --- |
-| Async inputs are documented. | Met by `board_reset_n_i`, `debug_halt_request_i`, and synchronized `uart_rx_i` evidence. |
+| Async inputs are documented. | Met by `board_reset_n_i`, `debug_halt_request_i`, synchronized `uart_rx_i`, and the loader handoff inputs boundary evidence. |
 | Reset synchronizers are documented and checked. | Met by `RESET_SYNC_STAGES`, `reset_sync_q`, and `core_rst_n` checks. |
 | UART/debug crossings are audited. | Met by same-domain `uart_tx_o`, synchronized `uart_rx_i`, and debug/status output items plus the raw halt open issue. |
 | Generated-clock domains are documented. | Met by the blocked `release_pll_25mhz` / `cpu_clk` domain. |

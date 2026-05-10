@@ -62,6 +62,7 @@ class FpgaResetCdcTests(unittest.TestCase):
             "debug_halt_request_i",
             "uart_tx_o",
             "uart_rx_i",
+            "loader_handoff_inputs",
             "status_debug_outputs",
             "release_pll_domain",
         ):
@@ -80,13 +81,13 @@ class FpgaResetCdcTests(unittest.TestCase):
         self.assertEqual(items["release_pll_domain"].status, "blocked_until_pll_wrapper")
         self.assertIn("create_generated_clock", " ".join(items["release_pll_domain"].evidence_tokens))
 
-    def test_open_issues_record_raw_halt_pll_and_future_loader_inputs(self) -> None:
+    def test_open_issues_record_raw_halt_pll_and_loader_sync_boundary(self) -> None:
         profile = fpga_reset_cdc.fpga_reset_cdc_profile()
         text = " ".join(profile.open_issues)
 
         self.assertIn("debug_halt_request_i", text)
         self.assertIn("release_pll_25mhz", text)
-        self.assertIn("future loader inputs", text)
+        self.assertIn("loader handoff inputs", text)
         self.assertIn("I28-S03", " ".join(profile.handoffs))
         self.assertIn("I28-S05", " ".join(profile.handoffs))
 
@@ -130,7 +131,7 @@ class FpgaResetCdcTests(unittest.TestCase):
             result = tool.main(["--open-issues"])
 
         self.assertEqual(result, 0)
-        self.assertIn("future loader inputs", stream.getvalue())
+        self.assertIn("loader handoff inputs", stream.getvalue())
 
     def test_documentation_names_reset_cdc_items_evidence_and_handoffs(self) -> None:
         text = (ROOT / "docs" / "implementation" / "fpga-reset-cdc-audit.md").read_text(
@@ -153,7 +154,7 @@ class FpgaResetCdcTests(unittest.TestCase):
         self.assertIn("status_debug_outputs", text)
         self.assertIn("release_pll_25mhz", text)
         self.assertIn("create_generated_clock", text)
-        self.assertIn("future loader inputs", text)
+        self.assertIn("loader handoff inputs", text)
         self.assertIn("I28-S03", text)
         self.assertIn("I28-S05", text)
 

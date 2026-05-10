@@ -44,6 +44,9 @@ class FpgaTopWrapperTests(unittest.TestCase):
         self.assertEqual(by_name["board_clk_i"].group, "clock_reset")
         self.assertEqual(by_name["board_reset_n_i"].group, "clock_reset")
         self.assertEqual(by_name["uart_rx_i"].direction, "input")
+        self.assertEqual(by_name["loader_req_addr_i"].group, "loader")
+        self.assertEqual(by_name["loader_req_wdata_i"].width, "24")
+        self.assertEqual(by_name["loader_status_code_o"].direction, "output")
         self.assertEqual(by_name["uart_tx_o"].group, "debug")
         self.assertEqual(by_name["pass_led_o"].group, "status")
         self.assertEqual(by_name["fail_led_o"].width, "1")
@@ -84,7 +87,8 @@ class FpgaTopWrapperTests(unittest.TestCase):
             ".retire_ready(1'b1)",
             "assign pass_led_o = pass_sticky_q && !fault_sticky_q",
             "assign fail_led_o = fault_sticky_q",
-            "assign uart_tx_o = uart_mmio_tx & status_uart_tx;",
+            "assign uart_tx_o = uart_mmio_tx & status_uart_tx & loader_uart_tx_i;",
+            "cpu_v01_fpga_soc_loader_handoff #(",
             "cpu_v01_fpga_uart_status_streamer #(",
             ".uart_tx_o(status_uart_tx)",
             "debug_pcc_cursor_low_o",
@@ -129,6 +133,8 @@ class FpgaTopWrapperTests(unittest.TestCase):
         self.assertIn("board_clk_i", names)
         self.assertIn("board_reset_n_i", names)
         self.assertIn("uart_rx_i", names)
+        self.assertIn("loader_req_valid_i", names)
+        self.assertIn("loader_status_code_o", names)
         self.assertIn("pass_led_o", names)
         self.assertIn("status_core_port_activity_o", names)
         self.assertIn("uart_tx_o", names)
@@ -148,6 +154,8 @@ class FpgaTopWrapperTests(unittest.TestCase):
         self.assertIn("board_clk_i", text)
         self.assertIn("board_reset_n_i", text)
         self.assertIn("uart_rx_i", text)
+        self.assertIn("loader_req_valid_i", text)
+        self.assertIn("loader_status_code_o", text)
         self.assertIn("pass_led_o", text)
         self.assertIn("fail_led_o", text)
         self.assertIn("uart_tx_o", text)

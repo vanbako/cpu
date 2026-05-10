@@ -51,7 +51,16 @@ def fpga_top_ports() -> tuple[FpgaTopPort, ...]:
         FpgaTopPort("board_reset_n_i", "input", "1", "clock_reset", "Active-low asynchronous board reset."),
         FpgaTopPort("debug_halt_request_i", "input", "1", "debug", "Optional board or probe halt request."),
         FpgaTopPort("uart_rx_i", "input", "1", "debug", "Firmware UART receive input."),
-        FpgaTopPort("uart_tx_o", "output", "1", "debug", "Shared firmware and debug/status UART transmit output."),
+        FpgaTopPort("loader_req_valid_i", "input", "1", "loader", "Board-safe loader request valid."),
+        FpgaTopPort("loader_req_ready_o", "output", "1", "loader", "Board-safe loader request acceptance."),
+        FpgaTopPort("loader_req_write_i", "input", "1", "loader", "Board-safe loader write command."),
+        FpgaTopPort("loader_req_addr_i", "input", "48", "loader", "Board-safe loader target cell address."),
+        FpgaTopPort("loader_req_wdata_i", "input", "24", "loader", "Board-safe loader write data cell."),
+        FpgaTopPort("loader_req_tag_i", "input", "1", "loader", "Board-safe loader tag-policy input."),
+        FpgaTopPort("loader_uart_tx_i", "input", "1", "loader", "Loader UART transmit output before arbitration."),
+        FpgaTopPort("uart_tx_o", "output", "1", "debug", "Shared firmware, debug/status, and loader UART transmit output."),
+        FpgaTopPort("loader_status_valid_o", "output", "1", "loader", "Latched board-safe loader status valid."),
+        FpgaTopPort("loader_status_code_o", "output", "16", "loader", "Latched board-safe loader status code."),
         FpgaTopPort("pass_led_o", "output", "1", "status", "Reset-idle pass indication until I23-S04 firmware status exists."),
         FpgaTopPort("fail_led_o", "output", "1", "status", "Sticky fault indication."),
         FpgaTopPort("heartbeat_led_o", "output", "1", "status", "Retire-sequence heartbeat projection."),
@@ -130,7 +139,7 @@ def validate_fpga_top_wrapper(root: Path | None = None) -> tuple[str, ...]:
         ".retire_ready(1'b1)",
         "assign pass_led_o = pass_sticky_q && !fault_sticky_q",
         "assign fail_led_o = fault_sticky_q",
-        "assign uart_tx_o = uart_mmio_tx & status_uart_tx;",
+        "assign uart_tx_o = uart_mmio_tx & status_uart_tx & loader_uart_tx_i;",
         "cpu_v01_fpga_uart_status_streamer #(",
         ".uart_tx_o(status_uart_tx)",
         "status_core_port_activity_o",
@@ -158,7 +167,7 @@ def validate_fpga_top_wrapper(root: Path | None = None) -> tuple[str, ...]:
             issues.append(f"cpu_v01_fpga_top_tb.sv missing {token}")
 
     groups = {port.group for port in fpga_top_ports()}
-    for required in ("clock_reset", "status", "debug"):
+    for required in ("clock_reset", "status", "debug", "loader"):
         if required not in groups:
             issues.append(f"FPGA top port projection missing group {required}")
 
@@ -168,7 +177,16 @@ def validate_fpga_top_wrapper(root: Path | None = None) -> tuple[str, ...]:
         "board_reset_n_i",
         "debug_halt_request_i",
         "uart_rx_i",
+        "loader_req_valid_i",
+        "loader_req_ready_o",
+        "loader_req_write_i",
+        "loader_req_addr_i",
+        "loader_req_wdata_i",
+        "loader_req_tag_i",
+        "loader_uart_tx_i",
         "uart_tx_o",
+        "loader_status_valid_o",
+        "loader_status_code_o",
         "pass_led_o",
         "fail_led_o",
         "heartbeat_led_o",

@@ -41,7 +41,6 @@ BOARD_STATUS = "documented_blocker_run"
 
 TOP_LEVEL_BLOCKERS = (
     "I30-S05 top-level RTL firmware smoke has not yet proven the modeled I27-S05 run",
-    "I30-S04 bounded loader handoff is still absent from cpu_v01_fpga_top",
     "Gowin bitstream and physical board evidence remain deferred to I31",
 )
 
@@ -375,7 +374,7 @@ def _validate_top_blockers(root: Path) -> tuple[str, ...]:
     checks = (
         "cpu_v01_fpga_soc_dmem_decoder #(",
         ".timer_interrupt_pending(timer_interrupt_pending)",
-        "assign uart_tx_o = uart_mmio_tx & status_uart_tx;",
+        "assign uart_tx_o = uart_mmio_tx & status_uart_tx & loader_uart_tx_i;",
         "assign pass_led_o = pass_sticky_q && !fault_sticky_q || gpio_pass_led;",
         "status_core_port_activity_o",
     )
@@ -405,7 +404,7 @@ def _validate_doc(root: Path) -> tuple[str, ...]:
         "documented_blocker_run",
         "cpu_v01_fpga_top",
         "timer_interrupt_pending",
-        "UART firmware/status TX combine",
+        "UART firmware/status/loader TX combine",
         "I26-S04",
         "I30-S03",
         "I30-S05",

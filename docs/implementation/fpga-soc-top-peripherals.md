@@ -45,7 +45,7 @@ Required upstream gates:
 | Handoff | RTL policy |
 | --- | --- |
 | Firmware UART RX | `uart_rx_i` is a top-level input and connects to `cpu_v01_fpga_uart_mmio.uart_rx_i`, which contains the two-flop RX synchronizer audited by I28-S02. |
-| UART TX mux | `assign uart_tx_o = uart_mmio_tx & status_uart_tx;` combines idle-high firmware UART and I25-S02 status UART output with low-dominant behavior. |
+| UART TX mux | `assign uart_tx_o = uart_mmio_tx & status_uart_tx & loader_uart_tx_i;` combines idle-high firmware UART, I25-S02 status UART output, and the I30-S04 loader UART leg with low-dominant behavior. |
 | Timer interrupt | `timer_compare_irq` directly drives `timer_interrupt_pending`; firmware acknowledges through the I27-S03 `TIMER_STATUS` register. |
 | External interrupts | `irq_pending_enabled` bits 0, 1, and 3 aggregate UART RX ready, UART TX ready, and GPIO/status into `external_interrupt_pending`. |
 | GPIO/status LEDs | Firmware `STATUS_LEDS` requests OR with first-test sticky pass/fail and retire heartbeat status. |
@@ -67,8 +67,8 @@ The top-level interrupt order matches I27-S01:
 Both UART transmitters are idle-high. The top uses a low-dominant combine so
 either firmware UART output or the debug/status streamer can pull the physical
 TX line low. This preserves the first-test status packet path while exposing
-firmware UART output. I30-S04 still owns loader scheduling and any stronger
-collision-avoidance policy for shared UART traffic.
+firmware UART output. I30-S04 extends this combine with the loader UART leg and
+keeps the loader handoff bounded by its own status policy.
 
 ## GPIO/status LEDs
 
@@ -95,7 +95,7 @@ pin profile assigns additional outputs.
 
 ## Handoffs
 
-- I30-S04 arbitrates loader traffic against firmware/status UART ownership.
+- I30-S04 adds the loader UART leg to the firmware/status arbitration policy.
 - I30-S05 proves firmware UART output, timer service, GPIO pass/fail, and
   syscall progress together.
 

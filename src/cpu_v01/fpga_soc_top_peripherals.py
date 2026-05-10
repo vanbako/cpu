@@ -154,12 +154,12 @@ def fpga_soc_top_peripherals_profile() -> SocTopPeripheralsProfile:
                 source="firmware UART TX and I25-S02 status UART TX",
                 destination="uart_tx_o",
                 policy=(
-                    "idle-high low-dominant combine: either firmware UART or the status "
-                    "streamer can pull the board TX line low; I30-S04 owns loader scheduling"
+                    "idle-high low-dominant combine: firmware UART, the status streamer, "
+                    "or the I30-S04 loader can pull the board TX line low"
                 ),
                 evidence_tokens=(
                     "logic status_uart_tx",
-                    "assign uart_tx_o = uart_mmio_tx & status_uart_tx;",
+                    "assign uart_tx_o = uart_mmio_tx & status_uart_tx & loader_uart_tx_i;",
                     ".uart_tx_o(status_uart_tx)",
                 ),
             ),
@@ -209,7 +209,6 @@ def fpga_soc_top_peripherals_profile() -> SocTopPeripheralsProfile:
             ),
         ),
         remaining_handoffs=(
-            "I30-S04 arbitrates loader traffic against firmware/status UART ownership.",
             "I30-S05 proves firmware UART output, timer service, GPIO pass/fail, and syscall progress together.",
         ),
     )
@@ -219,6 +218,7 @@ def evaluate_soc_top_peripherals(
     *,
     uart_mmio_tx: bool = True,
     status_uart_tx: bool = True,
+    loader_uart_tx: bool = True,
     timer_compare_irq: bool = False,
     irq_pending_enabled: int = 0,
     pass_sticky: bool = False,
@@ -231,7 +231,7 @@ def evaluate_soc_top_peripherals(
     if type(irq_pending_enabled) is not int or irq_pending_enabled < 0:
         raise ValueError("irq_pending_enabled must be a nonnegative integer")
     return SocTopPeripheralResult(
-        uart_tx_o=bool(uart_mmio_tx and status_uart_tx),
+        uart_tx_o=bool(uart_mmio_tx and status_uart_tx and loader_uart_tx),
         timer_interrupt_pending=bool(timer_compare_irq),
         external_interrupt_pending=bool(irq_pending_enabled & 0x000B),
         pass_led_o=bool((pass_sticky and not fault_sticky) or gpio_pass_led),
@@ -358,7 +358,7 @@ def validate_fpga_soc_top_peripherals(root: Path | None = None) -> tuple[str, ..
         FPGA_SOC_TOP_PERIPHERALS_TOOL,
         "rtl/cpu_v01_fpga_top_soc_peripherals_tb.sv",
         "uart_rx_i",
-        "assign uart_tx_o = uart_mmio_tx & status_uart_tx;",
+        "assign uart_tx_o = uart_mmio_tx & status_uart_tx & loader_uart_tx_i;",
         "timer_interrupt_pending",
         "external_interrupt_pending",
         "GPIO/status LEDs",

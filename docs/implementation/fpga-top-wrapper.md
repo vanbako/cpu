@@ -41,7 +41,11 @@ The wrapper exposes only board-neutral signals:
 - active-low asynchronous `board_reset_n_i`;
 - optional `debug_halt_request_i`;
 - `uart_rx_i` for firmware UART receive;
-- `uart_tx_o` for the shared firmware and I25-S02 debug/status packet stream;
+- `loader_req_valid_i`, `loader_req_ready_o`, `loader_status_code_o`, and the
+  related loader request/status signals for the I30-S04 board-safe loader
+  handoff;
+- `uart_tx_o` for the shared firmware, I25-S02 debug/status packet stream, and
+  loader UART transmit path;
 - `pass_led_o`, `fail_led_o`, and `heartbeat_led_o`;
 - reset, idle, retire, fault, and memory-port activity status outputs;
 - low-width debug projections for reset PCC, PCC permissions, and reset SR.
@@ -63,6 +67,9 @@ coverage while the default path runs the I23-S04 first-test firmware:
 - software interrupt and event inputs remain tied idle;
 - timer and external interrupt inputs are now driven by the I30-S03 timer,
   UART, and GPIO/status handoffs;
+- the I30-S04 loader handoff can write only bounded data RAM cells, clears
+  matching `tag_ram` sidecars, reports `loader_status_code_o`, and joins the
+  low-dominant UART TX combine through `loader_uart_tx_i`;
 - retire is held ready so future firmware smoke status can observe retire
   packets without another wrapper contract change.
 

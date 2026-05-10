@@ -139,9 +139,10 @@ def fpga_soc_top_closure_profile() -> SocTopClosureProfile:
                 shortcut_id="uart_pin_mux_missing",
                 current_shortcut=(
                     "cpu_v01_fpga_top originally drove uart_tx_o only from the I25-S02 "
-                    "status streamer and had no firmware UART RX input; I30-S03 adds both"
+                    "status streamer and had no firmware UART RX input; I30-S03 adds both, "
+                    "and I30-S04 extends the mux with loader UART arbitration"
                 ),
-                rtl_token="assign uart_tx_o = uart_mmio_tx & status_uart_tx;",
+                rtl_token="assign uart_tx_o = uart_mmio_tx & status_uart_tx & loader_uart_tx_i;",
                 risk="firmware UART output, loader traffic, and debug/status packets cannot share the board UART safely",
                 owner_story="I30-S03",
                 rtl_change=(
@@ -182,10 +183,10 @@ def fpga_soc_top_closure_profile() -> SocTopClosureProfile:
             SocTopClosureShortcut(
                 shortcut_id="loader_handoff_absent",
                 current_shortcut=(
-                    "cpu_v01_fpga_top has only debug_halt_request_i for external control and no "
-                    "bounded I26-S04 loader handoff"
+                    "I30-S04 replaces the absent external load path with a bounded "
+                    "I26-S04 loader handoff in cpu_v01_fpga_top"
                 ),
-                rtl_token="debug_halt_request_i",
+                rtl_token="cpu_v01_fpga_soc_loader_handoff #(",
                 risk="board program loading would require rebuilds or ad hoc host writes instead of a bounded loader path",
                 owner_story="I30-S04",
                 rtl_change=(
@@ -210,8 +211,8 @@ def fpga_soc_top_closure_profile() -> SocTopClosureProfile:
                 risk="the integrated top cannot yet prove UART, timer, syscall/trap, GPIO, and first-failure status together",
                 owner_story="I30-S05",
                 rtl_change=(
-                    "run the integrated top with a firmware fixture after I30-S02/I30-S03 "
-                    "remove the decoder and peripheral shortcuts"
+                    "run the integrated top with a firmware fixture after I30-S02, I30-S03, "
+                    "and I30-S04 remove the decoder, peripheral, and loader shortcuts"
                 ),
                 testbench="rtl/cpu_v01_fpga_top_soc_smoke_tb.sv",
                 validator="python tools\\fpga_soc_top_smoke.py --check",

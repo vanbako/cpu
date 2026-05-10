@@ -115,7 +115,8 @@ class FpgaSocTopDecoderTests(unittest.TestCase):
             "fault_rsp_valid_q",
             "tagmem_req_in_data_ram",
             "tagmem_bypass_rsp_valid_q",
-            "assign tagram_req_valid = tagmem_req_valid && tagmem_req_in_data_ram",
+            "assign core_tagram_req_valid = tagmem_req_valid && tagmem_req_in_data_ram;",
+            "assign tagram_req_valid = loader_tag_clear_valid || core_tagram_req_valid;",
         ):
             with self.subTest(token=token):
                 self.assertIn(token, top)

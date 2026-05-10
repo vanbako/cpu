@@ -315,7 +315,7 @@ def fpga_program_loader_profile() -> FpgaProgramLoaderProfile:
         status_codes={name: code for code, name in STATUS_NAMES.items()},
         plans=tuple(_plan_for_entry(entry) for entry in fpga_program_manifest.fpga_program_manifest_entries()),
         blockers=(
-            "I30-S04 must integrate this loader handoff into the SoC top before firmware can use it on board",
+            "I30-S04 integrates this bounded loader handoff into the SoC top",
             "I32-S01 owns the later interactive monitor command naming and host protocol expansion",
             "JTAG-assisted transport remains a bounded profile until a board scan and bridge command path are captured",
         ),
