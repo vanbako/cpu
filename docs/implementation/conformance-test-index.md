@@ -393,3 +393,7 @@ table in the same change.
 | `src\cpu_v01\fpga_first_pass_retest_matrix.py` | `I31-S06` | `E11-S01`, `I31-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tools\fpga_first_pass_retest_matrix.py` | `I31-S06` | `E11-S01`, `I31-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i31_s06_fpga_first_pass_retest_matrix.py` | `I31-S06` | `E11-S01`, `I31-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `docs\implementation\fpga-monitor-command-profile.md` | `I32-S01` | `E11-S01`, `I26-S04`, `I30-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `src\cpu_v01\fpga_monitor_profile.py` | `I32-S01` | `E11-S01`, `I26-S04`, `I30-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tools\fpga_monitor_profile.py` | `I32-S01` | `E11-S01`, `I26-S04`, `I30-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i32_s01_fpga_monitor_profile.py` | `I32-S01` | `E11-S01`, `I26-S04`, `I30-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
