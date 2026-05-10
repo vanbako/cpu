@@ -365,3 +365,7 @@ table in the same change.
 | `src\cpu_v01\fpga_soc_top_smoke.py` | `I30-S05` | `E11-S01`, `I18-S03`, `I25-S02`, `I27-S05`, `I30-S03`, `I30-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tools\fpga_soc_top_smoke.py` | `I30-S05` | `E11-S01`, `I18-S03`, `I25-S02`, `I27-S05`, `I30-S03`, `I30-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i30_s05_fpga_soc_top_smoke.py` | `I30-S05` | `E11-S01`, `I18-S03`, `I25-S02`, `I27-S05`, `I30-S03`, `I30-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `docs\implementation\fpga-soc-top-archive.md` | `I30-S06` | `E11-S01`, `I25-S04`, `I25-S05`, `I30-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `src\cpu_v01\fpga_soc_top_archive.py` | `I30-S06` | `E11-S01`, `I25-S04`, `I25-S05`, `I30-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tools\fpga_soc_top_archive.py` | `I30-S06` | `E11-S01`, `I25-S04`, `I25-S05`, `I30-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i30_s06_fpga_soc_top_archive.py` | `I30-S06` | `E11-S01`, `I25-S04`, `I25-S05`, `I30-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
