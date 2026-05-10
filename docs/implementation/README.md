@@ -123,3 +123,4 @@ Current platform binding:
 - `docs/implementation/fpga-first-pass-programming.md`: I31-S03 first integrated CPU SRAM programming observation gate for bitstream identity, reset, heartbeat, LEDs, UART/status packets, probes, and pass/failure handoff.
 - `docs/implementation/fpga-first-pass-replay.md`: I31-S04 first-pass board failure replay classification gate for captured status packets, replay case selection, first mismatch preservation, failure classes, and I31-S05 handoff.
 - `docs/implementation/fpga-first-pass-archive.md`: I31-S05 first physical single-core CPU pass or blocker archive gate for scan, reports, bitstream, programming, reset, LED/UART/probe, replay, blockers, filed issues, and retest handoff.
+- `docs/implementation/fpga-first-pass-retest-matrix.md`: I31-S06 board retest matrix for reproducible commands, required captures, board assumptions, rerun criteria, first-pass acceptance, and blocker acceptance.
