@@ -373,3 +373,7 @@ table in the same change.
 | `src\cpu_v01\fpga_first_pass_bundle.py` | `I31-S01` | `E11-S01`, `I24-S01`, `I28-S05`, `I30-S06` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tools\fpga_first_pass_bundle.py` | `I31-S01` | `E11-S01`, `I24-S01`, `I28-S05`, `I30-S06` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i31_s01_fpga_first_pass_bundle.py` | `I31-S01` | `E11-S01`, `I24-S01`, `I28-S05`, `I30-S06` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `docs\implementation\fpga-first-pass-gowin-build.md` | `I31-S02` | `E11-S01`, `I24-S03`, `I28-S03`, `I31-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `src\cpu_v01\fpga_first_pass_gowin.py` | `I31-S02` | `E11-S01`, `I24-S03`, `I28-S03`, `I31-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tools\fpga_first_pass_gowin.py` | `I31-S02` | `E11-S01`, `I24-S03`, `I28-S03`, `I31-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i31_s02_fpga_first_pass_gowin.py` | `I31-S02` | `E11-S01`, `I24-S03`, `I28-S03`, `I31-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
