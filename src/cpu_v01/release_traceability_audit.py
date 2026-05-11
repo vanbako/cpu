@@ -311,7 +311,6 @@ def release_traceability_profile() -> TraceabilityProfile:
         ),
         accepted_results=(TRACEABILITY_RESULT_CLEAN, TRACEABILITY_RESULT_BLOCKER),
         deferred_missing_stories=(
-            "I33-S05",
             "I33-S06",
             "I34-S03",
             "I34-S04",
