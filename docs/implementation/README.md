@@ -127,3 +127,4 @@ Current platform binding:
 - `docs/implementation/fpga-monitor-command-profile.md`: I32-S01 interactive monitor command and transport profile for UART/JTAG framing, hello, halt/resume, load-image, status, memory access, and status codes.
 - `docs/implementation/fpga-monitor-firmware-fixtures.md`: I32-S02 ROM monitor and trap-shell firmware fixtures for bounded command streams, metadata validation, failure reporting, and safe idle/trap-shell outcomes.
 - `docs/implementation/fpga-monitor-multi-program-session.md`: I32-S03 interactive monitor session fixture for loading, starting, and observing two image-ready board-safe programs with distinct signatures.
+- `docs/implementation/fpga-monitor-debug-snapshot.md`: I32-S04 monitor debug snapshot and replay handoff for register, CSR/CCSR, memory-window, status-packet, replay-command, and tag-forgery policy.
