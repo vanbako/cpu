@@ -138,3 +138,4 @@ Current platform binding:
 - `docs/implementation/release-findings-backlog.md`: I33-S06 release-findings backlog gate for post-v0.1 implementation, architecture, board, retest, and tag-decision handoff without changing the frozen contract.
 - `docs/implementation/fpga-retro-console-identity.md`: I34-S01 Tang Retro Console 60K SOM identity and deferral gate for board marking, programmer scan, Gowin target, clock/reset, outputs, UART/debug access, and Tang Mega Dock with 138K SOM handoff policy.
 - `docs/implementation/fpga-retro-console-constraints.md`: I34-S02 Retro Console 60K SOM CST/SDC template and pin-evidence gate for clock, reset, pass/fail/heartbeat, UART/debug, IO voltage, polarity, and pin-conflict handoff.
+- `docs/implementation/fpga-retro-console-gowin-build.md`: I34-S03 Retro Console 60K SOM Gowin build and timing gate for synthesis, place-route, timing, utilization, ports, warnings, bitstream identity, and 138K non-claim policy.
