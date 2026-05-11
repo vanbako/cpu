@@ -429,6 +429,10 @@ table in the same change.
 | `src\cpu_v01\release_traceability_audit.py` | `I33-S03` | `E15-S01`, `E15-S06`, `E15-S07`, `I01-S03`, `I12-S03`, `I33-S02` | `E15-S01`, `E15-S06`, `E15-S07` |
 | `tools\release_traceability_audit.py` | `I33-S03` | `E15-S01`, `E15-S06`, `E15-S07`, `I01-S03`, `I12-S03`, `I33-S02` | `E15-S01`, `E15-S06`, `E15-S07` |
 | `tests\conformance\test_i33_s03_release_traceability_audit.py` | `I33-S03` | `E15-S01`, `E15-S06`, `E15-S07`, `I01-S03`, `I12-S03`, `I33-S02` | `E15-S01`, `E15-S06`, `E15-S07` |
+| `docs\implementation\single-core-v0.1-known-limitations.md` | `I33-S04` | `E11-S01`, `E15-S07`, `I21-S06`, `I29-S04`, `I33-S03`, `I34-S01` | `E15-S01`, `E15-S03`, `E15-S05`, `E15-S07` |
+| `src\cpu_v01\release_known_limitations.py` | `I33-S04` | `E11-S01`, `E15-S07`, `I21-S06`, `I29-S04`, `I33-S03`, `I34-S01` | `E15-S01`, `E15-S03`, `E15-S05`, `E15-S07` |
+| `tools\release_known_limitations.py` | `I33-S04` | `E11-S01`, `E15-S07`, `I21-S06`, `I29-S04`, `I33-S03`, `I34-S01` | `E15-S01`, `E15-S03`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i33_s04_release_known_limitations.py` | `I33-S04` | `E11-S01`, `E15-S07`, `I21-S06`, `I29-S04`, `I33-S03`, `I34-S01` | `E15-S01`, `E15-S03`, `E15-S05`, `E15-S07` |
 | `docs\implementation\fpga-retro-console-identity.md` | `I34-S01` | `E11-S01`, `I23-S06`, `E15-S07` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `src\cpu_v01\fpga_retro_console_identity.py` | `I34-S01` | `E11-S01`, `I23-S06`, `E15-S07` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tools\fpga_retro_console_identity.py` | `I34-S01` | `E11-S01`, `I23-S06`, `E15-S07` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |

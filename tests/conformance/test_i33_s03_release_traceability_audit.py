@@ -81,7 +81,7 @@ class ReleaseTraceabilityAuditTests(unittest.TestCase):
 
         self.assertEqual(
             profile.deferred_missing_stories,
-            ("I33-S04", "I33-S05", "I33-S06", "I34-S03", "I34-S04", "I34-S05", "I34-S06"),
+            ("I33-S05", "I33-S06", "I34-S03", "I34-S04", "I34-S05", "I34-S06"),
         )
         self.assertIn("I33-S04", " ".join(profile.handoffs))
         self.assertIn("I33-S05", " ".join(profile.handoffs))
