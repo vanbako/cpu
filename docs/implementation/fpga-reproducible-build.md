@@ -38,7 +38,7 @@ board evidence are not present.
 
 | Field | Value |
 | --- | --- |
-| Board | `Sipeed Tang Mega 138K Dock` |
+| Board | `Sipeed Tang Mega Dock with 138K SOM` |
 | Device | `GW5AST-LV138PG484A` |
 | Package | `PBG484A` |
 | Top module | `cpu_v01_fpga_top` |

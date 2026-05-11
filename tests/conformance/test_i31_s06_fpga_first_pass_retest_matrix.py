@@ -42,7 +42,7 @@ class FpgaFirstPassRetestMatrixTests(unittest.TestCase):
 
         self.assertEqual(profile.story, "I31-S06")
         self.assertEqual(profile.status, "published_first_cpu_retest_matrix")
-        self.assertEqual(profile.board, "Sipeed Tang Mega 138K Dock")
+        self.assertEqual(profile.board, "Sipeed Tang Mega Dock with 138K SOM")
         self.assertEqual(profile.archive_gate, "python tools\\fpga_first_pass_archive.py --check")
 
         phases = {row.phase for row in profile.matrix_rows}
@@ -66,7 +66,7 @@ class FpgaFirstPassRetestMatrixTests(unittest.TestCase):
             self.assertIn(command, commands)
 
         joined = " ".join(profile.known_board_assumptions)
-        self.assertIn("Sipeed Tang Mega 138K Dock", joined)
+        self.assertIn("Sipeed Tang Mega Dock with 138K SOM", joined)
         self.assertIn("SRAM mode", joined)
         self.assertIn("I25-S01 32-byte packet", joined)
 

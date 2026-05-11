@@ -38,7 +38,7 @@ class FpgaProgramManifestTests(unittest.TestCase):
         profile = fpga_program_manifest.fpga_program_manifest_profile()
 
         self.assertEqual(profile.story, "I26-S01")
-        self.assertEqual(profile.board, "Sipeed Tang Mega 138K Dock")
+        self.assertEqual(profile.board, "Sipeed Tang Mega Dock with 138K SOM")
         self.assertEqual(profile.fpga_top_module, "cpu_v01_fpga_top")
         self.assertEqual(profile.source_corpus_tool, "python tools\\toolchain_corpus.py --check")
         self.assertEqual(profile.memory_adapter_tool, "python tools\\fpga_memory_adapters.py --check")

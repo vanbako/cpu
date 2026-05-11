@@ -47,7 +47,7 @@ def good_record() -> fpga_first_board_archive.FirstBoardArchiveRecord:
         "\n".join(
             (
                 "story=I24-S05",
-                "board=Sipeed Tang Mega 138K Dock",
+                "board=Sipeed Tang Mega Dock with 138K SOM",
                 "archived_at=2026-05-08T12:30:00",
                 "identity_evidence=docs/implementation/evidence/i24_s01_board_identity.txt",
                 "constraints_evidence=docs/implementation/evidence/i24_s02_pin_overlay.txt",
@@ -74,7 +74,7 @@ class FpgaFirstBoardArchiveTests(unittest.TestCase):
         profile = fpga_first_board_archive.fpga_first_board_archive_profile()
 
         self.assertEqual(profile.story, "I24-S05")
-        self.assertEqual(profile.board, "Sipeed Tang Mega 138K Dock")
+        self.assertEqual(profile.board, "Sipeed Tang Mega Dock with 138K SOM")
         self.assertEqual(profile.programming_gate, "python tools\\fpga_board_programming.py --check")
         self.assertEqual(profile.required_result, "first_pass")
         self.assertEqual(
@@ -145,7 +145,7 @@ class FpgaFirstBoardArchiveTests(unittest.TestCase):
             "\n".join(
                 (
                     "story=I24-S05",
-                    "board=Sipeed Tang Mega 138K Dock",
+                    "board=Sipeed Tang Mega Dock with 138K SOM",
                     "archived_at=2026-05-08T12:30:00",
                     "identity_evidence=docs/implementation/evidence/i24_s01_board_identity.txt",
                     "constraints_evidence=docs/implementation/evidence/i24_s02_pin_overlay.txt",
@@ -177,7 +177,7 @@ class FpgaFirstBoardArchiveTests(unittest.TestCase):
             "\n".join(
                 (
                     "story=I24-S05",
-                    "board=Sipeed Tang Mega 138K Dock",
+                    "board=Sipeed Tang Mega Dock with 138K SOM",
                     "archived_at=2026-05-08T12:30:00",
                     "identity_evidence=blocked",
                     "constraints_evidence=docs/implementation/evidence/i24_s02_pin_overlay.txt",

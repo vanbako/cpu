@@ -2,8 +2,9 @@
 
 Story: I34-S02
 
-Status: CST and SDC templates implemented; final Retro Console constraints
-blocked until I34-S01 identity evidence and pin evidence are captured.
+Status: CST and SDC templates implemented for the Retro Console 60K SOM
+alternate path; final constraints remain blocked until I34-S01 identity
+evidence and pin evidence are captured.
 
 Structured gate:
 
@@ -31,23 +32,23 @@ python tools\fpga_retro_console_constraints.py --audit-evidence docs\implementat
 
 ## Purpose
 
-I34-S02 creates the Retro Console first-test constraint overlay boundary for
+I34-S02 creates the Retro Console 60K SOM constraint overlay boundary for
 `cpu_v01_fpga_top`. The overlay defines the required CPU smoke-test signals,
 required evidence fields, CST placeholder tokens, and SDC timing template. It
-is deliberately not Tang Mega 138K Dock-derived: use Retro Console board
-marking, schematic, programmer scan, pin spreadsheet, or vendor constraints,
-not Tang Mega 138K Dock pin names.
+is deliberately not Tang Mega Dock with 138K SOM-derived: use Retro Console
+board marking, schematic, programmer scan, pin spreadsheet, or vendor
+constraints, not Tang Mega Dock with 138K SOM pin names.
 
 ## Target
 
 | Field | Value |
 | --- | --- |
-| Board | `Sipeed Tang 138K Retro Console` |
+| Board | `Sipeed Tang Retro Console with 60K SOM` |
 | Identity gate | `python tools\fpga_retro_console_identity.py --check` |
-| Final CST path | `constraints/tang_138k_retro_console_first_test.cst` |
-| CST template | `constraints/tang_138k_retro_console_first_test.cst.template` |
-| Final SDC path | `constraints/tang_138k_retro_console_first_test.sdc` |
-| SDC template | `constraints/tang_138k_retro_console_first_test.sdc.template` |
+| Final CST path | `constraints/tang_60k_retro_console_first_test.cst` |
+| CST template | `constraints/tang_60k_retro_console_first_test.cst.template` |
+| Final SDC path | `constraints/tang_60k_retro_console_first_test.sdc` |
+| SDC template | `constraints/tang_60k_retro_console_first_test.sdc.template` |
 | Evidence path | `docs/implementation/evidence/i34_s02_retro_console_pins.txt` |
 
 ## Required Signals
@@ -92,7 +93,7 @@ board_clk_i_clock_period_ns=
 
 `pin_conflicts` must name board functions that share the selected pins, or
 `none`. `board_clk_i_clock_period_ns` must be derived from the verified Retro
-Console clock source captured in I34-S01.
+Console 60K clock source captured in I34-S01.
 
 ## Templates
 
@@ -111,26 +112,26 @@ create_clock -name board_clk_i -period I34_S02_BOARD_CLK_PERIOD_NS [get_ports {b
 set_false_path -from [get_ports {board_reset_n_i}]
 ```
 
-Final `constraints/tang_138k_retro_console_first_test.cst` and
-`constraints/tang_138k_retro_console_first_test.sdc` files may only be created
+Final `constraints/tang_60k_retro_console_first_test.cst` and
+`constraints/tang_60k_retro_console_first_test.sdc` files may only be created
 after the evidence audit reports `confirmed`.
 
 ## Audit Rules
 
 | Audit result | Meaning | Next action |
 | --- | --- | --- |
-| `confirmed` | I34-S01 identity is selected and every required pin/evidence field is present. | Create final CST/SDC files and run I34-S03. |
+| `confirmed` | I34-S01 identity is `alternate_target_verified` and every required pin/evidence field is present. | Create final CST/SDC files and run I34-S03 only for the 60K alternate path. |
 | `invalid` | Pin evidence is malformed, incomplete, missing pins, or has a bad clock period. | Fix the evidence record and rerun the audit. |
-| `blocked` | I34-S01 identity evidence is absent/unselected or no I34-S02 pin evidence exists. | Keep final constraints absent and do not run Gowin for the Retro Console. |
+| `blocked` | I34-S01 identity evidence is absent/unverified or no I34-S02 pin evidence exists. | Keep final constraints absent and do not run Gowin for the Retro Console. |
 
 ## Current Blocker
 
-- I34-S01 identity evidence is not physically captured in this repository.
+- I34-S01 60K identity evidence is not physically captured in this repository.
 - Retro Console source constraints and selected pin conflicts are not captured.
 - Final pin assignments for `board_clk_i`, `board_reset_n_i`, `pass_led_o`,
   `fail_led_o`, `heartbeat_led_o`, and `uart_tx_o` are not recorded.
 - I34-S03 must not run as a real board build until placeholder tokens are
-  replaced from verified Retro Console data.
+  replaced from verified Retro Console 60K data.
 
 ## Acceptance Review
 

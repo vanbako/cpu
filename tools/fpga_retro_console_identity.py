@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate and audit the I34-S01 Tang 138K Retro Console identity gate."""
+"""Validate and audit the I34-S01 Tang Retro Console 60K SOM identity gate."""
 
 from __future__ import annotations
 

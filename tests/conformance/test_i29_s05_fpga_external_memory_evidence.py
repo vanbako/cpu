@@ -39,7 +39,7 @@ class FpgaExternalMemoryEvidenceTests(unittest.TestCase):
         profile = fpga_external_memory_evidence.fpga_external_memory_evidence_profile()
 
         self.assertEqual(profile.story, "I29-S05")
-        self.assertEqual(profile.board, "Sipeed Tang Mega 138K Dock")
+        self.assertEqual(profile.board, "Sipeed Tang Mega Dock with 138K SOM")
         self.assertEqual(
             profile.evidence_path.as_posix(),
             "docs/implementation/evidence/i29_s05_external_memory_board_evidence.txt",

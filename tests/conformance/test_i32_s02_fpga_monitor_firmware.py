@@ -39,7 +39,7 @@ class FpgaMonitorFirmwareTests(unittest.TestCase):
 
         self.assertEqual(profile.story, "I32-S02")
         self.assertEqual(profile.status, "rom_monitor_trap_shell_fixtures")
-        self.assertEqual(profile.board, "Sipeed Tang Mega 138K Dock")
+        self.assertEqual(profile.board, "Sipeed Tang Mega Dock with 138K SOM")
         self.assertEqual(profile.command_profile_gate, "python tools\\fpga_monitor_profile.py --check")
         self.assertEqual(profile.program_loader_gate, "python tools\\fpga_program_loader.py --check")
         self.assertEqual(profile.uart_status_gate, "python tools\\fpga_uart_status_streamer.py --check")

@@ -50,7 +50,7 @@ def good_record() -> fpga_programming.ProgrammingEvidenceRecord:
         "\n".join(
             (
                 "story=I24-S04",
-                "board=Sipeed Tang Mega 138K Dock",
+                "board=Sipeed Tang Mega Dock with 138K SOM",
                 "gowin_build_root=build/fpga/tang_mega_138k/first_test",
                 "bitstream_path=build/fpga/tang_mega_138k/first_test/impl/pnr/first.fs",
                 "programming_tool=Gowin Programmer",
@@ -79,7 +79,7 @@ class FpgaBoardProgrammingTests(unittest.TestCase):
         profile = fpga_programming.fpga_programming_profile()
 
         self.assertEqual(profile.story, "I24-S04")
-        self.assertEqual(profile.board, "Sipeed Tang Mega 138K Dock")
+        self.assertEqual(profile.board, "Sipeed Tang Mega Dock with 138K SOM")
         self.assertEqual(profile.build_gate, "python tools\\fpga_gowin_build.py --check")
         self.assertEqual(profile.required_mode, "SRAM")
         self.assertEqual(profile.minimum_observation_seconds, 10)
@@ -153,7 +153,7 @@ class FpgaBoardProgrammingTests(unittest.TestCase):
             "\n".join(
                 (
                     "story=I24-S04",
-                    "board=Sipeed Tang Mega 138K Dock",
+                    "board=Sipeed Tang Mega Dock with 138K SOM",
                     "gowin_build_root=build/fpga/tang_mega_138k/first_test",
                     "bitstream_path=build/fpga/tang_mega_138k/first_test/impl/pnr/first.fs",
                     "programming_tool=Gowin Programmer",

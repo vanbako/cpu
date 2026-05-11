@@ -79,7 +79,7 @@ python tools\local_checks.py
 
 The current FPGA bring-up thread has completed profile, top-wrapper, memory
 adapter, smoke-firmware, synthesis-gate, and board-runbook slices for the
-Sipeed Tang Mega 138K Dock. Physical board evidence is still blocked on a
+Sipeed Tang Mega Dock with 138K SOM. Physical board evidence is still blocked on a
 verified device/package scan, CST pin overlay, Gowin reports, bitstream, and
 LED or probe capture. Use `docs/implementation/fpga-board-identity.md`,
 `python tools\fpga_board_identity.py --check`,

@@ -32,7 +32,7 @@ board-specific only at the constraint and pin overlay layer.
 
 Physical target board:
 
-- board `Sipeed Tang Mega 138K Dock`, treated as the non-Pro Tang Mega 138K
+- board `Sipeed Tang Mega Dock with 138K SOM`, treated as the non-Pro Tang Mega 138K
   target for the first hardware smoke;
 - FPGA `GW5AST-LV138PG484A`, IDE package `PBG484A`, and Device Version `B/C`
   until the actual SOM marking or JTAG scan says otherwise;
@@ -161,7 +161,7 @@ using that path as an automated gate.
 
 | Source | Used for | Follow-up |
 | --- | --- | --- |
-| Sipeed Tang Mega 138K Dock wiki: <https://wiki.sipeed.com/hardware/en/tang/tang-mega-138k/mega-138k> | Board features, resources, USB JTAG/UART, Gowin EDA/programmer guidance, and hardware-resource links. | Verify the English-page package inconsistency against the physical SOM. |
+| Sipeed Tang Mega Dock with 138K SOM wiki: <https://wiki.sipeed.com/hardware/en/tang/tang-mega-138k/mega-138k> | Board features, resources, USB JTAG/UART, Gowin EDA/programmer guidance, and hardware-resource links. | Verify the English-page package inconsistency against the physical SOM. |
 | Sipeed Tang Mega 138K Chinese wiki: <https://wiki.sipeed.com/hardware/zh/tang/tang-mega-138k/mega-138k> | Cross-check for `GW5AST-LV138PG484A`, `PBG484A`, Device Version `B/C`, and 3.3 V GPIO warning. | Prefer this package data for the non-Pro Dock until board scan confirms. |
 | Sipeed Tang Mega 138K examples: <https://github.com/sipeed/TangMega-138K-example> | Board examples, PMOD LED path, DDR/peripheral examples, and likely reference project structure. | Pull only pin/project details needed for the first-test overlay. |
 | Gowin EDA page: <https://www.gowinsemi.com/en/support/home/> | Official vendor flow scope for synthesis, place and route, bitstream generation, download, and GAO debug. | Install/select the supported Windows tool version before I23-S05. |

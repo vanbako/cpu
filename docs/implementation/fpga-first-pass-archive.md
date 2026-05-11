@@ -53,7 +53,7 @@ The archive record lives at
 story=I31-S05
 archived_at=
 repository_commit=
-board=Sipeed Tang Mega 138K Dock
+board=Sipeed Tang Mega Dock with 138K SOM
 first_board_archive=docs/implementation/evidence/i24_s05_first_board_archive.txt
 first_board_archive_status=archived
 identity_evidence=docs/implementation/evidence/i24_s01_board_identity.txt

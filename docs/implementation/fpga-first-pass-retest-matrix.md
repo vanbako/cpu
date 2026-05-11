@@ -56,7 +56,7 @@ first CPU pass.
 
 ## Known Board Assumptions
 
-- Target board is `Sipeed Tang Mega 138K Dock`.
+- Target board is `Sipeed Tang Mega Dock with 138K SOM`.
 - `SRAM mode` is required for first-pass programming evidence.
 - Bitstream identity comes from I31-S02 and is repeated in I31-S03/I31-S05.
 - UART status packets use the `I25-S01 32-byte packet` layout.

@@ -54,7 +54,7 @@ The archive record lives at
 
 ```text
 story=I24-S05
-board=Sipeed Tang Mega 138K Dock
+board=Sipeed Tang Mega Dock with 138K SOM
 archived_at=
 identity_evidence=docs/implementation/evidence/i24_s01_board_identity.txt
 constraints_evidence=docs/implementation/evidence/i24_s02_pin_overlay.txt

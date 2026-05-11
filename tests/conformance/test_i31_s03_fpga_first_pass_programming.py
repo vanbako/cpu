@@ -93,7 +93,7 @@ class FpgaFirstPassProgrammingTests(unittest.TestCase):
             profile.evidence_path.as_posix(),
             "docs/implementation/evidence/i31_s03_integrated_cpu_programming.txt",
         )
-        self.assertEqual(profile.board, "Sipeed Tang Mega 138K Dock")
+        self.assertEqual(profile.board, "Sipeed Tang Mega Dock with 138K SOM")
         self.assertEqual(profile.top_module, "cpu_v01_fpga_top")
         self.assertEqual(profile.selected_image, "builtin.first_test_pause_stream")
         self.assertEqual(profile.gowin_gate, "python tools\\fpga_first_pass_gowin.py --check")

@@ -38,7 +38,7 @@ class FpgaBoardIdentityTests(unittest.TestCase):
         expectation = fpga_board_identity.board_identity_expectation()
 
         self.assertEqual(expectation.story, "I24-S01")
-        self.assertEqual(expectation.board, "Sipeed Tang Mega 138K Dock")
+        self.assertEqual(expectation.board, "Sipeed Tang Mega Dock with 138K SOM")
         self.assertEqual(expectation.assumed_device, "GW5AST-LV138PG484A")
         self.assertEqual(expectation.assumed_package, "PBG484A")
         self.assertIn("JTAG", expectation.assumed_device_version)
@@ -69,14 +69,14 @@ class FpgaBoardIdentityTests(unittest.TestCase):
                 self.assertIn(f"{name}=", template)
 
         self.assertIn("story=I24-S01", template)
-        self.assertIn("board=Sipeed Tang Mega 138K Dock", template)
+        self.assertIn("board=Sipeed Tang Mega Dock with 138K SOM", template)
 
     def test_identity_record_parser_and_confirmed_audit(self) -> None:
         record = fpga_board_identity.parse_identity_record(
             "\n".join(
                 (
                     "story=I24-S01",
-                    "board=Sipeed Tang Mega 138K Dock",
+                    "board=Sipeed Tang Mega Dock with 138K SOM",
                     "source=programmer_jtag_scan",
                     "observed_device=GW5AST-LV138PG484A",
                     "observed_package=PBG484A",
@@ -101,7 +101,7 @@ class FpgaBoardIdentityTests(unittest.TestCase):
             "\n".join(
                 (
                     "story=I24-S01",
-                    "board=Sipeed Tang Mega 138K Dock",
+                    "board=Sipeed Tang Mega Dock with 138K SOM",
                     "source=programmer_jtag_scan",
                     "observed_device=GW5AST-LV138FPG676A",
                     "observed_package=FPG676A",
@@ -124,7 +124,7 @@ class FpgaBoardIdentityTests(unittest.TestCase):
             "\n".join(
                 (
                     "story=I24-S01",
-                    "board=Sipeed Tang Mega 138K Dock",
+                    "board=Sipeed Tang Mega Dock with 138K SOM",
                     "source=board_marking",
                 )
             )
@@ -188,7 +188,7 @@ class FpgaBoardIdentityTests(unittest.TestCase):
         self.assertIn("Story: I24-S01", text)
         self.assertIn("python tools\\fpga_board_identity.py --check", text)
         self.assertIn("docs/implementation/evidence/i24_s01_device_identity.txt", text)
-        self.assertIn("Sipeed Tang Mega 138K Dock", text)
+        self.assertIn("Sipeed Tang Mega Dock with 138K SOM", text)
         self.assertIn("GW5AST-LV138PG484A", text)
         self.assertIn("PBG484A", text)
         self.assertIn("Gowin Programmer", text)

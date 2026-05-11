@@ -20,7 +20,7 @@ python tools\fpga_synthesis_gate.py --gowin-tcl
 ## Purpose
 
 I23-S05 turns the I23-S04 first-test smoke RTL into a repeatable FPGA build
-gate for the Sipeed Tang Mega 138K Dock. The gate is intentionally strict: it
+gate for the Sipeed Tang Mega Dock with 138K SOM. The gate is intentionally strict: it
 does not allow a board run to be counted as passing until clock, reset, pass,
 fail, and heartbeat pins are constrained from the Sipeed board data and the
 actual SOM package/device version has been verified.
@@ -43,7 +43,7 @@ package and board pin overlay are confirmed.
 
 | Field | Value |
 | --- | --- |
-| Board | `Sipeed Tang Mega 138K Dock` |
+| Board | `Sipeed Tang Mega Dock with 138K SOM` |
 | Device | `GW5AST-LV138PG484A` pending physical verification |
 | IDE package | `PBG484A` pending physical verification |
 | Top module | `cpu_v01_fpga_top` |

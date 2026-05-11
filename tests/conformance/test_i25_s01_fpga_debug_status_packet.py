@@ -38,7 +38,7 @@ class FpgaDebugStatusPacketTests(unittest.TestCase):
         profile = fpga_debug_status.fpga_debug_status_profile()
 
         self.assertEqual(profile.story, "I25-S01")
-        self.assertEqual(profile.board, "Sipeed Tang Mega 138K Dock")
+        self.assertEqual(profile.board, "Sipeed Tang Mega Dock with 138K SOM")
         self.assertEqual(profile.packet_size_bytes, 32)
         self.assertEqual(profile.magic, 0xC501)
         self.assertEqual(profile.version, 1)

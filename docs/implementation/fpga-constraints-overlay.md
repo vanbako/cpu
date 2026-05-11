@@ -44,7 +44,7 @@ I24-S01 identity record confirms `GW5AST-LV138PG484A` / `PBG484A`.
 
 | Field | Value |
 | --- | --- |
-| Board | `Sipeed Tang Mega 138K Dock` |
+| Board | `Sipeed Tang Mega Dock with 138K SOM` |
 | Device | `GW5AST-LV138PG484A` |
 | Package | `PBG484A` |
 | Identity gate | `python tools\fpga_board_identity.py --check` |

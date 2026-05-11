@@ -173,7 +173,7 @@ def fpga_board_bringup_runbook() -> FpgaBoardBringupRunbook:
             BringupPrerequisite(
                 name="board_power_and_usb_ready",
                 required=True,
-                evidence="Sipeed Tang Mega 138K Dock is powered and the onboard USB JTAG/UART enumerates.",
+                evidence="Sipeed Tang Mega Dock with 138K SOM is powered and the onboard USB JTAG/UART enumerates.",
                 blocker_if_missing="Triage cable, driver, boot mode, and board power before programming.",
             ),
             BringupPrerequisite(

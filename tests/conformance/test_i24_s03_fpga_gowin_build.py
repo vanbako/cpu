@@ -92,7 +92,7 @@ class FpgaGowinBuildTests(unittest.TestCase):
         profile = fpga_gowin_build.fpga_gowin_build_profile()
 
         self.assertEqual(profile.story, "I24-S03")
-        self.assertEqual(profile.board, "Sipeed Tang Mega 138K Dock")
+        self.assertEqual(profile.board, "Sipeed Tang Mega Dock with 138K SOM")
         self.assertEqual(profile.device, "GW5AST-LV138PG484A")
         self.assertEqual(profile.package, "PBG484A")
         self.assertEqual(profile.top_module, "cpu_v01_fpga_top")

@@ -28,7 +28,7 @@ I24-S01 removes the first hard blocker from the Tang Mega 138K FPGA path:
 before creating the CST overlay or running Gowin against a real board, the
 physical SOM must confirm the device, package, and Gowin Device Version.
 
-The current first-test target remains `Sipeed Tang Mega 138K Dock` with assumed
+The current first-test target remains `Sipeed Tang Mega Dock with 138K SOM` with assumed
 device `GW5AST-LV138PG484A`, package `PBG484A`, and Device Version `B/C,
 verify on board or JTAG scan`. Public Tang Mega 138K sources also mention
 `GW5AST-LV138FPG676A` and `FPG676A`, so the build must stay blocked until board
@@ -47,7 +47,7 @@ marking or programmer scan evidence resolves that ambiguity.
 
 | Field | Value |
 | --- | --- |
-| Board | `Sipeed Tang Mega 138K Dock` |
+| Board | `Sipeed Tang Mega Dock with 138K SOM` |
 | Assumed device | `GW5AST-LV138PG484A` |
 | Assumed package | `PBG484A` |
 | Assumed Device Version | `B/C, verify on board or JTAG scan` |
@@ -59,7 +59,7 @@ The captured evidence record is a small key/value file:
 
 ```text
 story=I24-S01
-board=Sipeed Tang Mega 138K Dock
+board=Sipeed Tang Mega Dock with 138K SOM
 source=
 observed_device=
 observed_package=
@@ -74,7 +74,7 @@ Required fields:
 | Field | Required | Expected content |
 | --- | --- | --- |
 | `story` | Yes | `I24-S01`. |
-| `board` | Yes | `Sipeed Tang Mega 138K Dock`. |
+| `board` | Yes | `Sipeed Tang Mega Dock with 138K SOM`. |
 | `source` | Yes | `board_marking`, `programmer_jtag_scan`, or both. |
 | `observed_device` | Yes | The FPGA device from the marking or scan, such as `GW5AST-LV138PG484A`. |
 | `observed_package` | Yes | The package from the marking or scan, such as `PBG484A`. |

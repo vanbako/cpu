@@ -50,7 +50,7 @@ The record lives at
 
 ```text
 story=I24-S04
-board=Sipeed Tang Mega 138K Dock
+board=Sipeed Tang Mega Dock with 138K SOM
 gowin_build_root=build/fpga/tang_mega_138k/first_test
 bitstream_path=
 programming_tool=Gowin Programmer

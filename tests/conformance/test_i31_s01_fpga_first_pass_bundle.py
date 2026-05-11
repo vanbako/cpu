@@ -52,7 +52,7 @@ class FpgaFirstPassBundleTests(unittest.TestCase):
             profile.evidence_path.as_posix(),
             "docs/implementation/evidence/i31_s01_first_pass_build_bundle.txt",
         )
-        self.assertEqual(profile.board, "Sipeed Tang Mega 138K Dock")
+        self.assertEqual(profile.board, "Sipeed Tang Mega Dock with 138K SOM")
         self.assertEqual(profile.device, "GW5AST-LV138PG484A")
         self.assertEqual(profile.package, "PBG484A")
         self.assertEqual(profile.top_module, "cpu_v01_fpga_top")

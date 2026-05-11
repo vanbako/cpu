@@ -38,7 +38,7 @@ class FpgaSynthesisGateTests(unittest.TestCase):
         gate = fpga_synthesis.fpga_synthesis_gate()
 
         self.assertEqual(gate.story, "I23-S05")
-        self.assertEqual(gate.board, "Sipeed Tang Mega 138K Dock")
+        self.assertEqual(gate.board, "Sipeed Tang Mega Dock with 138K SOM")
         self.assertEqual(gate.device, "GW5AST-LV138PG484A")
         self.assertEqual(gate.ide_package, "PBG484A")
         self.assertEqual(gate.top_module, "cpu_v01_fpga_top")
@@ -130,7 +130,7 @@ class FpgaSynthesisGateTests(unittest.TestCase):
         self.assertEqual(result, 0)
         parsed = json.loads(stream.getvalue())
         self.assertEqual(parsed["story"], "I23-S05")
-        self.assertEqual(parsed["board"], "Sipeed Tang Mega 138K Dock")
+        self.assertEqual(parsed["board"], "Sipeed Tang Mega Dock with 138K SOM")
         self.assertEqual(parsed["top_module"], "cpu_v01_fpga_top")
 
         stream = StringIO()
@@ -154,7 +154,7 @@ class FpgaSynthesisGateTests(unittest.TestCase):
 
         self.assertIn("Story: I23-S05", text)
         self.assertIn("python tools\\fpga_synthesis_gate.py --check", text)
-        self.assertIn("Sipeed Tang Mega 138K Dock", text)
+        self.assertIn("Sipeed Tang Mega Dock with 138K SOM", text)
         self.assertIn("GW5AST-LV138PG484A", text)
         self.assertIn("PBG484A", text)
         self.assertIn("cpu_v01_fpga_top", text)

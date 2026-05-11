@@ -91,7 +91,7 @@ def fpga_first_pass_retest_matrix_profile() -> FirstPassRetestMatrixProfile:
                     "I24-S03 Gowin report bundle and bitstream path",
                 ),
                 board_assumptions=(
-                    "target board is Sipeed Tang Mega 138K Dock",
+                    "target board is Sipeed Tang Mega Dock with 138K SOM",
                     "device/package and overlay still match the physical board",
                 ),
                 rerun_when=(
@@ -201,7 +201,7 @@ def fpga_first_pass_retest_matrix_profile() -> FirstPassRetestMatrixProfile:
             ),
         ),
         known_board_assumptions=(
-            "target board is Sipeed Tang Mega 138K Dock",
+            "target board is Sipeed Tang Mega Dock with 138K SOM",
             "SRAM mode is the required programming mode for first-pass evidence",
             "bitstream identity comes from I31-S02 and is repeated in I31-S03/I31-S05",
             "UART status packets use the I25-S01 32-byte packet layout",
@@ -318,7 +318,7 @@ def validate_fpga_first_pass_retest_matrix(root: Path | None = None) -> tuple[st
             issues.append(f"{row.phase} must name evidence handoff")
 
     for token in (
-        "Sipeed Tang Mega 138K Dock",
+        "Sipeed Tang Mega Dock with 138K SOM",
         "SRAM mode",
         "I25-S01 32-byte packet",
         "first_pass_archived",

@@ -40,7 +40,7 @@ class FpgaSocPlatformTests(unittest.TestCase):
 
         self.assertEqual(profile.story, "I27-S01")
         self.assertEqual(profile.name, "cpu_v01_fpga_minimal_soc")
-        self.assertEqual(profile.board, "Sipeed Tang Mega 138K Dock")
+        self.assertEqual(profile.board, "Sipeed Tang Mega Dock with 138K SOM")
         self.assertEqual(profile.fpga_top_module, "cpu_v01_fpga_top")
         self.assertEqual(profile.reset_vector, platform.RESET_VECTOR)
         self.assertEqual(profile.mmio_base_cell, platform.DEVICE_BASE)

@@ -38,7 +38,7 @@ class FpgaClockProfileTests(unittest.TestCase):
         profile_set = fpga_clock_profiles.fpga_clock_profile_set()
 
         self.assertEqual(profile_set.story, "I28-S01")
-        self.assertEqual(profile_set.board, "Sipeed Tang Mega 138K Dock")
+        self.assertEqual(profile_set.board, "Sipeed Tang Mega Dock with 138K SOM")
         self.assertEqual(profile_set.device, "GW5AST-LV138PG484A")
         self.assertEqual(profile_set.package, "PBG484A")
         self.assertEqual(profile_set.top_module, "cpu_v01_fpga_top")

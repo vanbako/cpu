@@ -35,7 +35,7 @@ def confirmed_identity_audit() -> fpga_board_identity.BoardIdentityAudit:
         "\n".join(
             (
                 "story=I24-S01",
-                "board=Sipeed Tang Mega 138K Dock",
+                "board=Sipeed Tang Mega Dock with 138K SOM",
                 "source=programmer_jtag_scan",
                 "observed_device=GW5AST-LV138PG484A",
                 "observed_package=PBG484A",
@@ -56,7 +56,7 @@ class FpgaConstraintsOverlayTests(unittest.TestCase):
         overlay = fpga_constraints.fpga_constraints_overlay()
 
         self.assertEqual(overlay.story, "I24-S02")
-        self.assertEqual(overlay.board, "Sipeed Tang Mega 138K Dock")
+        self.assertEqual(overlay.board, "Sipeed Tang Mega Dock with 138K SOM")
         self.assertEqual(overlay.device, "GW5AST-LV138PG484A")
         self.assertEqual(overlay.package, "PBG484A")
         self.assertEqual(overlay.clock_period_ns, 40.000)

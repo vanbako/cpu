@@ -1,4 +1,4 @@
-"""Tang 138K Retro Console first-test constraint overlay profile.
+"""Tang Retro Console 60K SOM constraint overlay profile.
 
 Owner stories:
 - I34-S02: create the Retro Console CST/SDC overlay.
@@ -23,13 +23,13 @@ FPGA_RETRO_CONSOLE_CONSTRAINTS_DOC = Path(
 FPGA_RETRO_CONSOLE_CONSTRAINTS_TOOL = (
     "python tools\\fpga_retro_console_constraints.py --check"
 )
-RETRO_CONSOLE_CST_PATH = Path("constraints/tang_138k_retro_console_first_test.cst")
+RETRO_CONSOLE_CST_PATH = Path("constraints/tang_60k_retro_console_first_test.cst")
 RETRO_CONSOLE_CST_TEMPLATE = Path(
-    "constraints/tang_138k_retro_console_first_test.cst.template"
+    "constraints/tang_60k_retro_console_first_test.cst.template"
 )
-RETRO_CONSOLE_SDC_PATH = Path("constraints/tang_138k_retro_console_first_test.sdc")
+RETRO_CONSOLE_SDC_PATH = Path("constraints/tang_60k_retro_console_first_test.sdc")
 RETRO_CONSOLE_SDC_TEMPLATE = Path(
-    "constraints/tang_138k_retro_console_first_test.sdc.template"
+    "constraints/tang_60k_retro_console_first_test.sdc.template"
 )
 RETRO_CONSOLE_CONSTRAINT_EVIDENCE = Path(
     "docs/implementation/evidence/i34_s02_retro_console_pins.txt"
@@ -268,9 +268,9 @@ def retro_console_constraints_overlay() -> RetroConsoleConstraintsOverlay:
             ),
         ),
         blockers=(
-            "I34-S01 identity evidence must audit as selected before pins can be accepted",
+            "I34-S01 60K identity evidence must audit as alternate-target verified before pins can be accepted",
             "final CST and SDC files must not be created while placeholder tokens remain",
-            "Retro Console pins must come from board evidence, not Tang Mega 138K Dock names",
+            "Retro Console pins must come from board evidence, not Tang Mega Dock with 138K SOM names",
         ),
         handoffs=(
             "I34-S03 consumes the final CST/SDC paths after confirmed evidence",
@@ -305,7 +305,7 @@ def cst_template(overlay: RetroConsoleConstraintsOverlay | None = None) -> str:
     if overlay is None:
         overlay = retro_console_constraints_overlay()
     lines = [
-        "// CPU v0.1 I34-S02 Tang 138K Retro Console first-test CST template.",
+        "// CPU v0.1 I34-S02 Tang Retro Console 60K SOM first-test CST template.",
         "// Do not use for board programming until:",
         "//   python tools\\fpga_retro_console_constraints.py --audit-evidence",
         "// reports status=confirmed.",
@@ -324,7 +324,7 @@ def sdc_template(overlay: RetroConsoleConstraintsOverlay | None = None) -> str:
         overlay = retro_console_constraints_overlay()
     return "\n".join(
         (
-            "# CPU v0.1 I34-S02 Tang 138K Retro Console timing template.",
+            "# CPU v0.1 I34-S02 Tang Retro Console 60K SOM timing template.",
             f"create_clock -name board_clk_i -period {overlay.clock_period_placeholder} [get_ports {{board_clk_i}}]",
             "set_false_path -from [get_ports {board_reset_n_i}]",
             "",
@@ -357,10 +357,10 @@ def audit_constraint_evidence(
 ) -> RetroConstraintAudit:
     if overlay is None:
         overlay = retro_console_constraints_overlay()
-    if not identity_audit.selected:
+    if not identity_audit.ready_for_constraints:
         return RetroConstraintAudit(
             status=CONSTRAINT_BLOCKED_STATUS,
-            message="Retro Console constraints are blocked until I34-S01 identity evidence is selected.",
+            message="Retro Console constraints are blocked until I34-S01 60K identity evidence is alternate-target verified.",
             evidence_path=evidence_path,
             identity_status=identity_audit.status,
             missing_fields=(),
@@ -662,7 +662,7 @@ def validate_fpga_retro_console_constraints(root: Path | None = None) -> tuple[s
         overlay.sdc_path.as_posix(),
         overlay.sdc_template_path.as_posix(),
         overlay.evidence_path.as_posix(),
-        "Sipeed Tang 138K Retro Console",
+        "Sipeed Tang Retro Console with 60K SOM",
         "board_clk_i",
         "board_reset_n_i",
         "pass_led_o",
@@ -673,7 +673,7 @@ def validate_fpga_retro_console_constraints(root: Path | None = None) -> tuple[s
         overlay.clock_period_placeholder,
         "io_voltage",
         "pin_conflicts",
-        "not Tang Mega 138K Dock",
+        "not Tang Mega Dock with 138K SOM",
         "I34-S03",
         "blocked",
         "Acceptance Review",
@@ -689,9 +689,10 @@ def _fixture_identity_audit() -> fpga_retro_console_identity.RetroConsoleIdentit
         "\n".join(
             (
                 "story=I34-S01",
-                "board=Sipeed Tang 138K Retro Console",
+                "board=Sipeed Tang Retro Console with 60K SOM",
                 "source=programmer_jtag_scan",
-                "observed_device=scan_recorded_device",
+                "observed_device=GW5AT-60B",
+                "observed_idcode=0x0001481B",
                 "observed_package=scan_recorded_package",
                 "observed_device_version=B",
                 "gowin_part=scan_recorded_gowin_part",
@@ -700,8 +701,8 @@ def _fixture_identity_audit() -> fpga_retro_console_identity.RetroConsoleIdentit
                 "reset_sources=verified Retro Console reset input",
                 "visible_outputs=heartbeat/pass/fail outputs",
                 "uart_debug_access=verified UART status path",
-                "selected_first_target=yes",
-                "supersedes_board=Sipeed Tang Mega 138K Dock",
+                "selected_first_target=no",
+                "primary_138k_target=Sipeed Tang Mega Dock with 138K SOM",
                 "observed_tool=Gowin Programmer",
                 "observed_at=2026-05-11T00:00:00",
             )

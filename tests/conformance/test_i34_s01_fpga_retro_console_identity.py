@@ -1,4 +1,4 @@
-"""I34-S01 conformance tests for Tang 138K Retro Console identity."""
+"""I34-S01 conformance tests for Tang Retro Console 60K SOM identity."""
 
 from __future__ import annotations
 
@@ -37,15 +37,15 @@ class FpgaRetroConsoleIdentityTests(unittest.TestCase):
             (),
         )
 
-    def test_profile_selects_retro_console_before_dock(self) -> None:
+    def test_profile_defers_retro_console_60k_to_mega_dock_138k(self) -> None:
         profile = fpga_retro_console_identity.retro_console_identity_profile()
 
         self.assertEqual(profile.story, "I34-S01")
-        self.assertEqual(profile.status, "retro_console_selected_pending_scan")
-        self.assertEqual(profile.board, "Sipeed Tang 138K Retro Console")
-        self.assertEqual(profile.previous_first_board, "Sipeed Tang Mega 138K Dock")
-        self.assertTrue(profile.selected_first_target)
-        self.assertIn("before the Tang Mega 138K Dock", profile.selection_reason)
+        self.assertEqual(profile.status, "retro_console_60k_deferred_from_138k_first_pass")
+        self.assertEqual(profile.board, "Sipeed Tang Retro Console with 60K SOM")
+        self.assertEqual(profile.primary_138k_target, "Sipeed Tang Mega Dock with 138K SOM")
+        self.assertFalse(profile.selected_first_target)
+        self.assertIn("Tang Mega Dock with 138K SOM", profile.selection_reason)
         self.assertEqual(
             profile.first_test_profile_gate,
             "python tools\\fpga_first_test_profile.py --check",
@@ -65,6 +65,7 @@ class FpgaRetroConsoleIdentityTests(unittest.TestCase):
             "board",
             "source",
             "observed_device",
+            "observed_idcode",
             "observed_package",
             "observed_device_version",
             "gowin_part",
@@ -74,7 +75,7 @@ class FpgaRetroConsoleIdentityTests(unittest.TestCase):
             "visible_outputs",
             "uart_debug_access",
             "selected_first_target",
-            "supersedes_board",
+            "primary_138k_target",
             "observed_tool",
             "observed_at",
         ):
@@ -84,18 +85,20 @@ class FpgaRetroConsoleIdentityTests(unittest.TestCase):
                 self.assertIn(f"{name}=", template)
 
         self.assertIn("story=I34-S01", template)
-        self.assertIn("board=Sipeed Tang 138K Retro Console", template)
-        self.assertIn("selected_first_target=yes", template)
-        self.assertIn("supersedes_board=Sipeed Tang Mega 138K Dock", template)
+        self.assertIn("board=Sipeed Tang Retro Console with 60K SOM", template)
+        self.assertIn("observed_idcode=", template)
+        self.assertIn("selected_first_target=no", template)
+        self.assertIn("primary_138k_target=Sipeed Tang Mega Dock with 138K SOM", template)
 
-    def test_complete_record_audits_as_selected_first_target(self) -> None:
+    def test_complete_record_audits_as_60k_alternate_target(self) -> None:
         record = fpga_retro_console_identity.parse_identity_record(
             "\n".join(
                 (
                     "story=I34-S01",
-                    "board=Sipeed Tang 138K Retro Console",
+                    "board=Sipeed Tang Retro Console with 60K SOM",
                     "source=board_marking+programmer_jtag_scan",
-                    "observed_device=scan_recorded_device",
+                    "observed_device=GW5AT-60B",
+                    "observed_idcode=0x0001481B",
                     "observed_package=scan_recorded_package",
                     "observed_device_version=B",
                     "gowin_part=scan_recorded_gowin_part",
@@ -104,8 +107,8 @@ class FpgaRetroConsoleIdentityTests(unittest.TestCase):
                     "reset_sources=verified Retro Console reset input",
                     "visible_outputs=heartbeat/pass/fail outputs from board evidence",
                     "uart_debug_access=verified UART status path",
-                    "selected_first_target=yes",
-                    "supersedes_board=Sipeed Tang Mega 138K Dock",
+                    "selected_first_target=no",
+                    "primary_138k_target=Sipeed Tang Mega Dock with 138K SOM",
                     "observed_tool=Gowin Programmer",
                     "observed_at=2026-05-11T12:00:00",
                 )
@@ -115,21 +118,23 @@ class FpgaRetroConsoleIdentityTests(unittest.TestCase):
         audit = fpga_retro_console_identity.audit_identity_record(record)
 
         self.assertTrue(audit.selected)
-        self.assertEqual(audit.status, "selected_first_target")
-        self.assertEqual(audit.observed_device, "scan_recorded_device")
+        self.assertTrue(audit.ready_for_constraints)
+        self.assertEqual(audit.status, "alternate_target_verified")
+        self.assertEqual(audit.observed_device, "GW5AT-60B")
+        self.assertEqual(audit.observed_idcode, "0x0001481B")
         self.assertEqual(audit.observed_package, "scan_recorded_package")
         self.assertEqual(audit.gowin_part, "scan_recorded_gowin_part")
         self.assertIn("I34-S02", " ".join(audit.actions))
-        self.assertIn("fallback", " ".join(audit.actions))
+        self.assertIn("Tang Mega Dock with 138K SOM", " ".join(audit.actions))
 
     def test_incomplete_or_unselected_record_is_invalid_and_missing_file_is_blocked(self) -> None:
         invalid = fpga_retro_console_identity.parse_identity_record(
             "\n".join(
                 (
                     "story=I34-S01",
-                    "board=Sipeed Tang 138K Retro Console",
+                    "board=Sipeed Tang Retro Console with 60K SOM",
                     "source=board_marking",
-                    "selected_first_target=no",
+                    "selected_first_target=yes",
                 )
             )
         )
@@ -164,7 +169,7 @@ class FpgaRetroConsoleIdentityTests(unittest.TestCase):
 
         blockers = " ".join(profile.blockers)
         self.assertIn("device/package", blockers)
-        self.assertIn("Dock pin names", blockers)
+        self.assertIn("Tang Mega Dock with 138K SOM pin names", blockers)
         self.assertIn("I31/I32", blockers)
 
     def test_cli_validates_renders_json_template_and_blocked_audit(self) -> None:
@@ -184,8 +189,8 @@ class FpgaRetroConsoleIdentityTests(unittest.TestCase):
         self.assertEqual(result, 0)
         parsed = json.loads(stream.getvalue())
         self.assertEqual(parsed["story"], "I34-S01")
-        self.assertEqual(parsed["board"], "Sipeed Tang 138K Retro Console")
-        self.assertTrue(parsed["selected_first_target"])
+        self.assertEqual(parsed["board"], "Sipeed Tang Retro Console with 60K SOM")
+        self.assertFalse(parsed["selected_first_target"])
 
         stream = StringIO()
         with contextlib.redirect_stdout(stream):
@@ -193,7 +198,7 @@ class FpgaRetroConsoleIdentityTests(unittest.TestCase):
 
         self.assertEqual(result, 0)
         self.assertIn("gowin_part=", stream.getvalue())
-        self.assertIn("selected_first_target=yes", stream.getvalue())
+        self.assertIn("selected_first_target=no", stream.getvalue())
 
         stream = StringIO()
         with contextlib.redirect_stdout(stream):
@@ -217,13 +222,16 @@ class FpgaRetroConsoleIdentityTests(unittest.TestCase):
             "Story: I34-S01",
             "python tools\\fpga_retro_console_identity.py --check",
             "docs/implementation/evidence/i34_s01_retro_console_identity.txt",
-            "Sipeed Tang 138K Retro Console",
-            "Sipeed Tang Mega 138K Dock",
+            "Sipeed Tang Retro Console with 60K SOM",
+            "GW5AT/GW5A 60B-class",
+            "0x0001481B",
+            "Sipeed Tang Mega Dock with 138K SOM",
             "python tools\\fpga_first_test_profile.py --check",
             "python -m unittest tests.conformance.test_i23_s06_fpga_board_bringup",
-            "selected_first_target=yes",
-            "supersedes_board=Sipeed Tang Mega 138K Dock",
+            "selected_first_target=no",
+            "primary_138k_target=Sipeed Tang Mega Dock with 138K SOM",
             "observed_device",
+            "observed_idcode",
             "observed_package",
             "gowin_part",
             "programming_path",

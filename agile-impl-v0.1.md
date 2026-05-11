@@ -74,7 +74,7 @@ Implementation principles:
 | I31 | P1 | Board-proven first CPU pass. | Build, program, capture, replay, and archive the first physical integrated single-core CPU pass or a fully triaged blocker record. |
 | I32 | P1 | Interactive board loading and debug monitor. | Board-safe monitor commands for loading bounded images, starting/stopping programs, reading status, and preserving replayable debug evidence. |
 | I33 | P2 | Single-core v0.1 release candidate hardening. | Full regression, documentation traceability, reproducible artifacts, known-limitations freeze, and release-candidate evidence bundle. |
-| I34 | P1 | Tang 138K Retro Console first physical CPU target. | Verified Retro Console board profile, constraints, build, programming, first CPU observations, and handoff back to the generic board evidence path. |
+| I34 | P2 | Tang Retro Console 60K SOM alternate target. | Verified Retro Console 60K board profile, constraints, build feasibility, programming observations, and explicit handoff that the Mega Dock with 138K SOM remains the active first CPU path. |
 
 ## First Vertical Slice
 
@@ -245,12 +245,12 @@ Explicitly excluded from the first slice:
 | I33-S04 | P2 | M | I33-S03 | Freeze known limitations and errata for the single-core release. | Unsupported features, board blockers, deferred multicore/fabric/DDR/cacheable-tag behavior, and any architecture errata are explicitly listed. |
 | I33-S05 | P2 | M | I33-S04 | Produce the reproducible release-candidate bundle. | The bundle records commit, tool versions, generated images, bitstream hashes, reports, evidence archives, docs, and rerun commands. |
 | I33-S06 | P2 | S | I33-S05 | Open the next backlog from release findings. | Remaining defects and deferred work are triaged into post-v0.1 implementation or architecture stories without silently changing the frozen v0.1 contract. |
-| I34-S01 | P1 | M | I23-S06, E15-S07 | Verify the Tang 138K Retro Console board identity and select it as the first physical CPU target. | Board marking or programmer scan records the actual FPGA device/package, toolchain target, programming path, clock/reset sources, visible outputs, UART/debug access, and the decision to use this board before the Tang Mega 138K Dock. |
-| I34-S02 | P1 | L | I34-S01, I23-S05 | Create the Retro Console first-test CST/SDC overlay. | Constraints map the verified clock, reset or user inputs, pass/fail/heartbeat outputs, UART/debug pins, IO standards, clock period, and any board-specific pin conflicts without assuming Dock pin names. |
-| I34-S03 | P1 | M | I34-S02, I28-S01, I28-S03 | Run a Retro Console first-test Gowin build and timing audit. | Synthesis, place-route, timing, utilization, port mapping, warning policy, bitstream path, and bitstream hash are captured for the exact Retro Console target. |
-| I34-S04 | P1 | M | I34-S03, I23-S06 | Program the Retro Console SRAM and capture first CPU smoke observations. | Programming log, reset release, heartbeat, pass/fail output, UART/status packets or probe captures, and exact bitstream identity are recorded. |
-| I34-S05 | P1 | M | I34-S04, I25-S04, I25-S05 | Replay and classify any Retro Console board failure capture. | Captured status selects a Verilator replay case, preserves first mismatch evidence, and classifies failures as board identity, constraints, clock/reset, memory, firmware, loader, trap, or CPU RTL. |
-| I34-S06 | P1 | M | I34-S04, I34-S05, I32-S05 | Archive the Retro Console first CPU pass or blocker and update board handoff policy. | Evidence links board scan, constraints, reports, bitstream, programming, LED/UART/probe captures, replay results, residual blockers, and whether I31/I32 continue on Retro Console first or fall back to the Dock. |
+| I34-S01 | P2 | M | I23-S06, E15-S07 | Verify the Tang Retro Console 60K SOM identity and defer it from the 138K first CPU target. | Board marking or programmer scan records the 60K-class FPGA device/package, `0x0001481B` ID code, toolchain target, programming path, clock/reset sources, visible outputs, UART/debug access, and the decision to continue first CPU bring-up on the Tang Mega Dock with 138K SOM. |
+| I34-S02 | P2 | L | I34-S01, I23-S05 | Create the Retro Console 60K SOM first-test CST/SDC overlay. | Constraints map the verified clock, reset or user inputs, pass/fail/heartbeat outputs, UART/debug pins, IO standards, clock period, and any board-specific pin conflicts without assuming Tang Mega Dock 138K SOM pin names. |
+| I34-S03 | P2 | M | I34-S02, I28-S01, I28-S03 | Run a Retro Console 60K first-test Gowin build and timing audit. | Synthesis, place-route, timing, utilization, port mapping, warning policy, bitstream path, and bitstream hash are captured for the exact Retro Console 60K target. |
+| I34-S04 | P2 | M | I34-S03, I23-S06 | Program the Retro Console 60K SRAM and capture smoke observations. | Programming log, reset release, heartbeat, pass/fail output, UART/status packets or probe captures, and exact bitstream identity are recorded without claiming the 138K first-pass board. |
+| I34-S05 | P2 | M | I34-S04, I25-S04, I25-S05 | Replay and classify any Retro Console 60K board failure capture. | Captured status selects a Verilator replay case, preserves first mismatch evidence, and classifies failures as board identity, constraints, clock/reset, memory, firmware, loader, trap, or CPU RTL. |
+| I34-S06 | P2 | M | I34-S04, I34-S05, I32-S05 | Archive the Retro Console 60K pass or blocker and update board handoff policy. | Evidence links board scan, constraints, reports, bitstream, programming, LED/UART/probe captures, replay results, residual blockers, and whether the 60K path remains deferred while I31/I32 continue on the Tang Mega Dock with 138K SOM. |
 
 ## RTL Readiness Slice
 
@@ -373,14 +373,14 @@ audit, known-limitation freeze, reproducible bundle, then a next-backlog triage.
 It should document unsupported multicore, fabric, cacheable DDR, and future tag
 sidecar work rather than blending them into the v0.1 single-core claim.
 
-I34 should make the Tang 138K Retro Console the active first physical CPU test
-target without deleting the Tang Mega 138K Dock path. The order is board
-identity and first-target selection, Retro Console constraints, Gowin
-build/timing evidence, SRAM programming and first observations, replay
-classification for failures, then an archive that decides whether the generic
-I31/I32 board-evidence path continues on the Retro Console first or falls back
-to the Dock. It should not assume pin names or package details until I34-S01
-has verified them.
+I34 now tracks the Tang Retro Console as a 60K SOM alternate target rather than
+the active 138K first physical CPU target. The order is 60K board identity and
+explicit deferral, Retro Console 60K constraints, optional Gowin build/timing
+evidence, SRAM programming and observations, replay classification for
+failures, then an archive that keeps the generic I31/I32 board-evidence path on
+the Tang Mega Dock with 138K SOM unless the 60K compatibility path is
+explicitly revived. It should not assume pin names or package details until
+I34-S01 has verified them.
 
 ## Near-term Sprint Plan
 

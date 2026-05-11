@@ -58,7 +58,7 @@ the exact `bitstream_sha256`.
 | `story` | Must be `I31-S03`. |
 | `programmed_at` | Local programming timestamp. |
 | `repository_commit` | Repository commit used for the board run. |
-| `board` | Must match `Sipeed Tang Mega 138K Dock`. |
+| `board` | Must match `Sipeed Tang Mega Dock with 138K SOM`. |
 | `first_pass_gowin` | I31-S02 evidence path. |
 | `top_module` | Must be `cpu_v01_fpga_top`. |
 | `selected_image` | Must be `builtin.first_test_pause_stream`. |

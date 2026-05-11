@@ -35,9 +35,10 @@ def selected_identity_audit() -> fpga_retro_console_identity.RetroConsoleIdentit
         "\n".join(
             (
                 "story=I34-S01",
-                "board=Sipeed Tang 138K Retro Console",
+                "board=Sipeed Tang Retro Console with 60K SOM",
                 "source=programmer_jtag_scan",
-                "observed_device=scan_recorded_device",
+                "observed_device=GW5AT-60B",
+                "observed_idcode=0x0001481B",
                 "observed_package=scan_recorded_package",
                 "observed_device_version=B",
                 "gowin_part=scan_recorded_gowin_part",
@@ -46,8 +47,8 @@ def selected_identity_audit() -> fpga_retro_console_identity.RetroConsoleIdentit
                 "reset_sources=verified Retro Console reset input",
                 "visible_outputs=heartbeat/pass/fail outputs",
                 "uart_debug_access=verified UART status path",
-                "selected_first_target=yes",
-                "supersedes_board=Sipeed Tang Mega 138K Dock",
+                "selected_first_target=no",
+                "primary_138k_target=Sipeed Tang Mega Dock with 138K SOM",
                 "observed_tool=Gowin Programmer",
                 "observed_at=2026-05-11T12:00:00",
             )
@@ -67,26 +68,26 @@ class FpgaRetroConsoleConstraintsTests(unittest.TestCase):
         overlay = fpga_retro_console_constraints.retro_console_constraints_overlay()
 
         self.assertEqual(overlay.story, "I34-S02")
-        self.assertEqual(overlay.board, "Sipeed Tang 138K Retro Console")
+        self.assertEqual(overlay.board, "Sipeed Tang Retro Console with 60K SOM")
         self.assertEqual(
             overlay.identity_gate,
             "python tools\\fpga_retro_console_identity.py --check",
         )
         self.assertEqual(
             overlay.cst_path.as_posix(),
-            "constraints/tang_138k_retro_console_first_test.cst",
+            "constraints/tang_60k_retro_console_first_test.cst",
         )
         self.assertEqual(
             overlay.cst_template_path.as_posix(),
-            "constraints/tang_138k_retro_console_first_test.cst.template",
+            "constraints/tang_60k_retro_console_first_test.cst.template",
         )
         self.assertEqual(
             overlay.sdc_path.as_posix(),
-            "constraints/tang_138k_retro_console_first_test.sdc",
+            "constraints/tang_60k_retro_console_first_test.sdc",
         )
         self.assertEqual(
             overlay.sdc_template_path.as_posix(),
-            "constraints/tang_138k_retro_console_first_test.sdc.template",
+            "constraints/tang_60k_retro_console_first_test.sdc.template",
         )
         self.assertEqual(overlay.clock_period_placeholder, "I34_S02_BOARD_CLK_PERIOD_NS")
 
@@ -124,10 +125,10 @@ class FpgaRetroConsoleConstraintsTests(unittest.TestCase):
         self.assertIn("set_false_path -from [get_ports {board_reset_n_i}]", sdc)
 
         cst_file = (
-            ROOT / "constraints" / "tang_138k_retro_console_first_test.cst.template"
+            ROOT / "constraints" / "tang_60k_retro_console_first_test.cst.template"
         ).read_text(encoding="utf-8")
         sdc_file = (
-            ROOT / "constraints" / "tang_138k_retro_console_first_test.sdc.template"
+            ROOT / "constraints" / "tang_60k_retro_console_first_test.sdc.template"
         ).read_text(encoding="utf-8")
         self.assertIn("I34_S02_PIN_BOARD_CLK_I", cst_file)
         self.assertIn("I34_S02_BOARD_CLK_PERIOD_NS", sdc_file)
@@ -275,12 +276,12 @@ class FpgaRetroConsoleConstraintsTests(unittest.TestCase):
             "Story: I34-S02",
             "python tools\\fpga_retro_console_constraints.py --check",
             "python tools\\fpga_retro_console_identity.py --check",
-            "constraints/tang_138k_retro_console_first_test.cst",
-            "constraints/tang_138k_retro_console_first_test.cst.template",
-            "constraints/tang_138k_retro_console_first_test.sdc",
-            "constraints/tang_138k_retro_console_first_test.sdc.template",
+            "constraints/tang_60k_retro_console_first_test.cst",
+            "constraints/tang_60k_retro_console_first_test.cst.template",
+            "constraints/tang_60k_retro_console_first_test.sdc",
+            "constraints/tang_60k_retro_console_first_test.sdc.template",
             "docs/implementation/evidence/i34_s02_retro_console_pins.txt",
-            "Sipeed Tang 138K Retro Console",
+            "Sipeed Tang Retro Console with 60K SOM",
             "board_clk_i",
             "board_reset_n_i",
             "pass_led_o",
@@ -291,7 +292,7 @@ class FpgaRetroConsoleConstraintsTests(unittest.TestCase):
             "I34_S02_BOARD_CLK_PERIOD_NS",
             "io_voltage",
             "pin_conflicts",
-            "not Tang Mega 138K Dock",
+            "not Tang Mega Dock with 138K SOM",
             "I34-S03",
             "blocked",
             "Acceptance Review",

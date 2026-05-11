@@ -39,7 +39,7 @@ class FpgaMonitorProfileTests(unittest.TestCase):
 
         self.assertEqual(profile.story, "I32-S01")
         self.assertEqual(profile.status, "monitor_command_profile_defined")
-        self.assertEqual(profile.board, "Sipeed Tang Mega 138K Dock")
+        self.assertEqual(profile.board, "Sipeed Tang Mega Dock with 138K SOM")
         self.assertEqual(profile.loader_gate, "python tools\\fpga_program_loader.py --check")
         self.assertEqual(profile.soc_loader_gate, "python tools\\fpga_soc_loader_handoff.py --check")
 

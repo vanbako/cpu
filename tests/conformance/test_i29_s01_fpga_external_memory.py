@@ -40,7 +40,7 @@ class FpgaExternalMemoryTests(unittest.TestCase):
         self.assertEqual(profile.story, "I29-S01")
         self.assertEqual(profile.name, "cpu_v01_fpga_external_memory_boundary")
         self.assertEqual(profile.status, "boundary_profile")
-        self.assertEqual(profile.board, "Sipeed Tang Mega 138K Dock")
+        self.assertEqual(profile.board, "Sipeed Tang Mega Dock with 138K SOM")
         self.assertEqual(profile.fpga_top_module, "cpu_v01_fpga_top")
         for gate in (
             "python tools\\fpga_soc_platform.py --check",

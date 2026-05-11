@@ -1,7 +1,7 @@
-"""Tang 138K Retro Console first-target identity gate.
+"""Tang Retro Console 60K SOM alternate identity gate.
 
 Owner stories:
-- I34-S01: verify Retro Console identity and select it as first physical CPU target.
+- I34-S01: verify Retro Console 60K SOM identity and defer it from the 138K first-pass target.
 """
 
 from __future__ import annotations
@@ -10,9 +10,6 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
-
-from . import fpga_first_test
-
 
 JsonValue = Any
 
@@ -24,10 +21,14 @@ FPGA_RETRO_CONSOLE_IDENTITY_TOOL = "python tools\\fpga_retro_console_identity.py
 FPGA_RETRO_CONSOLE_IDENTITY_EVIDENCE = Path(
     "docs/implementation/evidence/i34_s01_retro_console_identity.txt"
 )
-FPGA_RETRO_CONSOLE_BOARD = "Sipeed Tang 138K Retro Console"
-RETRO_CONSOLE_SELECTION_STATUS = "retro_console_selected_pending_scan"
+FPGA_RETRO_CONSOLE_BOARD = "Sipeed Tang Retro Console with 60K SOM"
+PRIMARY_138K_TARGET = "Sipeed Tang Mega Dock with 138K SOM"
+RETRO_CONSOLE_EXPECTED_DEVICE_CLASS = "GW5AT/GW5A 60B-class"
+RETRO_CONSOLE_EXPECTED_IDCODE = "0x0001481B"
+RETRO_CONSOLE_SELECTION_STATUS = "retro_console_60k_deferred_from_138k_first_pass"
 
-AUDIT_STATUS_SELECTED = "selected_first_target"
+AUDIT_STATUS_READY = "alternate_target_verified"
+AUDIT_STATUS_SELECTED = AUDIT_STATUS_READY
 AUDIT_STATUS_BLOCKED = "blocked"
 AUDIT_STATUS_INVALID = "invalid"
 
@@ -72,7 +73,7 @@ class RetroConsoleIdentityProfile:
     story: str
     status: str
     board: str
-    previous_first_board: str
+    primary_138k_target: str
     selected_first_target: bool
     selection_reason: str
     first_test_profile_gate: str
@@ -91,7 +92,7 @@ class RetroConsoleIdentityProfile:
             "story": self.story,
             "status": self.status,
             "board": self.board,
-            "previous_first_board": self.previous_first_board,
+            "primary_138k_target": self.primary_138k_target,
             "selected_first_target": self.selected_first_target,
             "selection_reason": self.selection_reason,
             "first_test_profile_gate": self.first_test_profile_gate,
@@ -124,17 +125,23 @@ class RetroConsoleIdentityAudit:
     message: str
     evidence_path: str
     observed_device: str
+    observed_idcode: str
     observed_package: str
     observed_device_version: str
     gowin_part: str
     programming_path: str
     selected_first_target: str
+    primary_138k_target: str
     issues: tuple[str, ...]
     actions: tuple[str, ...]
 
     @property
     def selected(self) -> bool:
-        return self.status == AUDIT_STATUS_SELECTED
+        return self.status == AUDIT_STATUS_READY
+
+    @property
+    def ready_for_constraints(self) -> bool:
+        return self.status == AUDIT_STATUS_READY
 
     def as_dict(self) -> dict[str, JsonValue]:
         return {
@@ -142,11 +149,13 @@ class RetroConsoleIdentityAudit:
             "message": self.message,
             "evidence_path": self.evidence_path,
             "observed_device": self.observed_device,
+            "observed_idcode": self.observed_idcode,
             "observed_package": self.observed_package,
             "observed_device_version": self.observed_device_version,
             "gowin_part": self.gowin_part,
             "programming_path": self.programming_path,
             "selected_first_target": self.selected_first_target,
+            "primary_138k_target": self.primary_138k_target,
             "issues": list(self.issues),
             "actions": list(self.actions),
         }
@@ -157,11 +166,12 @@ def retro_console_identity_profile() -> RetroConsoleIdentityProfile:
         story=FPGA_RETRO_CONSOLE_IDENTITY_STORY,
         status=RETRO_CONSOLE_SELECTION_STATUS,
         board=FPGA_RETRO_CONSOLE_BOARD,
-        previous_first_board=fpga_first_test.TARGET_BOARD_NAME,
-        selected_first_target=True,
+        primary_138k_target=PRIMARY_138K_TARGET,
+        selected_first_target=False,
         selection_reason=(
-            "Use the available Tang 138K Retro Console before the Tang Mega 138K Dock, "
-            "while keeping the Dock path as a fallback board target."
+            "The Retro Console scan is 60K-class, so keep it as an alternate "
+            "compatibility target and continue first-pass CPU bring-up on the "
+            "Tang Mega Dock with 138K SOM."
         ),
         first_test_profile_gate=FIRST_TEST_PROFILE_GATE,
         board_bringup_runbook_gate=BOARD_BRINGUP_RUNBOOK_GATE,
@@ -175,7 +185,7 @@ def retro_console_identity_profile() -> RetroConsoleIdentityProfile:
             RetroConsoleEvidenceField(
                 "board",
                 True,
-                "Human-readable board name from the Retro Console board under test.",
+                "Human-readable Retro Console 60K SOM board name under test.",
             ),
             RetroConsoleEvidenceField(
                 "source",
@@ -185,7 +195,12 @@ def retro_console_identity_profile() -> RetroConsoleIdentityProfile:
             RetroConsoleEvidenceField(
                 "observed_device",
                 True,
-                "Exact FPGA device string from marking, vendor file, or programmer scan.",
+                "Exact 60B-class FPGA device string from marking, vendor file, or programmer scan.",
+            ),
+            RetroConsoleEvidenceField(
+                "observed_idcode",
+                True,
+                f"JTAG ID code for the Retro Console 60K SOM, expected {RETRO_CONSOLE_EXPECTED_IDCODE}.",
             ),
             RetroConsoleEvidenceField(
                 "observed_package",
@@ -230,12 +245,12 @@ def retro_console_identity_profile() -> RetroConsoleIdentityProfile:
             RetroConsoleEvidenceField(
                 "selected_first_target",
                 True,
-                "Must be yes to record the Retro Console as the active first physical CPU target.",
+                "Must be no because the Retro Console is a 60K alternate target.",
             ),
             RetroConsoleEvidenceField(
-                "supersedes_board",
+                "primary_138k_target",
                 True,
-                "Must name the Tang Mega 138K Dock as the board being deferred.",
+                "Must name the Tang Mega Dock with 138K SOM as the active first-pass board.",
             ),
             RetroConsoleEvidenceField(
                 "observed_tool",
@@ -311,13 +326,13 @@ def retro_console_identity_profile() -> RetroConsoleIdentityProfile:
         ),
         blockers=(
             "actual Retro Console device/package has not been captured in repository evidence",
-            "I34-S02 must not assume Tang Mega 138K Dock pin names or package details",
-            "I31/I32 board evidence should prefer Retro Console only after this audit is selected",
+            "I34-S02 must not assume Tang Mega Dock with 138K SOM pin names or package details",
+            "I31/I32 board evidence should continue on the Tang Mega Dock with 138K SOM until the 60K path is explicitly revived",
         ),
         handoffs=(
             "I34-S02 consumes observed device/package, clock/reset, visible output, and UART/debug fields",
             "I34-S03 consumes the Gowin part and programming target from this evidence",
-            "I34-S06 decides whether I31/I32 continue on Retro Console first or fall back to the Dock",
+            "I34-S06 archives the Retro Console 60K pass/blocker without taking over the 138K first-pass path",
         ),
     )
 
@@ -331,6 +346,7 @@ def identity_template(profile: RetroConsoleIdentityProfile | None = None) -> str
             f"board={profile.board}",
             "source=",
             "observed_device=",
+            "observed_idcode=",
             "observed_package=",
             "observed_device_version=",
             "gowin_part=",
@@ -339,8 +355,8 @@ def identity_template(profile: RetroConsoleIdentityProfile | None = None) -> str
             "reset_sources=",
             "visible_outputs=",
             "uart_debug_access=",
-            "selected_first_target=yes",
-            f"supersedes_board={profile.previous_first_board}",
+            "selected_first_target=no",
+            f"primary_138k_target={profile.primary_138k_target}",
             "observed_tool=",
             "observed_at=",
             "evidence_notes=",
@@ -383,17 +399,24 @@ def audit_identity_record(
         issues.append(f"story must be {profile.story}")
     if record.value("board") and record.value("board") != profile.board:
         issues.append(f"board must be {profile.board}")
-    if record.value("selected_first_target").lower() not in {"yes", "true", "1"}:
-        issues.append("selected_first_target must be yes")
-    if profile.previous_first_board not in record.value("supersedes_board"):
-        issues.append(f"supersedes_board must name {profile.previous_first_board}")
+    if record.value("selected_first_target").lower() not in {"no", "false", "0"}:
+        issues.append("selected_first_target must be no for the Retro Console 60K alternate path")
+    if record.value("primary_138k_target") != profile.primary_138k_target:
+        issues.append(f"primary_138k_target must be {profile.primary_138k_target}")
 
     observed_device = record.value("observed_device")
+    observed_idcode = record.value("observed_idcode")
     observed_package = record.value("observed_package")
     observed_device_version = record.value("observed_device_version")
     gowin_part = record.value("gowin_part")
     programming_path = record.value("programming_path")
     selected_first_target = record.value("selected_first_target")
+    primary_138k_target = record.value("primary_138k_target")
+
+    if observed_device and "60" not in observed_device:
+        issues.append(f"observed_device must be {RETRO_CONSOLE_EXPECTED_DEVICE_CLASS}")
+    if observed_idcode and observed_idcode.lower() != RETRO_CONSOLE_EXPECTED_IDCODE.lower():
+        issues.append(f"observed_idcode must be {RETRO_CONSOLE_EXPECTED_IDCODE}")
 
     if issues:
         return RetroConsoleIdentityAudit(
@@ -401,34 +424,38 @@ def audit_identity_record(
             message="Retro Console identity record is incomplete or malformed.",
             evidence_path=evidence_path,
             observed_device=observed_device,
+            observed_idcode=observed_idcode,
             observed_package=observed_package,
             observed_device_version=observed_device_version,
             gowin_part=gowin_part,
             programming_path=programming_path,
             selected_first_target=selected_first_target,
+            primary_138k_target=primary_138k_target,
             issues=tuple(issues),
             actions=(
                 "capture Retro Console board marking or programmer scan again",
-                "fill every required first-target handoff field",
+                "fill every required 60K alternate-target handoff field",
                 "rerun python tools\\fpga_retro_console_identity.py --audit-evidence",
             ),
         )
 
     return RetroConsoleIdentityAudit(
         status=AUDIT_STATUS_SELECTED,
-        message="Retro Console identity is complete enough to start I34-S02 constraints.",
+        message="Retro Console 60K identity is complete enough to start alternate I34-S02 constraints.",
         evidence_path=evidence_path,
         observed_device=observed_device,
+        observed_idcode=observed_idcode,
         observed_package=observed_package,
         observed_device_version=observed_device_version,
         gowin_part=gowin_part,
         programming_path=programming_path,
         selected_first_target=selected_first_target,
+        primary_138k_target=primary_138k_target,
         issues=(),
         actions=(
             "use this record as the I34-S02 CST/SDC source of truth",
             "carry gowin_part and programming_path into I34-S03/I34-S04 evidence",
-            "keep the Tang Mega 138K Dock path as fallback until I34-S06 archive closes",
+            "continue first-pass CPU bring-up on the Tang Mega Dock with 138K SOM",
         ),
     )
 
@@ -448,15 +475,17 @@ def load_identity_audit(
             message="No Retro Console identity evidence has been captured yet.",
             evidence_path=relative_path.as_posix(),
             observed_device="",
+            observed_idcode="",
             observed_package="",
             observed_device_version="",
             gowin_part="",
             programming_path="",
             selected_first_target="",
+            primary_138k_target="",
             issues=("missing Retro Console board marking or programmer scan evidence",),
             actions=(
                 f"create {relative_path.as_posix()} from the identity template",
-                "record board marking, programmer scan, clock/reset, outputs, and debug access",
+                "record 60K board marking, programmer scan, clock/reset, outputs, and debug access",
                 "rerun python tools\\fpga_retro_console_identity.py --audit-evidence",
             ),
         )
@@ -468,11 +497,13 @@ def load_identity_audit(
             message="Retro Console identity record could not be parsed.",
             evidence_path=relative_path.as_posix(),
             observed_device="",
+            observed_idcode="",
             observed_package="",
             observed_device_version="",
             gowin_part="",
             programming_path="",
             selected_first_target="",
+            primary_138k_target="",
             issues=(str(exc),),
             actions=("fix the key=value evidence record", "rerun the identity audit"),
         )
@@ -502,7 +533,7 @@ def render_retro_console_identity(
         f"Story: {profile.story}",
         f"Status: `{profile.status}`",
         f"Board: `{profile.board}`",
-        f"Previous first board: `{profile.previous_first_board}`",
+        f"Primary 138K target: `{profile.primary_138k_target}`",
         f"Selected first target: `{profile.selected_first_target}`",
         f"Evidence path: `{profile.evidence_path.as_posix()}`",
         f"First-test profile gate: `{profile.first_test_profile_gate}`",
@@ -540,15 +571,15 @@ def validate_fpga_retro_console_identity(root: Path | None = None) -> tuple[str,
     if profile.story != FPGA_RETRO_CONSOLE_IDENTITY_STORY:
         issues.append(f"Retro Console identity story must be {FPGA_RETRO_CONSOLE_IDENTITY_STORY}")
     if profile.status != RETRO_CONSOLE_SELECTION_STATUS:
-        issues.append("Retro Console identity status must remain pending-scan selection")
+        issues.append("Retro Console identity status must remain 60K deferred")
     if profile.board != FPGA_RETRO_CONSOLE_BOARD:
         issues.append(f"Retro Console board must be {FPGA_RETRO_CONSOLE_BOARD}")
-    if profile.previous_first_board != fpga_first_test.TARGET_BOARD_NAME:
-        issues.append("Retro Console identity must preserve the current Dock board as fallback")
-    if not profile.selected_first_target:
-        issues.append("Retro Console must be selected as the active first target")
-    if "before the Tang Mega 138K Dock" not in profile.selection_reason:
-        issues.append("selection reason must record Retro Console before Dock")
+    if profile.primary_138k_target != PRIMARY_138K_TARGET:
+        issues.append("Retro Console identity must preserve the Mega Dock 138K SOM as primary")
+    if profile.selected_first_target:
+        issues.append("Retro Console 60K must not be selected as the active first target")
+    if "Tang Mega Dock with 138K SOM" not in profile.selection_reason:
+        issues.append("selection reason must record Mega Dock with 138K SOM as first-pass target")
     if profile.first_test_profile_gate != FIRST_TEST_PROFILE_GATE:
         issues.append("Retro Console identity must name the first-test profile gate")
     if profile.board_bringup_runbook_gate != BOARD_BRINGUP_RUNBOOK_GATE:
@@ -560,6 +591,7 @@ def validate_fpga_retro_console_identity(root: Path | None = None) -> tuple[str,
         "board",
         "source",
         "observed_device",
+        "observed_idcode",
         "observed_package",
         "observed_device_version",
         "gowin_part",
@@ -569,7 +601,7 @@ def validate_fpga_retro_console_identity(root: Path | None = None) -> tuple[str,
         "visible_outputs",
         "uart_debug_access",
         "selected_first_target",
-        "supersedes_board",
+        "primary_138k_target",
         "observed_tool",
         "observed_at",
     ):
@@ -583,8 +615,9 @@ def validate_fpga_retro_console_identity(root: Path | None = None) -> tuple[str,
     for token in (
         "story=I34-S01",
         f"board={FPGA_RETRO_CONSOLE_BOARD}",
-        "selected_first_target=yes",
-        f"supersedes_board={fpga_first_test.TARGET_BOARD_NAME}",
+        "observed_idcode=",
+        "selected_first_target=no",
+        f"primary_138k_target={PRIMARY_138K_TARGET}",
         "gowin_part=",
         "clock_sources=",
         "visible_outputs=",
@@ -599,7 +632,8 @@ def validate_fpga_retro_console_identity(root: Path | None = None) -> tuple[str,
                 f"story={FPGA_RETRO_CONSOLE_IDENTITY_STORY}",
                 f"board={FPGA_RETRO_CONSOLE_BOARD}",
                 "source=board_marking+programmer_jtag_scan",
-                "observed_device=scan_recorded_device",
+                "observed_device=GW5AT-60B",
+                f"observed_idcode={RETRO_CONSOLE_EXPECTED_IDCODE}",
                 "observed_package=scan_recorded_package",
                 "observed_device_version=B",
                 "gowin_part=scan_recorded_gowin_part",
@@ -608,15 +642,15 @@ def validate_fpga_retro_console_identity(root: Path | None = None) -> tuple[str,
                 "reset_sources=verified reset input from Retro Console evidence",
                 "visible_outputs=heartbeat/pass/fail mapped to verified Retro Console outputs",
                 "uart_debug_access=verified UART or JTAG status path",
-                "selected_first_target=yes",
-                f"supersedes_board={fpga_first_test.TARGET_BOARD_NAME}",
+                "selected_first_target=no",
+                f"primary_138k_target={PRIMARY_138K_TARGET}",
                 "observed_tool=Gowin Programmer",
                 "observed_at=2026-05-11T00:00:00",
             )
         )
     )
     if not audit_identity_record(selected_record).selected:
-        issues.append("complete Retro Console identity record must audit as selected")
+        issues.append("complete Retro Console 60K identity record must audit as alternate-target verified")
 
     invalid_record = parse_identity_record(
         "\n".join(
@@ -624,12 +658,12 @@ def validate_fpga_retro_console_identity(root: Path | None = None) -> tuple[str,
                 f"story={FPGA_RETRO_CONSOLE_IDENTITY_STORY}",
                 f"board={FPGA_RETRO_CONSOLE_BOARD}",
                 "source=board_marking",
-                "selected_first_target=no",
+                "selected_first_target=yes",
             )
         )
     )
     if audit_identity_record(invalid_record).status != AUDIT_STATUS_INVALID:
-        issues.append("incomplete or unselected Retro Console record must be invalid")
+        issues.append("incomplete or first-target Retro Console record must be invalid")
 
     missing_audit = load_identity_audit(root)
     if missing_audit.status not in (
@@ -656,12 +690,15 @@ def validate_fpga_retro_console_identity(root: Path | None = None) -> tuple[str,
         FPGA_RETRO_CONSOLE_IDENTITY_TOOL,
         FPGA_RETRO_CONSOLE_IDENTITY_EVIDENCE.as_posix(),
         FPGA_RETRO_CONSOLE_BOARD,
-        fpga_first_test.TARGET_BOARD_NAME,
+        PRIMARY_138K_TARGET,
+        RETRO_CONSOLE_EXPECTED_IDCODE,
+        RETRO_CONSOLE_EXPECTED_DEVICE_CLASS,
         FIRST_TEST_PROFILE_GATE,
         BOARD_BRINGUP_RUNBOOK_GATE,
-        "selected_first_target=yes",
-        "supersedes_board=Sipeed Tang Mega 138K Dock",
+        "selected_first_target=no",
+        "primary_138k_target=Sipeed Tang Mega Dock with 138K SOM",
         "observed_device",
+        "observed_idcode",
         "observed_package",
         "gowin_part",
         "programming_path",

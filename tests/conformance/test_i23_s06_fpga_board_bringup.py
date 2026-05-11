@@ -38,7 +38,7 @@ class FpgaBoardBringupTests(unittest.TestCase):
         runbook = fpga_bringup.fpga_board_bringup_runbook()
 
         self.assertEqual(runbook.story, "I23-S06")
-        self.assertEqual(runbook.board, "Sipeed Tang Mega 138K Dock")
+        self.assertEqual(runbook.board, "Sipeed Tang Mega Dock with 138K SOM")
         self.assertEqual(runbook.device, "GW5AST-LV138PG484A")
         self.assertEqual(runbook.ide_package, "PBG484A")
         self.assertEqual(runbook.top_module, "cpu_v01_fpga_top")
@@ -157,7 +157,7 @@ class FpgaBoardBringupTests(unittest.TestCase):
         self.assertEqual(result, 0)
         parsed = json.loads(stream.getvalue())
         self.assertEqual(parsed["story"], "I23-S06")
-        self.assertEqual(parsed["board"], "Sipeed Tang Mega 138K Dock")
+        self.assertEqual(parsed["board"], "Sipeed Tang Mega Dock with 138K SOM")
         self.assertEqual(parsed["top_module"], "cpu_v01_fpga_top")
 
         stream = StringIO()
@@ -174,7 +174,7 @@ class FpgaBoardBringupTests(unittest.TestCase):
 
         self.assertIn("Story: I23-S06", text)
         self.assertIn("python tools\\fpga_bringup_runbook.py --check", text)
-        self.assertIn("Sipeed Tang Mega 138K Dock", text)
+        self.assertIn("Sipeed Tang Mega Dock with 138K SOM", text)
         self.assertIn("GW5AST-LV138PG484A", text)
         self.assertIn("PBG484A", text)
         self.assertIn("python tools\\fpga_synthesis_gate.py --check", text)

@@ -120,7 +120,7 @@ class FpgaFirstPassArchiveTests(unittest.TestCase):
 
         self.assertEqual(profile.story, "I31-S05")
         self.assertEqual(profile.status, "blocked_until_pass_or_classified_blocker")
-        self.assertEqual(profile.board, "Sipeed Tang Mega 138K Dock")
+        self.assertEqual(profile.board, "Sipeed Tang Mega Dock with 138K SOM")
         self.assertEqual(profile.first_board_archive_gate, "python tools\\fpga_first_board_archive.py --check")
         self.assertEqual(profile.programming_gate, "python tools\\fpga_first_pass_programming.py --check")
         self.assertEqual(profile.replay_gate, "python tools\\fpga_first_pass_replay.py --check")

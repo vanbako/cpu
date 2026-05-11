@@ -1,4 +1,4 @@
-// CPU v0.1 I34-S02 Tang 138K Retro Console first-test CST template.
+// CPU v0.1 I34-S02 Tang Retro Console 60K SOM first-test CST template.
 // Do not use for board programming until:
 //   python tools\fpga_retro_console_constraints.py --audit-evidence
 // reports status=confirmed.

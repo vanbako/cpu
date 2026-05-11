@@ -49,7 +49,7 @@ The debug-evidence record lives at
 
 ```text
 story=I25-S05
-board=Sipeed Tang Mega 138K Dock
+board=Sipeed Tang Mega Dock with 138K SOM
 captured_at=
 first_board_archive=docs/implementation/evidence/i24_s05_first_board_archive.txt
 board_result=
