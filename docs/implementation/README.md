@@ -129,5 +129,6 @@ Current platform binding:
 - `docs/implementation/fpga-monitor-multi-program-session.md`: I32-S03 interactive monitor session fixture for loading, starting, and observing two image-ready board-safe programs with distinct signatures.
 - `docs/implementation/fpga-monitor-debug-snapshot.md`: I32-S04 monitor debug snapshot and replay handoff for register, CSR/CCSR, memory-window, status-packet, replay-command, and tag-forgery policy.
 - `docs/implementation/fpga-interactive-program-corpus.md`: I32-S05 interactive board program corpus covering scalar/control, capability memory, trap/syscall, loader rejection, and failure-path rows with hashes and UART/probe expectations.
+- `docs/implementation/fpga-monitor-board-session.md`: I32-S06 physical interactive board-session evidence gate for connect, load, run, status packet, UART, snapshot/replay, blockers, archive, and retest handoff.
 - `docs/implementation/fpga-retro-console-identity.md`: I34-S01 Tang Retro Console 60K SOM identity and deferral gate for board marking, programmer scan, Gowin target, clock/reset, outputs, UART/debug access, and Tang Mega Dock with 138K SOM handoff policy.
 - `docs/implementation/fpga-retro-console-constraints.md`: I34-S02 Retro Console 60K SOM CST/SDC template and pin-evidence gate for clock, reset, pass/fail/heartbeat, UART/debug, IO voltage, polarity, and pin-conflict handoff.

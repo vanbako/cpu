@@ -413,6 +413,10 @@ table in the same change.
 | `src\cpu_v01\fpga_interactive_corpus.py` | `I32-S05` | `E11-S01`, `I17-S04`, `I26-S05`, `I32-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S06`, `E15-S07` |
 | `tools\fpga_interactive_corpus.py` | `I32-S05` | `E11-S01`, `I17-S04`, `I26-S05`, `I32-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S06`, `E15-S07` |
 | `tests\conformance\test_i32_s05_fpga_interactive_corpus.py` | `I32-S05` | `E11-S01`, `I17-S04`, `I26-S05`, `I32-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S06`, `E15-S07` |
+| `docs\implementation\fpga-monitor-board-session.md` | `I32-S06` | `E11-S01`, `I31-S05`, `I32-S03`, `I32-S04`, `I32-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S06`, `E15-S07` |
+| `src\cpu_v01\fpga_monitor_board_session.py` | `I32-S06` | `E11-S01`, `I31-S05`, `I32-S03`, `I32-S04`, `I32-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S06`, `E15-S07` |
+| `tools\fpga_monitor_board_session.py` | `I32-S06` | `E11-S01`, `I31-S05`, `I32-S03`, `I32-S04`, `I32-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S06`, `E15-S07` |
+| `tests\conformance\test_i32_s06_fpga_monitor_board_session.py` | `I32-S06` | `E11-S01`, `I31-S05`, `I32-S03`, `I32-S04`, `I32-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S06`, `E15-S07` |
 | `docs\implementation\fpga-retro-console-identity.md` | `I34-S01` | `E11-S01`, `I23-S06`, `E15-S07` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `src\cpu_v01\fpga_retro_console_identity.py` | `I34-S01` | `E11-S01`, `I23-S06`, `E15-S07` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tools\fpga_retro_console_identity.py` | `I34-S01` | `E11-S01`, `I23-S06`, `E15-S07` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
