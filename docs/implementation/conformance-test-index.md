@@ -421,6 +421,10 @@ table in the same change.
 | `src\cpu_v01\release_candidate_checklist.py` | `I33-S01` | `E11-S01`, `I21-S05`, `I28-S05`, `I31-S05`, `I32-S06` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S06`, `E15-S07` |
 | `tools\release_candidate_checklist.py` | `I33-S01` | `E11-S01`, `I21-S05`, `I28-S05`, `I31-S05`, `I32-S06` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S06`, `E15-S07` |
 | `tests\conformance\test_i33_s01_release_candidate_checklist.py` | `I33-S01` | `E11-S01`, `I21-S05`, `I28-S05`, `I31-S05`, `I32-S06` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S06`, `E15-S07` |
+| `docs\implementation\release-regression-capture.md` | `I33-S02` | `E11-S01`, `I21-S05`, `I28-S05`, `I33-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S06`, `E15-S07` |
+| `src\cpu_v01\release_regression_capture.py` | `I33-S02` | `E11-S01`, `I21-S05`, `I28-S05`, `I33-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S06`, `E15-S07` |
+| `tools\release_regression_capture.py` | `I33-S02` | `E11-S01`, `I21-S05`, `I28-S05`, `I33-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S06`, `E15-S07` |
+| `tests\conformance\test_i33_s02_release_regression_capture.py` | `I33-S02` | `E11-S01`, `I21-S05`, `I28-S05`, `I33-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S06`, `E15-S07` |
 | `docs\implementation\fpga-retro-console-identity.md` | `I34-S01` | `E11-S01`, `I23-S06`, `E15-S07` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `src\cpu_v01\fpga_retro_console_identity.py` | `I34-S01` | `E11-S01`, `I23-S06`, `E15-S07` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tools\fpga_retro_console_identity.py` | `I34-S01` | `E11-S01`, `I23-S06`, `E15-S07` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
