@@ -141,3 +141,4 @@ Current platform binding:
 - `docs/implementation/fpga-retro-console-gowin-build.md`: I34-S03 Retro Console 60K SOM Gowin build and timing gate for synthesis, place-route, timing, utilization, ports, warnings, bitstream identity, and 138K non-claim policy.
 - `docs/implementation/fpga-retro-console-programming.md`: I34-S04 Retro Console 60K SOM SRAM programming and smoke-observation gate for programming logs, reset, heartbeat, pass/fail, UART/probe evidence, bitstream identity, and 138K non-claim policy.
 - `docs/implementation/fpga-retro-console-replay.md`: I34-S05 Retro Console 60K SOM failure replay classification gate for status packets, replay case selection, first mismatch preservation, failure classes, and I34-S06 handoff.
+- `docs/implementation/fpga-retro-console-archive.md`: I34-S06 Retro Console 60K SOM pass/blocker archive gate for scan, constraints, reports, bitstream, programming, LED/UART/probe captures, replay, blockers, and 138K handoff policy.

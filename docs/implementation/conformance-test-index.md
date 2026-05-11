@@ -463,3 +463,7 @@ table in the same change.
 | `src\cpu_v01\fpga_retro_console_replay.py` | `I34-S05` | `E11-S01`, `E12-S01`, `I25-S04`, `I25-S05`, `I34-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tools\fpga_retro_console_replay.py` | `I34-S05` | `E11-S01`, `E12-S01`, `I25-S04`, `I25-S05`, `I34-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i34_s05_fpga_retro_console_replay.py` | `I34-S05` | `E11-S01`, `E12-S01`, `I25-S04`, `I25-S05`, `I34-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `docs\implementation\fpga-retro-console-archive.md` | `I34-S06` | `E11-S01`, `E12-S01`, `I32-S05`, `I34-S01`, `I34-S02`, `I34-S03`, `I34-S04`, `I34-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `src\cpu_v01\fpga_retro_console_archive.py` | `I34-S06` | `E11-S01`, `E12-S01`, `I32-S05`, `I34-S01`, `I34-S02`, `I34-S03`, `I34-S04`, `I34-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tools\fpga_retro_console_archive.py` | `I34-S06` | `E11-S01`, `E12-S01`, `I32-S05`, `I34-S01`, `I34-S02`, `I34-S03`, `I34-S04`, `I34-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i34_s06_fpga_retro_console_archive.py` | `I34-S06` | `E11-S01`, `E12-S01`, `I32-S05`, `I34-S01`, `I34-S02`, `I34-S03`, `I34-S04`, `I34-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |

@@ -310,9 +310,7 @@ def release_traceability_profile() -> TraceabilityProfile:
             ),
         ),
         accepted_results=(TRACEABILITY_RESULT_CLEAN, TRACEABILITY_RESULT_BLOCKER),
-        deferred_missing_stories=(
-            "I34-S06",
-        ),
+        deferred_missing_stories=(),
         handoffs=(
             "I33-S04 consumes this audit's clean owner/E15 inventory before freezing limitations",
             "I33-S05 consumes the traceability summary and command logs for the release bundle",
@@ -502,7 +500,7 @@ def release_traceability_template(
             "unindexed_tests=none",
             "stale_references=none",
             "missing_owner_coverage=none",
-            f"deferred_missing_stories={','.join(profile.deferred_missing_stories)}",
+            f"deferred_missing_stories={','.join(profile.deferred_missing_stories) or 'none'}",
             f"traceability_result={TRACEABILITY_RESULT_CLEAN}",
             "traceability_blockers=none",
             "signed_off_by=",
@@ -936,7 +934,7 @@ def _traceability_record_issues(
     deferred = tuple(
         value.strip()
         for value in record.value("deferred_missing_stories").split(",")
-        if value.strip()
+        if value.strip() and value.strip().lower() != "none"
     )
     if deferred != profile.deferred_missing_stories:
         issues.append("deferred_missing_stories must match the explicit future-story backlog")
