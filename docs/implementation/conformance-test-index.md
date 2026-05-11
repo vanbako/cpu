@@ -409,3 +409,7 @@ table in the same change.
 | `src\cpu_v01\fpga_monitor_snapshot.py` | `I32-S04` | `E12-S01`, `I09-S04`, `I25-S04`, `I32-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S06`, `E15-S07` |
 | `tools\fpga_monitor_snapshot.py` | `I32-S04` | `E12-S01`, `I09-S04`, `I25-S04`, `I32-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S06`, `E15-S07` |
 | `tests\conformance\test_i32_s04_fpga_monitor_snapshot.py` | `I32-S04` | `E12-S01`, `I09-S04`, `I25-S04`, `I32-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S06`, `E15-S07` |
+| `docs\implementation\fpga-interactive-program-corpus.md` | `I32-S05` | `E11-S01`, `I17-S04`, `I26-S05`, `I32-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S06`, `E15-S07` |
+| `src\cpu_v01\fpga_interactive_corpus.py` | `I32-S05` | `E11-S01`, `I17-S04`, `I26-S05`, `I32-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S06`, `E15-S07` |
+| `tools\fpga_interactive_corpus.py` | `I32-S05` | `E11-S01`, `I17-S04`, `I26-S05`, `I32-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S06`, `E15-S07` |
+| `tests\conformance\test_i32_s05_fpga_interactive_corpus.py` | `I32-S05` | `E11-S01`, `I17-S04`, `I26-S05`, `I32-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S06`, `E15-S07` |
