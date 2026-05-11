@@ -121,10 +121,11 @@ class StoryCoverageReportTests(unittest.TestCase):
         self.assertEqual(rows["I32-S03"].status, "tested")
         self.assertEqual(rows["I32-S04"].status, "tested")
         self.assertEqual(rows["I32-S05"].status, "tested")
-        self.assertEqual(rows["I34-S01"].status, "missing")
+        self.assertEqual(rows["I34-S01"].status, "tested")
+        self.assertEqual(rows["I34-S02"].status, "tested")
         self.assertEqual(rows["I34-S06"].status, "missing")
         self.assertGreater(report.tested_count, 0)
-        self.assertEqual(report.missing_count, 13)
+        self.assertEqual(report.missing_count, 11)
 
     def test_rendered_report_lists_artifacts_and_next_rtl_story(self) -> None:
         tool = load_story_coverage_module()
@@ -290,7 +291,12 @@ class StoryCoverageReportTests(unittest.TestCase):
         self.assertIn("`I32-S05` | tested", rendered)
         self.assertIn("fpga-interactive-program-corpus.md", rendered)
         self.assertIn("test_i32_s05_fpga_interactive_corpus.py", rendered)
-        self.assertIn("`I34-S01` | missing", rendered)
+        self.assertIn("`I34-S01` | tested", rendered)
+        self.assertIn("fpga-retro-console-identity.md", rendered)
+        self.assertIn("test_i34_s01_fpga_retro_console_identity.py", rendered)
+        self.assertIn("`I34-S02` | tested", rendered)
+        self.assertIn("fpga-retro-console-constraints.md", rendered)
+        self.assertIn("test_i34_s02_fpga_retro_console_constraints.py", rendered)
         self.assertIn("`I34-S06` | missing", rendered)
 
     def test_missing_only_cli_filters_report_rows(self) -> None:
@@ -302,11 +308,12 @@ class StoryCoverageReportTests(unittest.TestCase):
 
         output = stream.getvalue()
         self.assertEqual(result, 0)
-        self.assertIn("Stories: 13", output)
-        self.assertIn("Missing: 13", output)
+        self.assertIn("Stories: 11", output)
+        self.assertIn("Missing: 11", output)
         self.assertIn("`I33-S06` | missing", output)
-        self.assertIn("`I34-S01` | missing", output)
         self.assertIn("`I34-S06` | missing", output)
+        self.assertNotIn("`I34-S02` | missing", output)
+        self.assertNotIn("`I34-S01` | missing", output)
         self.assertNotIn("`I32-S05` | missing", output)
         self.assertNotIn("`I32-S04` | missing", output)
         self.assertNotIn("`I32-S03` | missing", output)

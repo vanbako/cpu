@@ -1,0 +1,23 @@
+// CPU v0.1 I34-S02 Tang 138K Retro Console first-test CST template.
+// Do not use for board programming until:
+//   python tools\fpga_retro_console_constraints.py --audit-evidence
+// reports status=confirmed.
+// Replace every I34_S02_PIN_* token with verified Retro Console board data.
+
+IO_LOC "board_clk_i" I34_S02_PIN_BOARD_CLK_I;
+IO_PORT "board_clk_i" IO_TYPE=LVCMOS33_or_recorded;
+
+IO_LOC "board_reset_n_i" I34_S02_PIN_BOARD_RESET_N_I;
+IO_PORT "board_reset_n_i" IO_TYPE=LVCMOS33_or_recorded;
+
+IO_LOC "pass_led_o" I34_S02_PIN_PASS_LED_O;
+IO_PORT "pass_led_o" IO_TYPE=LVCMOS33_or_recorded;
+
+IO_LOC "fail_led_o" I34_S02_PIN_FAIL_LED_O;
+IO_PORT "fail_led_o" IO_TYPE=LVCMOS33_or_recorded;
+
+IO_LOC "heartbeat_led_o" I34_S02_PIN_HEARTBEAT_LED_O;
+IO_PORT "heartbeat_led_o" IO_TYPE=LVCMOS33_or_recorded;
+
+IO_LOC "uart_tx_o" I34_S02_PIN_UART_TX_O;
+IO_PORT "uart_tx_o" IO_TYPE=LVCMOS33_or_recorded;

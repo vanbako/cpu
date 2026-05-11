@@ -413,3 +413,13 @@ table in the same change.
 | `src\cpu_v01\fpga_interactive_corpus.py` | `I32-S05` | `E11-S01`, `I17-S04`, `I26-S05`, `I32-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S06`, `E15-S07` |
 | `tools\fpga_interactive_corpus.py` | `I32-S05` | `E11-S01`, `I17-S04`, `I26-S05`, `I32-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S06`, `E15-S07` |
 | `tests\conformance\test_i32_s05_fpga_interactive_corpus.py` | `I32-S05` | `E11-S01`, `I17-S04`, `I26-S05`, `I32-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S06`, `E15-S07` |
+| `docs\implementation\fpga-retro-console-identity.md` | `I34-S01` | `E11-S01`, `I23-S06`, `E15-S07` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `src\cpu_v01\fpga_retro_console_identity.py` | `I34-S01` | `E11-S01`, `I23-S06`, `E15-S07` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tools\fpga_retro_console_identity.py` | `I34-S01` | `E11-S01`, `I23-S06`, `E15-S07` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i34_s01_fpga_retro_console_identity.py` | `I34-S01` | `E11-S01`, `I23-S06`, `E15-S07` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `constraints\tang_138k_retro_console_first_test.cst.template` | `I34-S02` | `E11-S01`, `I23-S05`, `I34-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `constraints\tang_138k_retro_console_first_test.sdc.template` | `I34-S02` | `E11-S01`, `I23-S05`, `I34-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `docs\implementation\fpga-retro-console-constraints.md` | `I34-S02` | `E11-S01`, `I23-S05`, `I34-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `src\cpu_v01\fpga_retro_console_constraints.py` | `I34-S02` | `E11-S01`, `I23-S05`, `I34-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tools\fpga_retro_console_constraints.py` | `I34-S02` | `E11-S01`, `I23-S05`, `I34-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i34_s02_fpga_retro_console_constraints.py` | `I34-S02` | `E11-S01`, `I23-S05`, `I34-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
