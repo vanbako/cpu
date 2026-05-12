@@ -467,3 +467,23 @@ table in the same change.
 | `src\cpu_v01\fpga_retro_console_archive.py` | `I34-S06` | `E11-S01`, `E12-S01`, `I32-S05`, `I34-S01`, `I34-S02`, `I34-S03`, `I34-S04`, `I34-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tools\fpga_retro_console_archive.py` | `I34-S06` | `E11-S01`, `E12-S01`, `I32-S05`, `I34-S01`, `I34-S02`, `I34-S03`, `I34-S04`, `I34-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i34_s06_fpga_retro_console_archive.py` | `I34-S06` | `E11-S01`, `E12-S01`, `I32-S05`, `I34-S01`, `I34-S02`, `I34-S03`, `I34-S04`, `I34-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `docs\implementation\fpga-video-display-profile.md` | `I35-S01` | `E11-S01`, `E12-S01`, `I27-S01`, `I28-S01`, `I30-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `src\cpu_v01\fpga_video_display.py` | `I35-S01` | `E11-S01`, `E12-S01`, `I27-S01`, `I28-S01`, `I30-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tools\fpga_video_display.py` | `I35-S01` | `E11-S01`, `E12-S01`, `I27-S01`, `I28-S01`, `I30-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i35_s01_fpga_video_display.py` | `I35-S01` | `E11-S01`, `E12-S01`, `I27-S01`, `I28-S01`, `I30-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `agile-impl-v0.1.md` | `I35-S02` | `E11-S01`, `E12-S01`, `I35-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `agile-impl-v0.1.md` | `I35-S03` | `E11-S01`, `E12-S01`, `I28-S02`, `I35-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `agile-impl-v0.1.md` | `I35-S04` | `E11-S01`, `E12-S01`, `I27-S01`, `I30-S02`, `I35-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `agile-impl-v0.1.md` | `I35-S05` | `E11-S01`, `E12-S01`, `I28-S03`, `I35-S02`, `I35-S03`, `I35-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `agile-impl-v0.1.md` | `I35-S06` | `E11-S01`, `E12-S01`, `I31-S05`, `I35-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `docs\implementation\fpga-compositor-framebuffer-policy.md` | `I36-S01` | `E11-S01`, `E12-S01`, `I29-S01`, `I35-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `src\cpu_v01\fpga_compositor_framebuffer.py` | `I36-S01` | `E11-S01`, `E12-S01`, `I29-S01`, `I35-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tools\fpga_compositor_framebuffer.py` | `I36-S01` | `E11-S01`, `E12-S01`, `I29-S01`, `I35-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i36_s01_fpga_compositor_framebuffer.py` | `I36-S01` | `E11-S01`, `E12-S01`, `I29-S01`, `I35-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `agile-impl-v0.1.md` | `I36-S02` | `E11-S01`, `E12-S01`, `I29-S02`, `I35-S02`, `I36-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `agile-impl-v0.1.md` | `I36-S03` | `E11-S01`, `E12-S01`, `I36-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `agile-impl-v0.1.md` | `I36-S04` | `E11-S01`, `E12-S01`, `I35-S04`, `I36-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `agile-impl-v0.1.md` | `I36-S05` | `E11-S01`, `E12-S01`, `I26-S04`, `I32-S03`, `I36-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `agile-impl-v0.1.md` | `I36-S06` | `E11-S01`, `E12-S01`, `I28-S03`, `I29-S05`, `I36-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `agile-impl-v0.1.md` | `I36-S07` | `E11-S01`, `E12-S01`, `I35-S06`, `I36-S06` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `agile-impl-v0.1.md` | `I36-S08` | `E11-S01`, `E12-S01`, `I29-S02`, `I30-S02`, `I35-S04`, `I36-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |

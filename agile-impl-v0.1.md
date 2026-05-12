@@ -75,6 +75,8 @@ Implementation principles:
 | I32 | P1 | Interactive board loading and debug monitor. | Board-safe monitor commands for loading bounded images, starting/stopping programs, reading status, and preserving replayable debug evidence. |
 | I33 | P2 | Single-core v0.1 release candidate hardening. | Full regression, documentation traceability, reproducible artifacts, known-limitations freeze, and release-candidate evidence bundle. |
 | I34 | P2 | Tang Retro Console 60K SOM alternate target. | Verified Retro Console 60K board profile, constraints, build feasibility, programming observations, and explicit handoff that the Mega Dock with 138K SOM remains the active first CPU path. |
+| I35 | P2 | FPGA 720p scanout and display-controller foundation. | 1280x720 timing generator, test-pattern scanout, video MMIO/status registers, vblank interrupt, and board-output evidence or blocker. |
+| I36 | P2 | FPGA framebuffer plane compositor. | Local-MMIO programmed plane registers, framebuffer fetch, line buffering, multi-plane composition, atomic vblank updates, and 720p demo evidence. |
 
 ## First Vertical Slice
 
@@ -251,6 +253,20 @@ Explicitly excluded from the first slice:
 | I34-S04 | P2 | M | I34-S03, I23-S06 | Program the Retro Console 60K SRAM and capture smoke observations. | Programming log, reset release, heartbeat, pass/fail output, UART/status packets or probe captures, and exact bitstream identity are recorded without claiming the 138K first-pass board. |
 | I34-S05 | P2 | M | I34-S04, I25-S04, I25-S05 | Replay and classify any Retro Console 60K board failure capture. | Captured status selects a Verilator replay case, preserves first mismatch evidence, and classifies failures as board identity, constraints, clock/reset, memory, firmware, loader, trap, or CPU RTL. |
 | I34-S06 | P2 | M | I34-S04, I34-S05, I32-S05 | Archive the Retro Console 60K pass or blocker and update board handoff policy. | Evidence links board scan, constraints, reports, bitstream, programming, LED/UART/probe captures, replay results, residual blockers, and whether the 60K path remains deferred while I31/I32 continue on the Tang Mega Dock with 138K SOM. |
+| I35-S01 | P2 | M | I27-S01, I30-S02, I28-S01 | Define the 720p display subsystem profile and CPU/compositor interface. | A profile fixes 1280x720 timing targets, pixel formats, scanout registers, vblank/status interrupts, memory ownership, and the local MMIO plus framebuffer-read-master interface; PCIe-like fabric is explicitly excluded for same-FPGA integration. |
+| I35-S02 | P2 | L | I35-S01, I28-S01 | Implement a 1280x720 timing generator and test-pattern scanout core. | Verilator-visible counters generate stable hsync, vsync, data-enable, frame, line, and pixel coordinates for the selected 720p mode, and a deterministic color-bar or checkerboard pattern is emitted without CPU framebuffer traffic. |
+| I35-S03 | P2 | L | I35-S02, I28-S02, I24-S02 | Add scanout clock, reset, CDC, and board-output boundary handling. | Pixel-clock/reset sequencing, clock-domain crossings, output enable, RGB/sync/de pins or adapter signals, SDC/generated-clock constraints, and board-specific pin handoff requirements are documented and linted. |
+| I35-S04 | P2 | M | I35-S01, I30-S02, I27-S01 | Integrate video control/status MMIO and vblank interrupt routing. | Firmware can enable scanout, select mode/test pattern, read frame/line/status/underflow counters, acknowledge vblank, and route a display interrupt through the existing interrupt-controller model. |
+| I35-S05 | P2 | M | I35-S02, I35-S03, I35-S04, I28-S03 | Gate 720p scanout simulation, lint, timing, and resource evidence. | Focused tests or validators check exact 720p frame timing, MMIO behavior, vblank IRQ behavior, no unexpected CDC warnings, and Gowin/Verilator report fields for clock, utilization, and unconstrained paths. |
+| I35-S06 | P2 | M | I35-S05, I31-S05 | Capture first board scanout evidence or a classified blocker. | A board run records bitstream identity, display/output adapter wiring, pixel-clock/timing evidence, visible test pattern or probe capture, vblank/status observations, and residual blockers with retest commands. |
+| I36-S01 | P2 | M | I35-S01, I29-S01, I30-S02 | Define framebuffer memory, bandwidth, and pixel-format policy for planes. | The profile reserves framebuffer windows, line-buffer sizing, stride/alignment rules, RGB565/XRGB888 or indexed-format support, endianness, DDR/BRAM fixture limits, cacheability, and capability-tag exclusions for scanout payload reads. |
+| I36-S02 | P2 | XL | I36-S01, I35-S02, I29-S02 | Implement single-plane framebuffer fetch and line buffering. | A scanout read master fetches one visible plane from BRAM fixtures or the abstract external-memory adapter, handles stride and format conversion, reports underflow deterministically, and keeps CPU data/MMIO traffic separated from pixel-clock scanout. |
+| I36-S03 | P2 | XL | I36-S02 | Implement the multi-plane compositor pipeline. | At least two planes compose by enable, position, size, z-order, global alpha or color-key rule, and background color, with deterministic clipping and no read outside configured framebuffer bounds. |
+| I36-S04 | P2 | L | I36-S03, I35-S04 | Add atomic plane descriptor updates at vblank. | Shadow registers or descriptor slots latch plane base, stride, format, position, size, alpha/key, and enable at vblank, expose pending/applied status, and prevent mid-frame tearing from CPU writes. |
+| I36-S05 | P2 | L | I36-S04, I26-S04, I32-S03 | Add firmware and monitor demos for framebuffer composition. | Firmware or monitor fixtures fill framebuffers, program planes, wait for vblank, swap descriptors, and produce distinct visible/status signatures for one-plane, overlay, and error-path cases. |
+| I36-S06 | P2 | M | I36-S05, I28-S03, I29-S05 | Archive compositor timing, bandwidth, resource, and underflow evidence. | Evidence records pixel clock, memory bandwidth assumptions, line-buffer depth, utilization, timing slack, underflow counters, DDR calibration dependency, and any reduced-mode fallback for boards without enough memory bandwidth. |
+| I36-S07 | P2 | M | I36-S06, I35-S06 | Capture first board compositor demo evidence or blocker disposition. | A board run links bitstream, framebuffer images, firmware commands, visible capture or probe output, vblank/underflow/status logs, replay or simulation commands, and residual blockers or retest criteria. |
+| I36-S08 | P2 | L | I36-S02, I30-S02, I29-S02, I35-S04 | Integrate CPU and compositor memory arbitration. | A top-level arbiter schedules CPU data/MMIO traffic and compositor scanout reads with deterministic priority or credit policy, preserves CPU ordering and fault responses, exposes starvation/underflow counters, and has focused simulation for simultaneous CPU writes, descriptor updates, and scanout fetches. |
 
 ## RTL Readiness Slice
 
@@ -381,6 +397,29 @@ failures, then an archive that keeps the generic I31/I32 board-evidence path on
 the Tang Mega Dock with 138K SOM unless the 60K compatibility path is
 explicitly revived. It should not assume pin names or package details until
 I34-S01 has verified them.
+
+I35 should add a video/display controller foundation without turning the
+same-FPGA path into a PCIe-like endpoint problem. The CPU should program the
+display block through local MMIO and receive vblank/status interrupts; the
+scanout side should run independently from the pixel clock. The order is a
+display profile and interface decision, 720p timing/test-pattern scanout,
+clock/reset/CDC and board-output handoff, video MMIO plus vblank IRQ routing,
+simulation/timing/resource gates, then first board scanout evidence or a
+classified blocker. It should not fetch framebuffers or compose planes until
+the standalone timing path is observable.
+
+I36 should build the framebuffer plane compositor on top of I35 rather than
+inventing a general GPU bus. The compositor may be a local read master into
+BRAM fixtures or the abstract external-memory adapter, while the CPU remains
+responsible for programming descriptors and filling framebuffers through the
+existing memory/MMIO paths. The order is framebuffer memory and bandwidth
+policy, single-plane fetch with line buffering, multi-plane composition,
+vblank-atomic descriptor updates, firmware/monitor demos, timing/bandwidth
+evidence, board compositor evidence or blocker disposition, and a focused
+memory-arbitration closure where the scanout read master and CPU data path
+share BRAM or external-memory access. It should defer shaders, command queues,
+cache-coherent graphics, PCIe-like fabric links, and 3D acceleration to a later
+graphics architecture backlog.
 
 ## Near-term Sprint Plan
 
