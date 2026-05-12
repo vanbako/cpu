@@ -49,6 +49,7 @@ Required upstream gates:
 | `gpio_status` | `0x00F00200` | `0x00F00300` | `cpu_v01_fpga_gpio_status` |
 | `interrupt_controller` | `0x00F00300` | `0x00F00400` | `cpu_v01_fpga_irq_mmio` |
 | `system_identity` | `0x00F00400` | `0x00F00500` | `cpu_v01_fpga_system_identity_mmio` |
+| `video_display` | `0x00F00500` | `0x00F00600` | `cpu_v01_fpga_video_mmio` |
 
 The rest of `platform_devices` and any unmapped top-level cell address decode
 as reserved. Reserved reads return `EXC_ACCESS_FAULT`. Reserved writes are
@@ -65,12 +66,15 @@ device payloads as invalid-tag capabilities.
 
 ## Integrated Peripherals
 
-The decoder now reaches the existing UART, timer, and GPIO/status RTL blocks.
+The decoder now reaches the existing UART, timer, GPIO/status, and
+`video_display` RTL blocks.
 I30-S02 intentionally leaves their board-facing ownership limited:
 
 - `uart_tx_o` is still driven by the I25-S02 debug/status streamer.
 - `timer_interrupt_pending` remains tied off at the core input.
 - LEDs remain driven by the first-test sticky pass/fail and retire heartbeat.
+- I35-S04 owns video control/status semantics and `video_vblank` interrupt
+  routing.
 
 I30-S03 owns those mux, interrupt, and board pin handoffs.
 
@@ -79,8 +83,8 @@ I30-S03 owns those mux, interrupt, and board pin handoffs.
 `rtl/cpu_v01_fpga_top_soc_decoder_tb.sv` checks:
 
 - RAM write/read routing through the decoder;
-- UART status, timer compare, GPIO/status, interrupt-controller, and
-  system-identity MMIO reads;
+- UART status, timer compare, GPIO/status, video_display,
+  interrupt-controller, and system-identity MMIO reads;
 - reserved-window and invalid-length `EXC_ACCESS_FAULT` responses;
 - selection of one MMIO target without asserting the RAM request.
 
@@ -89,7 +93,7 @@ I30-S03 owns those mux, interrupt, and board pin handoffs.
 | Acceptance criterion | Result |
 | --- | --- |
 | CPU data requests no longer connect directly to `cpu_v01_fpga_data_ram`. | Met by `cpu_v01_fpga_soc_dmem_decoder`. |
-| RAM accesses and each I27-S01 MMIO peripheral window are decoded. | Met by the six decode windows and focused testbench. |
+| RAM accesses and each I27-S01 MMIO peripheral window are decoded. | Met by the original I27 windows plus the I35-S04 `video_display` window and focused testbench. |
 | Reserved/fault windows behave deterministically. | Met by reserved read `EXC_ACCESS_FAULT` and no-op write policy. |
 | `tag_ram` sidecar updates remain paired with `data_ram`. | Met by `tagmem_req_in_data_ram` gating and invalid-tag bypass. |
 | I30-S03/I30-S05 handoffs remain explicit. | Met by the integrated-peripheral handoff notes. |

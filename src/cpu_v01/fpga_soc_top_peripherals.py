@@ -137,7 +137,7 @@ def fpga_soc_top_peripherals_profile() -> SocTopPeripheralsProfile:
         validator=FPGA_SOC_TOP_PERIPHERALS_TOOL,
         testbench=FPGA_SOC_TOP_PERIPHERALS_TESTBENCH.as_posix(),
         verilator_command=FPGA_SOC_TOP_PERIPHERALS_VERILATOR_COMMAND,
-        interrupt_lines=platform.interrupt_lines,
+        interrupt_lines=(*platform.interrupt_lines, "video_vblank"),
         handoffs=(
             SocTopPeripheralHandoff(
                 name="firmware_uart_rx",
@@ -175,15 +175,26 @@ def fpga_soc_top_peripherals_profile() -> SocTopPeripheralsProfile:
             ),
             SocTopPeripheralHandoff(
                 name="external_interrupts",
-                source="UART RX ready, UART TX ready, and GPIO/status through irq_pending_enabled",
+                source="UART RX ready, UART TX ready, GPIO/status, and video_vblank through irq_pending_enabled",
                 destination="cpu_v01_core.external_interrupt_pending",
                 policy=(
-                    "enabled non-timer local interrupt bits 0, 1, and 3 aggregate into the "
-                    "core external interrupt input"
+                    "enabled non-timer local interrupt bits 0, 1, 3, and 4 aggregate into the "
+                    "core external interrupt input; bit 4 is video_vblank from I35-S04"
                 ),
                 evidence_tokens=(
-                    "assign external_interrupt_pending = |(irq_pending_enabled & 16'h000B);",
+                    "assign external_interrupt_pending = |(irq_pending_enabled & 16'h001B);",
                     ".external_interrupt_pending(external_interrupt_pending)",
+                ),
+            ),
+            SocTopPeripheralHandoff(
+                name="video_vblank_interrupt",
+                source="cpu_v01_fpga_video_mmio.video_vblank_irq_o",
+                destination="cpu_v01_fpga_irq_mmio bit 4 and cpu_v01_core.external_interrupt_pending",
+                policy="I35-S04 maps video_vblank into interrupt-controller bit 4",
+                evidence_tokens=(
+                    "cpu_v01_fpga_video_mmio firmware_video",
+                    ".video_vblank_irq_o(video_vblank_irq)",
+                    "video_vblank_irq",
                 ),
             ),
             SocTopPeripheralHandoff(
@@ -233,7 +244,7 @@ def evaluate_soc_top_peripherals(
     return SocTopPeripheralResult(
         uart_tx_o=bool(uart_mmio_tx and status_uart_tx and loader_uart_tx),
         timer_interrupt_pending=bool(timer_compare_irq),
-        external_interrupt_pending=bool(irq_pending_enabled & 0x000B),
+        external_interrupt_pending=bool(irq_pending_enabled & 0x001B),
         pass_led_o=bool((pass_sticky and not fault_sticky) or gpio_pass_led),
         fail_led_o=bool(fault_sticky or gpio_fail_led),
         heartbeat_led_o=bool(retire_heartbeat or gpio_heartbeat_led),
@@ -297,7 +308,13 @@ def validate_fpga_soc_top_peripherals(root: Path | None = None) -> tuple[str, ..
         if not (root / path).exists():
             issues.append(f"missing FPGA SoC top peripheral artifact {path.as_posix()}")
 
-    expected_interrupts = ("uart_rx_ready", "uart_tx_ready", "timer_compare", "gpio_status")
+    expected_interrupts = (
+        "uart_rx_ready",
+        "uart_tx_ready",
+        "timer_compare",
+        "gpio_status",
+        "video_vblank",
+    )
     if profile.interrupt_lines != expected_interrupts:
         issues.append("FPGA SoC top peripheral interrupt lines must match I27-S01 order")
     for name in (
@@ -305,6 +322,7 @@ def validate_fpga_soc_top_peripherals(root: Path | None = None) -> tuple[str, ..
         "uart_tx_mux",
         "timer_interrupt",
         "external_interrupts",
+        "video_vblank_interrupt",
         "gpio_status_leds",
         "system_identity",
     ):
@@ -347,6 +365,7 @@ def validate_fpga_soc_top_peripherals(root: Path | None = None) -> tuple[str, ..
         "FPGA SoC top peripherals UART TX mux policy mismatch",
         "FPGA SoC top peripherals did not route timer interrupt pending",
         "FPGA SoC top peripherals external interrupt aggregate mismatch",
+        "FPGA SoC top peripherals video vblank external interrupt mismatch",
         "FPGA SoC top peripherals GPIO pass LED mux mismatch",
         "FPGA SoC top peripherals reset-idle status projection changed",
     ):
@@ -361,6 +380,8 @@ def validate_fpga_soc_top_peripherals(root: Path | None = None) -> tuple[str, ..
         "assign uart_tx_o = uart_mmio_tx & status_uart_tx & loader_uart_tx_i;",
         "timer_interrupt_pending",
         "external_interrupt_pending",
+        "video_vblank",
+        "16'h001B",
         "GPIO/status LEDs",
         "system_identity",
         "I30-S04",

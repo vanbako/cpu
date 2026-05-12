@@ -13,6 +13,7 @@ from typing import Any
 
 from . import fpga_gpio_status, fpga_soc_platform, fpga_soc_top_closure
 from . import fpga_timer_mmio, fpga_uart_mmio, platform
+from . import fpga_video_display
 
 
 JsonValue = Any
@@ -107,6 +108,7 @@ class SocTopDecoderProfile:
     uart_gate: str
     timer_gate: str
     gpio_gate: str
+    video_gate: str
     validator: str
     testbench: str
     verilator_command: str
@@ -130,6 +132,7 @@ class SocTopDecoderProfile:
             "uart_gate": self.uart_gate,
             "timer_gate": self.timer_gate,
             "gpio_gate": self.gpio_gate,
+            "video_gate": self.video_gate,
             "validator": self.validator,
             "testbench": self.testbench,
             "verilator_command": self.verilator_command,
@@ -150,6 +153,7 @@ def fpga_soc_top_decoder_profile() -> SocTopDecoderProfile:
         uart_gate=fpga_uart_mmio.FPGA_UART_MMIO_TOOL,
         timer_gate=fpga_timer_mmio.FPGA_TIMER_MMIO_TOOL,
         gpio_gate=fpga_gpio_status.FPGA_GPIO_STATUS_TOOL,
+        video_gate=fpga_video_display.FPGA_VIDEO_DISPLAY_TOOL,
         validator=FPGA_SOC_TOP_DECODER_TOOL,
         testbench=FPGA_SOC_TOP_DECODER_TESTBENCH.as_posix(),
         verilator_command=FPGA_SOC_TOP_DECODER_VERILATOR_COMMAND,
@@ -171,6 +175,13 @@ def fpga_soc_top_decoder_profile() -> SocTopDecoderProfile:
                 )
                 for peripheral in soc.peripherals
             ),
+            SocTopDecodeWindow(
+                fpga_video_display.fpga_video_display_profile().mmio.name,
+                fpga_video_display.FPGA_VIDEO_MMIO_BASE,
+                fpga_video_display.FPGA_VIDEO_MMIO_CELLS,
+                "I35-S04 video MMIO integration",
+                False,
+            ),
         ),
         reserved_fault_policy=(
             "Reads outside data_ram and the I27-S01 MMIO peripheral windows return "
@@ -183,6 +194,7 @@ def fpga_soc_top_decoder_profile() -> SocTopDecoderProfile:
         ),
         remaining_handoffs=(
             "I30-S03 wires firmware UART TX/RX, timer interrupt delivery, and GPIO/status LED ownership.",
+            "I35-S04 wires video_display control/status MMIO and video_vblank interrupt routing.",
             "I30-S04 arbitrates loader traffic against firmware/status UART ownership.",
             "I30-S05 proves the integrated top with a firmware smoke.",
         ),
@@ -317,6 +329,7 @@ def validate_fpga_soc_top_decoder(root: Path | None = None) -> tuple[str, ...]:
         profile.uart_gate,
         profile.timer_gate,
         profile.gpio_gate,
+        profile.video_gate,
     ):
         if not gate.startswith("python tools\\"):
             issues.append(f"unexpected decoder dependency gate {gate}")
@@ -338,6 +351,7 @@ def validate_fpga_soc_top_decoder(root: Path | None = None) -> tuple[str, ...]:
         "gpio_status",
         "interrupt_controller",
         "system_identity",
+        "video_display",
     )
     for target in expected_targets:
         if target not in window_targets:
@@ -361,14 +375,15 @@ def validate_fpga_soc_top_decoder(root: Path | None = None) -> tuple[str, ...]:
         0x00F0_0200: "gpio_status",
         0x00F0_0300: "interrupt_controller",
         0x00F0_0401: "system_identity",
-        0x00F0_0500: "fault",
+        0x00F0_0500: "video_display",
+        0x00F0_0600: "fault",
     }
     for address, target in samples.items():
         result = decode_soc_top_address(address, len_cells=1)
         if result.target != target:
             issues.append(f"decode sample 0x{address:08X} expected {target}, got {result.target}")
 
-    if not decode_soc_top_address(0x00F0_0500, len_cells=1).fault_on_read:
+    if not decode_soc_top_address(0x00F0_0600, len_cells=1).fault_on_read:
         issues.append("reserved window reads must fault")
     if decode_soc_top_address(0x00F0_0000, len_cells=1).tag_sidecar:
         issues.append("MMIO windows must not expose tag sidecar")
@@ -384,6 +399,7 @@ def validate_fpga_soc_top_decoder(root: Path | None = None) -> tuple[str, ...]:
         "uart_req_valid",
         "timer_req_valid",
         "gpio_req_valid",
+        "video_req_valid",
         "irq_req_valid",
         "identity_req_valid",
         "fault_rsp_valid_q",
@@ -392,6 +408,7 @@ def validate_fpga_soc_top_decoder(root: Path | None = None) -> tuple[str, ...]:
         "cpu_v01_fpga_uart_mmio",
         "cpu_v01_fpga_timer_mmio",
         "cpu_v01_fpga_gpio_status",
+        "module cpu_v01_fpga_video_mmio",
         "module cpu_v01_fpga_irq_mmio",
         "module cpu_v01_fpga_system_identity_mmio",
     ):
@@ -405,6 +422,7 @@ def validate_fpga_soc_top_decoder(root: Path | None = None) -> tuple[str, ...]:
         "FPGA SoC top decoder UART status read mismatch",
         "FPGA SoC top decoder timer compare readback mismatch",
         "FPGA SoC top decoder GPIO/status readback mismatch",
+        "FPGA SoC top decoder video control readback mismatch",
         "FPGA SoC top decoder interrupt-controller pending read mismatch",
         "FPGA SoC top decoder system identity build-id mismatch",
         "FPGA SoC top decoder reserved window did not fault",
@@ -422,6 +440,7 @@ def validate_fpga_soc_top_decoder(root: Path | None = None) -> tuple[str, ...]:
         "uart",
         "timer",
         "gpio_status",
+        "video_display",
         "interrupt_controller",
         "system_identity",
         "EXC_ACCESS_FAULT",

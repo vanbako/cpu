@@ -483,7 +483,12 @@ table in the same change.
 | `rtl\cpu_v01_fpga_video_output_boundary.sv` | `I35-S03` | `E11-S01`, `E12-S01`, `I28-S01`, `I28-S02`, `I35-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `rtl\cpu_v01_fpga_video_output_boundary_tb.sv` | `I35-S03` | `E11-S01`, `E12-S01`, `I28-S01`, `I28-S02`, `I35-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i35_s03_fpga_video_output.py` | `I35-S03` | `E11-S01`, `E12-S01`, `I28-S01`, `I28-S02`, `I35-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
-| `agile-impl-v0.1.md` | `I35-S04` | `E11-S01`, `E12-S01`, `I27-S01`, `I30-S02`, `I35-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `docs\implementation\fpga-video-mmio-irq.md` | `I35-S04` | `E11-S01`, `E12-S01`, `I27-S01`, `I30-S02`, `I30-S03`, `I35-S01`, `I35-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `src\cpu_v01\fpga_video_mmio.py` | `I35-S04` | `E11-S01`, `E12-S01`, `I27-S01`, `I30-S02`, `I30-S03`, `I35-S01`, `I35-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tools\fpga_video_mmio.py` | `I35-S04` | `E11-S01`, `E12-S01`, `I27-S01`, `I30-S02`, `I30-S03`, `I35-S01`, `I35-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `rtl\cpu_v01_fpga_top.sv` | `I35-S04` | `E11-S01`, `E12-S01`, `I27-S01`, `I30-S02`, `I30-S03`, `I35-S01`, `I35-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `rtl\cpu_v01_fpga_video_mmio_tb.sv` | `I35-S04` | `E11-S01`, `E12-S01`, `I27-S01`, `I30-S02`, `I30-S03`, `I35-S01`, `I35-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i35_s04_fpga_video_mmio.py` | `I35-S04` | `E11-S01`, `E12-S01`, `I27-S01`, `I30-S02`, `I30-S03`, `I35-S01`, `I35-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `agile-impl-v0.1.md` | `I35-S05` | `E11-S01`, `E12-S01`, `I28-S03`, `I35-S02`, `I35-S03`, `I35-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `agile-impl-v0.1.md` | `I35-S06` | `E11-S01`, `E12-S01`, `I31-S05`, `I35-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `docs\implementation\fpga-compositor-framebuffer-policy.md` | `I36-S01` | `E11-S01`, `E12-S01`, `I29-S01`, `I35-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |

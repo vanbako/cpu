@@ -130,6 +130,16 @@ module cpu_v01_fpga_top #(
   cell_t gpio_rsp_rdata;
   fault_packet_t gpio_rsp_fault;
 
+  logic video_req_valid;
+  logic video_req_ready;
+  logic video_req_write;
+  addr_t video_req_addr;
+  logic [2:0] video_req_len_cells;
+  cell_t video_req_wdata [INTEGER_OBJECT_CELLS];
+  logic video_rsp_valid;
+  cell_t video_rsp_rdata [INTEGER_OBJECT_CELLS];
+  fault_packet_t video_rsp_fault;
+
   logic irq_req_valid;
   logic irq_req_ready;
   logic irq_req_write;
@@ -196,6 +206,18 @@ module cpu_v01_fpga_top #(
   logic [3:0] gpio_status_leds;
   logic [7:0] gpio_debug_status_select;
   logic gpio_status_irq;
+  logic video_scanout_enable;
+  logic video_output_enable;
+  logic [15:0] video_mode;
+  logic [3:0] video_test_pattern;
+  logic [23:0] video_bg_color;
+  logic video_vblank_source;
+  logic [47:0] video_frame_count_source;
+  logic [15:0] video_line_count_source;
+  logic [15:0] video_pixel_count_source;
+  logic video_underflow_pulse_source;
+  logic [15:0] video_fb_master_status_source;
+  logic video_vblank_irq;
   logic [15:0] irq_sources;
   logic [15:0] irq_pending_enabled;
 
@@ -221,15 +243,22 @@ module cpu_v01_fpga_top #(
   assign debug_pcc_cursor_low_o = debug_pcc.payload.cursor[31:0];
   assign debug_pcc_permissions_o = debug_pcc.payload.permissions;
   assign debug_sr_low_o = debug_sr[7:0];
+  assign video_vblank_source = 1'b0;
+  assign video_frame_count_source = 48'd0;
+  assign video_line_count_source = 16'd0;
+  assign video_pixel_count_source = 16'd0;
+  assign video_underflow_pulse_source = 1'b0;
+  assign video_fb_master_status_source = 16'd0;
   assign irq_sources = {
-    12'd0,
+    11'd0,
+    video_vblank_irq,
     gpio_status_irq,
     timer_compare_irq,
     uart_tx_ready_irq,
     uart_rx_ready_irq
   };
   assign timer_interrupt_pending = timer_compare_irq;
-  assign external_interrupt_pending = |(irq_pending_enabled & 16'h000B);
+  assign external_interrupt_pending = |(irq_pending_enabled & 16'h001B);
   assign tagmem_req_in_data_ram =
       tagmem_req_slot_addr >= DATA_RAM_BASE &&
       tagmem_req_slot_addr < DATA_RAM_BASE + addr_t'(DATA_RAM_CELLS);
@@ -436,6 +465,15 @@ module cpu_v01_fpga_top #(
     .gpio_rsp_valid(gpio_rsp_valid),
     .gpio_rsp_rdata(gpio_rsp_rdata),
     .gpio_rsp_fault(gpio_rsp_fault),
+    .video_req_valid(video_req_valid),
+    .video_req_ready(video_req_ready),
+    .video_req_write(video_req_write),
+    .video_req_addr(video_req_addr),
+    .video_req_len_cells(video_req_len_cells),
+    .video_req_wdata(video_req_wdata),
+    .video_rsp_valid(video_rsp_valid),
+    .video_rsp_rdata(video_rsp_rdata),
+    .video_rsp_fault(video_rsp_fault),
     .irq_req_valid(irq_req_valid),
     .irq_req_ready(irq_req_ready),
     .irq_req_write(irq_req_write),
@@ -511,6 +549,32 @@ module cpu_v01_fpga_top #(
     .status_leds_o(gpio_status_leds),
     .debug_status_select_o(gpio_debug_status_select),
     .gpio_status_irq_o(gpio_status_irq)
+  );
+
+  cpu_v01_fpga_video_mmio firmware_video (
+    .clk(board_clk_i),
+    .rst_n(core_rst_n),
+    .req_valid(video_req_valid),
+    .req_ready(video_req_ready),
+    .req_write(video_req_write),
+    .req_addr(video_req_addr),
+    .req_len_cells(video_req_len_cells),
+    .req_wdata(video_req_wdata),
+    .rsp_valid(video_rsp_valid),
+    .rsp_rdata(video_rsp_rdata),
+    .rsp_fault(video_rsp_fault),
+    .video_vblank_i(video_vblank_source),
+    .video_underflow_pulse_i(video_underflow_pulse_source),
+    .video_frame_count_i(video_frame_count_source),
+    .video_line_count_i(video_line_count_source),
+    .video_pixel_count_i(video_pixel_count_source),
+    .video_fb_master_status_i(video_fb_master_status_source),
+    .video_scanout_enable_o(video_scanout_enable),
+    .video_output_enable_o(video_output_enable),
+    .video_mode_o(video_mode),
+    .video_test_pattern_o(video_test_pattern),
+    .video_bg_color_o(video_bg_color),
+    .video_vblank_irq_o(video_vblank_irq)
   );
 
   cpu_v01_fpga_irq_mmio firmware_irq (
@@ -739,6 +803,7 @@ module cpu_v01_fpga_soc_dmem_decoder #(
   parameter cpu_v01_pkg::addr_t GPIO_STATUS_BASE = 48'h0000_00F0_0200,
   parameter cpu_v01_pkg::addr_t IRQ_BASE = 48'h0000_00F0_0300,
   parameter cpu_v01_pkg::addr_t SYSTEM_IDENTITY_BASE = 48'h0000_00F0_0400,
+  parameter cpu_v01_pkg::addr_t VIDEO_BASE = 48'h0000_00F0_0500,
   parameter int SOC_PERIPHERAL_CELLS = 256
 ) (
   input  logic clk,
@@ -793,6 +858,16 @@ module cpu_v01_fpga_soc_dmem_decoder #(
   input  cpu_v01_pkg::cell_t gpio_rsp_rdata,
   input  cpu_v01_pkg::fault_packet_t gpio_rsp_fault,
 
+  output logic video_req_valid,
+  input  logic video_req_ready,
+  output logic video_req_write,
+  output cpu_v01_pkg::addr_t video_req_addr,
+  output logic [2:0] video_req_len_cells,
+  output cpu_v01_pkg::cell_t video_req_wdata [cpu_v01_pkg::INTEGER_OBJECT_CELLS],
+  input  logic video_rsp_valid,
+  input  cpu_v01_pkg::cell_t video_rsp_rdata [cpu_v01_pkg::INTEGER_OBJECT_CELLS],
+  input  cpu_v01_pkg::fault_packet_t video_rsp_fault,
+
   output logic irq_req_valid,
   input  logic irq_req_ready,
   output logic irq_req_write,
@@ -821,7 +896,8 @@ module cpu_v01_fpga_soc_dmem_decoder #(
     TARGET_TIMER = 3'd3,
     TARGET_GPIO = 3'd4,
     TARGET_IRQ = 3'd5,
-    TARGET_IDENTITY = 3'd6
+    TARGET_IDENTITY = 3'd6,
+    TARGET_VIDEO = 3'd7
   } dmem_target_t;
 
   dmem_target_t selected_target;
@@ -840,6 +916,8 @@ module cpu_v01_fpga_soc_dmem_decoder #(
       core_req_valid && !invalid_len && selected_target == TARGET_TIMER;
   assign gpio_req_valid =
       core_req_valid && !invalid_len && selected_target == TARGET_GPIO;
+  assign video_req_valid =
+      core_req_valid && !invalid_len && selected_target == TARGET_VIDEO;
   assign irq_req_valid =
       core_req_valid && !invalid_len && selected_target == TARGET_IRQ;
   assign identity_req_valid =
@@ -857,6 +935,9 @@ module cpu_v01_fpga_soc_dmem_decoder #(
   assign gpio_req_write = core_req_write;
   assign gpio_req_addr = core_req_addr;
   assign gpio_req_wdata = core_req_wdata[0];
+  assign video_req_write = core_req_write;
+  assign video_req_addr = core_req_addr;
+  assign video_req_len_cells = core_req_len_cells;
   assign irq_req_write = core_req_write;
   assign irq_req_addr = core_req_addr;
   assign irq_req_wdata = core_req_wdata[0];
@@ -891,6 +972,9 @@ module cpu_v01_fpga_soc_dmem_decoder #(
     if (window_contains(addr, SYSTEM_IDENTITY_BASE, SOC_PERIPHERAL_CELLS)) begin
       return TARGET_IDENTITY;
     end
+    if (window_contains(addr, VIDEO_BASE, SOC_PERIPHERAL_CELLS)) begin
+      return TARGET_VIDEO;
+    end
     return TARGET_FAULT;
   endfunction
 
@@ -909,6 +993,7 @@ module cpu_v01_fpga_soc_dmem_decoder #(
       TARGET_UART: core_req_ready = invalid_len ? 1'b1 : uart_req_ready;
       TARGET_TIMER: core_req_ready = invalid_len ? 1'b1 : timer_req_ready;
       TARGET_GPIO: core_req_ready = invalid_len ? 1'b1 : gpio_req_ready;
+      TARGET_VIDEO: core_req_ready = invalid_len ? 1'b1 : video_req_ready;
       TARGET_IRQ: core_req_ready = invalid_len ? 1'b1 : irq_req_ready;
       TARGET_IDENTITY: core_req_ready = invalid_len ? 1'b1 : identity_req_ready;
       default: core_req_ready = 1'b1;
@@ -923,6 +1008,7 @@ module cpu_v01_fpga_soc_dmem_decoder #(
     end
     for (int i = 0; i < INTEGER_OBJECT_CELLS; i++) begin
       timer_req_wdata[i] = core_req_wdata[i];
+      video_req_wdata[i] = core_req_wdata[i];
     end
 
     core_rsp_valid = 1'b0;
@@ -948,6 +1034,12 @@ module cpu_v01_fpga_soc_dmem_decoder #(
       core_rsp_valid = 1'b1;
       core_rsp_fault = gpio_rsp_fault;
       core_rsp_rdata[0] = gpio_rsp_rdata;
+    end else if (video_rsp_valid) begin
+      core_rsp_valid = 1'b1;
+      core_rsp_fault = video_rsp_fault;
+      for (int i = 0; i < INTEGER_OBJECT_CELLS; i++) begin
+        core_rsp_rdata[i] = video_rsp_rdata[i];
+      end
     end else if (irq_rsp_valid) begin
       core_rsp_valid = 1'b1;
       core_rsp_fault = irq_rsp_fault;
@@ -980,6 +1072,200 @@ module cpu_v01_fpga_soc_dmem_decoder #(
       end
     end
   end
+endmodule
+
+module cpu_v01_fpga_video_mmio #(
+  parameter cpu_v01_pkg::addr_t BASE_CELL = 48'h0000_00F0_0500
+) (
+  input  logic clk,
+  input  logic rst_n,
+
+  input  logic req_valid,
+  output logic req_ready,
+  input  logic req_write,
+  input  cpu_v01_pkg::addr_t req_addr,
+  input  logic [2:0] req_len_cells,
+  input  cpu_v01_pkg::cell_t req_wdata [cpu_v01_pkg::INTEGER_OBJECT_CELLS],
+
+  output logic rsp_valid,
+  output cpu_v01_pkg::cell_t rsp_rdata [cpu_v01_pkg::INTEGER_OBJECT_CELLS],
+  output cpu_v01_pkg::fault_packet_t rsp_fault,
+
+  input  logic video_vblank_i,
+  input  logic video_underflow_pulse_i,
+  input  logic [47:0] video_frame_count_i,
+  input  logic [15:0] video_line_count_i,
+  input  logic [15:0] video_pixel_count_i,
+  input  logic [15:0] video_fb_master_status_i,
+
+  output logic video_scanout_enable_o,
+  output logic video_output_enable_o,
+  output logic [15:0] video_mode_o,
+  output logic [3:0] video_test_pattern_o,
+  output logic [23:0] video_bg_color_o,
+  output logic video_vblank_irq_o
+);
+  import cpu_v01_pkg::*;
+
+  localparam addr_t VIDEO_CONTROL_OFFSET = 48'h00;
+  localparam addr_t VIDEO_MODE_OFFSET = 48'h01;
+  localparam addr_t VIDEO_STATUS_OFFSET = 48'h02;
+  localparam addr_t VIDEO_IRQ_ENABLE_OFFSET = 48'h03;
+  localparam addr_t VIDEO_IRQ_ACK_OFFSET = 48'h04;
+  localparam addr_t VIDEO_FRAME_COUNT_OFFSET = 48'h05;
+  localparam addr_t VIDEO_LINE_COUNT_OFFSET = 48'h06;
+  localparam addr_t VIDEO_PIXEL_COUNT_OFFSET = 48'h07;
+  localparam addr_t VIDEO_TEST_PATTERN_OFFSET = 48'h08;
+  localparam addr_t VIDEO_BG_COLOR_OFFSET = 48'h09;
+  localparam addr_t VIDEO_UNDERFLOW_COUNT_OFFSET = 48'h0A;
+  localparam addr_t VIDEO_FB_MASTER_STATUS_OFFSET = 48'h0B;
+  localparam addr_t VIDEO_REGISTER_CELLS = 48'h0C;
+
+  localparam logic [15:0] VIDEO_CONTROL_SCANOUT_ENABLE = 16'h0001;
+  localparam logic [15:0] VIDEO_CONTROL_OUTPUT_ENABLE = 16'h0002;
+  localparam logic [15:0] VIDEO_STATUS_SCANOUT_ENABLED = 16'h0001;
+  localparam logic [15:0] VIDEO_STATUS_IN_VBLANK = 16'h0002;
+  localparam logic [15:0] VIDEO_STATUS_UNDERFLOW_PENDING = 16'h0004;
+  localparam logic [15:0] VIDEO_STATUS_MODE_VALID = 16'h0008;
+  localparam logic [15:0] VIDEO_STATUS_VBLANK_PENDING = 16'h0010;
+  localparam logic [15:0] VIDEO_IRQ_VBLANK = 16'h0001;
+  localparam logic [15:0] VIDEO_IRQ_UNDERFLOW = 16'h0002;
+
+  logic [15:0] control_q;
+  logic [15:0] mode_q;
+  logic [15:0] irq_enable_q;
+  logic [15:0] irq_pending_q;
+  logic [3:0] test_pattern_q;
+  logic [23:0] bg_color_q;
+  logic [47:0] underflow_count_q;
+  logic vblank_q;
+  logic vblank_pending_q;
+  logic underflow_pending_q;
+  logic mode_valid;
+  logic [15:0] video_status;
+
+  assign req_ready = 1'b1;
+  assign vblank_pending_q = irq_pending_q[0];
+  assign underflow_pending_q = irq_pending_q[1];
+  assign mode_valid = mode_q == 16'd0;
+  assign video_scanout_enable_o = control_q[0];
+  assign video_output_enable_o = control_q[1];
+  assign video_mode_o = mode_q;
+  assign video_test_pattern_o = test_pattern_q;
+  assign video_bg_color_o = bg_color_q;
+  assign video_vblank_irq_o = |(irq_enable_q & irq_pending_q);
+  assign video_status =
+      (control_q[0] ? VIDEO_STATUS_SCANOUT_ENABLED : 16'd0) |
+      (video_vblank_i ? VIDEO_STATUS_IN_VBLANK : 16'd0) |
+      (underflow_pending_q ? VIDEO_STATUS_UNDERFLOW_PENDING : 16'd0) |
+      (mode_valid ? VIDEO_STATUS_MODE_VALID : 16'd0) |
+      (vblank_pending_q ? VIDEO_STATUS_VBLANK_PENDING : 16'd0);
+
+  function automatic logic register_address(input addr_t addr);
+    return addr >= BASE_CELL && addr < BASE_CELL + VIDEO_REGISTER_CELLS;
+  endfunction
+
+  function automatic addr_t register_offset(input addr_t addr);
+    return addr - BASE_CELL;
+  endfunction
+
+  function automatic fault_packet_t access_fault(input addr_t addr);
+    fault_packet_t fault;
+    fault = '0;
+    fault.valid = 1'b1;
+    fault.cause = EXC_ACCESS_FAULT;
+    fault.tval = addr;
+    return fault;
+  endfunction
+
+  task automatic pack_48(
+      input logic [47:0] value,
+      output cell_t cells [INTEGER_OBJECT_CELLS]
+  );
+    cells[0] = value[23:0];
+    cells[1] = value[47:24];
+  endtask
+
+  always_ff @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+      control_q <= 16'd0;
+      mode_q <= 16'd0;
+      irq_enable_q <= 16'd0;
+      irq_pending_q <= 16'd0;
+      test_pattern_q <= 4'd1;
+      bg_color_q <= 24'h000000;
+      underflow_count_q <= 48'd0;
+      vblank_q <= 1'b0;
+      rsp_valid <= 1'b0;
+      rsp_fault <= '0;
+      for (int i = 0; i < INTEGER_OBJECT_CELLS; i++) begin
+        rsp_rdata[i] <= '0;
+      end
+    end else begin
+      automatic addr_t offset;
+      offset = register_offset(req_addr);
+      vblank_q <= video_vblank_i;
+      rsp_valid <= 1'b0;
+      rsp_fault <= '0;
+      for (int i = 0; i < INTEGER_OBJECT_CELLS; i++) begin
+        rsp_rdata[i] <= '0;
+      end
+
+      if (video_vblank_i && !vblank_q) begin
+        irq_pending_q <= irq_pending_q | VIDEO_IRQ_VBLANK;
+      end
+      if (video_underflow_pulse_i) begin
+        irq_pending_q <= irq_pending_q | VIDEO_IRQ_UNDERFLOW;
+        underflow_count_q <= underflow_count_q + 48'd1;
+      end
+
+      if (req_valid && req_ready) begin
+        if (!register_address(req_addr) || req_len_cells == 3'd0) begin
+          if (!req_write) begin
+            rsp_valid <= 1'b1;
+            rsp_fault <= access_fault(req_addr);
+          end
+        end else if (req_write) begin
+          unique case (offset)
+            VIDEO_CONTROL_OFFSET: control_q <= req_wdata[0][15:0];
+            VIDEO_MODE_OFFSET: mode_q <= req_wdata[0][15:0];
+            VIDEO_IRQ_ENABLE_OFFSET: irq_enable_q <= req_wdata[0][15:0];
+            VIDEO_IRQ_ACK_OFFSET: irq_pending_q <= irq_pending_q & ~req_wdata[0][15:0];
+            VIDEO_TEST_PATTERN_OFFSET: test_pattern_q <= req_wdata[0][3:0];
+            VIDEO_BG_COLOR_OFFSET: bg_color_q <= req_wdata[0][23:0];
+            default: begin
+            end
+          endcase
+        end else begin
+          rsp_valid <= 1'b1;
+          unique case (offset)
+            VIDEO_CONTROL_OFFSET: rsp_rdata[0] <= {8'd0, control_q};
+            VIDEO_MODE_OFFSET: rsp_rdata[0] <= {8'd0, mode_q};
+            VIDEO_STATUS_OFFSET: rsp_rdata[0] <= {8'd0, video_status};
+            VIDEO_IRQ_ENABLE_OFFSET: rsp_rdata[0] <= {8'd0, irq_enable_q};
+            VIDEO_IRQ_ACK_OFFSET: rsp_rdata[0] <= {8'd0, irq_pending_q};
+            VIDEO_FRAME_COUNT_OFFSET: pack_48(video_frame_count_i, rsp_rdata);
+            VIDEO_LINE_COUNT_OFFSET: rsp_rdata[0] <= {8'd0, video_line_count_i};
+            VIDEO_PIXEL_COUNT_OFFSET: rsp_rdata[0] <= {8'd0, video_pixel_count_i};
+            VIDEO_TEST_PATTERN_OFFSET: rsp_rdata[0] <= {20'd0, test_pattern_q};
+            VIDEO_BG_COLOR_OFFSET: rsp_rdata[0] <= bg_color_q;
+            VIDEO_UNDERFLOW_COUNT_OFFSET: pack_48(underflow_count_q, rsp_rdata);
+            VIDEO_FB_MASTER_STATUS_OFFSET: rsp_rdata[0] <= {8'd0, video_fb_master_status_i};
+            default: begin
+              rsp_fault <= access_fault(req_addr);
+            end
+          endcase
+        end
+      end
+    end
+  end
+
+  // verilator lint_off UNUSEDSIGNAL
+  wire logic unused_control_constants = &{
+    VIDEO_CONTROL_SCANOUT_ENABLE,
+    VIDEO_CONTROL_OUTPUT_ENABLE
+  };
+  // verilator lint_on UNUSEDSIGNAL
 endmodule
 
 module cpu_v01_fpga_irq_mmio #(

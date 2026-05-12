@@ -93,9 +93,17 @@ module cpu_v01_fpga_top_soc_peripherals_tb;
     if (dut.timer_interrupt_pending !== dut.timer_compare_irq) begin
       $fatal(1, "FPGA SoC top peripherals did not route timer interrupt pending");
     end
-    if (dut.external_interrupt_pending !== |(dut.irq_pending_enabled & 16'h000B)) begin
+    if (dut.external_interrupt_pending !== |(dut.irq_pending_enabled & 16'h001B)) begin
       $fatal(1, "FPGA SoC top peripherals external interrupt aggregate mismatch");
     end
+    force dut.video_vblank_irq = 1'b1;
+    force dut.irq_pending_enabled = 16'h0010;
+    #1;
+    if (!dut.external_interrupt_pending) begin
+      $fatal(1, "FPGA SoC top peripherals video vblank external interrupt mismatch");
+    end
+    release dut.video_vblank_irq;
+    release dut.irq_pending_enabled;
     if (pass_led_o !== ((dut.pass_sticky_q && !dut.fault_sticky_q) || dut.gpio_pass_led)) begin
       $fatal(1, "FPGA SoC top peripherals GPIO pass LED mux mismatch");
     end

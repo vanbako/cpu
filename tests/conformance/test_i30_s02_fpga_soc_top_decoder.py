@@ -45,6 +45,7 @@ class FpgaSocTopDecoderTests(unittest.TestCase):
         self.assertEqual(profile.uart_gate, "python tools\\fpga_uart_mmio.py --check")
         self.assertEqual(profile.timer_gate, "python tools\\fpga_timer_mmio.py --check")
         self.assertEqual(profile.gpio_gate, "python tools\\fpga_gpio_status.py --check")
+        self.assertEqual(profile.video_gate, "python tools\\fpga_video_display.py --check")
         self.assertEqual(profile.testbench, "rtl/cpu_v01_fpga_top_soc_decoder_tb.sv")
         self.assertIn("--top-module cpu_v01_fpga_top_soc_decoder_tb", profile.verilator_command)
 
@@ -56,6 +57,7 @@ class FpgaSocTopDecoderTests(unittest.TestCase):
         self.assertEqual(windows["gpio_status"].base_cell, 0x00F00200)
         self.assertEqual(windows["interrupt_controller"].base_cell, 0x00F00300)
         self.assertEqual(windows["system_identity"].base_cell, 0x00F00400)
+        self.assertEqual(windows["video_display"].base_cell, 0x00F00500)
         self.assertTrue(all(not window.tag_sidecar for name, window in windows.items() if name != "data_ram"))
         self.assertIn("I30-S03", profile.remaining_handoffs[0])
 
@@ -74,6 +76,7 @@ class FpgaSocTopDecoderTests(unittest.TestCase):
             (0x00F00200, "gpio_status"),
             (0x00F00300, "interrupt_controller"),
             (0x00F00401, "system_identity"),
+            (0x00F00500, "video_display"),
         ):
             with self.subTest(target=target):
                 result = decode(address, len_cells=1)
@@ -81,7 +84,7 @@ class FpgaSocTopDecoderTests(unittest.TestCase):
                 self.assertFalse(result.tag_sidecar)
                 self.assertEqual(result.response, "mmio_response_or_register_fault")
 
-        reserved = decode(0x00F00500, len_cells=1)
+        reserved = decode(0x00F00600, len_cells=1)
         self.assertEqual(reserved.target, "fault")
         self.assertTrue(reserved.fault_on_read)
         self.assertEqual(reserved.response, "EXC_ACCESS_FAULT")
@@ -90,7 +93,7 @@ class FpgaSocTopDecoderTests(unittest.TestCase):
         self.assertEqual(invalid_length.target, "fault")
         self.assertTrue(invalid_length.fault_on_read)
 
-        reserved_write = decode(0x00F00500, len_cells=1, write=True)
+        reserved_write = decode(0x00F00600, len_cells=1, write=True)
         self.assertEqual(reserved_write.response, "no_response")
         self.assertFalse(reserved_write.fault_on_read)
 
@@ -105,11 +108,13 @@ class FpgaSocTopDecoderTests(unittest.TestCase):
             ".uart_req_valid(uart_req_valid)",
             ".timer_req_valid(timer_req_valid)",
             ".gpio_req_valid(gpio_req_valid)",
+            ".video_req_valid(video_req_valid)",
             ".irq_req_valid(irq_req_valid)",
             ".identity_req_valid(identity_req_valid)",
             "cpu_v01_fpga_uart_mmio #(",
             "cpu_v01_fpga_timer_mmio firmware_timer",
             "cpu_v01_fpga_gpio_status firmware_gpio_status",
+            "cpu_v01_fpga_video_mmio firmware_video",
             "module cpu_v01_fpga_irq_mmio",
             "module cpu_v01_fpga_system_identity_mmio",
             "fault_rsp_valid_q",
@@ -134,6 +139,7 @@ class FpgaSocTopDecoderTests(unittest.TestCase):
             "FPGA SoC top decoder UART status read mismatch",
             "FPGA SoC top decoder timer compare readback mismatch",
             "FPGA SoC top decoder GPIO/status readback mismatch",
+            "FPGA SoC top decoder video control readback mismatch",
             "FPGA SoC top decoder interrupt-controller pending read mismatch",
             "FPGA SoC top decoder system identity reset-cause mismatch",
             "FPGA SoC top decoder system identity build-id mismatch",
@@ -169,6 +175,7 @@ class FpgaSocTopDecoderTests(unittest.TestCase):
         self.assertEqual(result, 0)
         self.assertIn("data_ram\t0x00010000\t0x00011000", stream.getvalue())
         self.assertIn("system_identity\t0x00F00400\t0x00F00500", stream.getvalue())
+        self.assertIn("video_display\t0x00F00500\t0x00F00600", stream.getvalue())
 
         stream = StringIO()
         with contextlib.redirect_stdout(stream):
@@ -200,6 +207,7 @@ class FpgaSocTopDecoderTests(unittest.TestCase):
             "uart",
             "timer",
             "gpio_status",
+            "video_display",
             "interrupt_controller",
             "system_identity",
             "EXC_ACCESS_FAULT",

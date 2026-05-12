@@ -79,7 +79,7 @@ class FpgaTopWrapperTests(unittest.TestCase):
             "assign timer_interrupt_pending = timer_compare_irq;",
             ".timer_interrupt_pending(timer_interrupt_pending)",
             ".software_interrupt_pending(1'b0)",
-            "assign external_interrupt_pending = |(irq_pending_enabled & 16'h000B);",
+            "assign external_interrupt_pending = |(irq_pending_enabled & 16'h001B);",
             ".external_interrupt_pending(external_interrupt_pending)",
             ".external_event_valid(1'b0)",
             ".external_event_cause(16'd0)",

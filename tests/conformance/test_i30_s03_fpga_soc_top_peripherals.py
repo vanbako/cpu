@@ -46,7 +46,10 @@ class FpgaSocTopPeripheralsTests(unittest.TestCase):
         self.assertEqual(profile.timer_gate, "python tools\\fpga_timer_mmio.py --check")
         self.assertEqual(profile.gpio_gate, "python tools\\fpga_gpio_status.py --check")
         self.assertEqual(profile.reset_cdc_gate, "python tools\\fpga_reset_cdc.py --check")
-        self.assertEqual(profile.interrupt_lines, ("uart_rx_ready", "uart_tx_ready", "timer_compare", "gpio_status"))
+        self.assertEqual(
+            profile.interrupt_lines,
+            ("uart_rx_ready", "uart_tx_ready", "timer_compare", "gpio_status", "video_vblank"),
+        )
         self.assertIn("--top-module cpu_v01_fpga_top_soc_peripherals_tb", profile.verilator_command)
 
         for name in (
@@ -54,6 +57,7 @@ class FpgaSocTopPeripheralsTests(unittest.TestCase):
             "uart_tx_mux",
             "timer_interrupt",
             "external_interrupts",
+            "video_vblank_interrupt",
             "gpio_status_leds",
             "system_identity",
         ):
@@ -65,7 +69,7 @@ class FpgaSocTopPeripheralsTests(unittest.TestCase):
             uart_mmio_tx=False,
             status_uart_tx=True,
             timer_compare_irq=True,
-            irq_pending_enabled=0x000B,
+            irq_pending_enabled=0x001B,
             pass_sticky=True,
             fault_sticky=False,
             gpio_fail_led=True,
@@ -97,8 +101,10 @@ class FpgaSocTopPeripheralsTests(unittest.TestCase):
             ".uart_tx_o(status_uart_tx)",
             "assign timer_interrupt_pending = timer_compare_irq;",
             ".timer_interrupt_pending(timer_interrupt_pending)",
-            "assign external_interrupt_pending = |(irq_pending_enabled & 16'h000B);",
+            "assign external_interrupt_pending = |(irq_pending_enabled & 16'h001B);",
             ".external_interrupt_pending(external_interrupt_pending)",
+            "cpu_v01_fpga_video_mmio firmware_video",
+            ".video_vblank_irq_o(video_vblank_irq)",
             "assign pass_led_o = pass_sticky_q && !fault_sticky_q || gpio_pass_led;",
             "assign fail_led_o = fault_sticky_q || gpio_fail_led;",
             "assign heartbeat_led_o = debug_retire_sequence[0] || gpio_heartbeat_led;",
@@ -119,6 +125,7 @@ class FpgaSocTopPeripheralsTests(unittest.TestCase):
             "FPGA SoC top peripherals UART TX mux policy mismatch",
             "FPGA SoC top peripherals did not route timer interrupt pending",
             "FPGA SoC top peripherals external interrupt aggregate mismatch",
+            "FPGA SoC top peripherals video vblank external interrupt mismatch",
             "FPGA SoC top peripherals GPIO pass LED mux mismatch",
             "FPGA SoC top peripherals GPIO fail LED mux mismatch",
             "FPGA SoC top peripherals GPIO heartbeat LED mux mismatch",
@@ -184,6 +191,8 @@ class FpgaSocTopPeripheralsTests(unittest.TestCase):
             "assign uart_tx_o = uart_mmio_tx & status_uart_tx & loader_uart_tx_i;",
             "timer_interrupt_pending",
             "external_interrupt_pending",
+            "video_vblank",
+            "16'h001B",
             "GPIO/status LEDs",
             "system_identity",
             "I30-S04",

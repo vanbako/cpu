@@ -7,7 +7,8 @@ module cpu_v01_fpga_top_soc_decoder_tb;
   localparam addr_t GPIO_BASE = 48'h0000_00F0_0200;
   localparam addr_t IRQ_BASE = 48'h0000_00F0_0300;
   localparam addr_t IDENTITY_BASE = 48'h0000_00F0_0400;
-  localparam addr_t RESERVED_MMIO = 48'h0000_00F0_0500;
+  localparam addr_t VIDEO_BASE = 48'h0000_00F0_0500;
+  localparam addr_t RESERVED_MMIO = 48'h0000_00F0_0600;
   localparam logic [95:0] BUILD_ID = 96'h0000_0000_0000_ABCD_EF12_3456;
 
   logic clk;
@@ -73,6 +74,22 @@ module cpu_v01_fpga_top_soc_decoder_tb;
   logic [3:0] status_leds_o;
   logic [7:0] debug_status_select_o;
   logic gpio_status_irq_o;
+
+  logic video_req_valid;
+  logic video_req_ready;
+  logic video_req_write;
+  addr_t video_req_addr;
+  logic [2:0] video_req_len_cells;
+  cell_t video_req_wdata [INTEGER_OBJECT_CELLS];
+  logic video_rsp_valid;
+  cell_t video_rsp_rdata [INTEGER_OBJECT_CELLS];
+  fault_packet_t video_rsp_fault;
+  logic video_scanout_enable_o;
+  logic video_output_enable_o;
+  logic [15:0] video_mode_o;
+  logic [3:0] video_test_pattern_o;
+  logic [23:0] video_bg_color_o;
+  logic video_vblank_irq_o;
 
   logic irq_req_valid;
   logic irq_req_ready;
@@ -143,6 +160,15 @@ module cpu_v01_fpga_top_soc_decoder_tb;
     .gpio_rsp_valid(gpio_rsp_valid),
     .gpio_rsp_rdata(gpio_rsp_rdata),
     .gpio_rsp_fault(gpio_rsp_fault),
+    .video_req_valid(video_req_valid),
+    .video_req_ready(video_req_ready),
+    .video_req_write(video_req_write),
+    .video_req_addr(video_req_addr),
+    .video_req_len_cells(video_req_len_cells),
+    .video_req_wdata(video_req_wdata),
+    .video_rsp_valid(video_rsp_valid),
+    .video_rsp_rdata(video_rsp_rdata),
+    .video_rsp_fault(video_rsp_fault),
     .irq_req_valid(irq_req_valid),
     .irq_req_ready(irq_req_ready),
     .irq_req_write(irq_req_write),
@@ -237,6 +263,32 @@ module cpu_v01_fpga_top_soc_decoder_tb;
     .gpio_status_irq_o(gpio_status_irq_o)
   );
 
+  cpu_v01_fpga_video_mmio video (
+    .clk(clk),
+    .rst_n(rst_n),
+    .req_valid(video_req_valid),
+    .req_ready(video_req_ready),
+    .req_write(video_req_write),
+    .req_addr(video_req_addr),
+    .req_len_cells(video_req_len_cells),
+    .req_wdata(video_req_wdata),
+    .rsp_valid(video_rsp_valid),
+    .rsp_rdata(video_rsp_rdata),
+    .rsp_fault(video_rsp_fault),
+    .video_vblank_i(1'b0),
+    .video_underflow_pulse_i(1'b0),
+    .video_frame_count_i(48'd0),
+    .video_line_count_i(16'd0),
+    .video_pixel_count_i(16'd0),
+    .video_fb_master_status_i(16'd0),
+    .video_scanout_enable_o(video_scanout_enable_o),
+    .video_output_enable_o(video_output_enable_o),
+    .video_mode_o(video_mode_o),
+    .video_test_pattern_o(video_test_pattern_o),
+    .video_bg_color_o(video_bg_color_o),
+    .video_vblank_irq_o(video_vblank_irq_o)
+  );
+
   cpu_v01_fpga_irq_mmio irq (
     .clk(clk),
     .rst_n(rst_n),
@@ -248,7 +300,14 @@ module cpu_v01_fpga_top_soc_decoder_tb;
     .rsp_valid(irq_rsp_valid),
     .rsp_rdata(irq_rsp_rdata),
     .rsp_fault(irq_rsp_fault),
-    .irq_sources_i({12'd0, gpio_status_irq_o, timer_interrupt_o, uart_tx_ready_irq, uart_rx_ready_irq}),
+    .irq_sources_i({
+      11'd0,
+      video_vblank_irq_o,
+      gpio_status_irq_o,
+      timer_interrupt_o,
+      uart_tx_ready_irq,
+      uart_rx_ready_irq
+    }),
     .irq_pending_enabled_o(irq_pending_enabled_o)
   );
 
@@ -380,6 +439,12 @@ module cpu_v01_fpga_top_soc_decoder_tb;
       $fatal(1, "FPGA SoC top decoder GPIO/status readback mismatch");
     end
 
+    write_cells(VIDEO_BASE + 48'd0, 3'd1, 24'h000003, '0);
+    read_cells(VIDEO_BASE + 48'd0, 3'd1, data0, data1, fault_valid, fault_cause);
+    if (fault_valid || data0[1:0] != 2'b11 || !video_req_valid && video_req_addr != '0) begin
+      $fatal(1, "FPGA SoC top decoder video control readback mismatch");
+    end
+
     write_cells(IRQ_BASE + 48'd3, 3'd1, 24'h000005, '0);
     read_cells(IRQ_BASE + 48'd0, 3'd1, data0, data1, fault_valid, fault_cause);
     if (fault_valid || data0[2:0] != 3'b101) begin
@@ -419,6 +484,12 @@ module cpu_v01_fpga_top_soc_decoder_tb;
     gpio_heartbeat_led_o,
     status_leds_o,
     debug_status_select_o,
+    video_scanout_enable_o,
+    video_output_enable_o,
+    video_mode_o,
+    video_test_pattern_o,
+    video_bg_color_o,
+    video_vblank_irq_o,
     irq_pending_enabled_o
   };
   // verilator lint_on UNUSEDSIGNAL
