@@ -508,7 +508,12 @@ table in the same change.
 | `rtl\cpu_v01_fpga_single_plane_fetch.sv` | `I36-S02` | `E11-S01`, `E12-S01`, `I29-S02`, `I35-S02`, `I36-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `rtl\cpu_v01_fpga_single_plane_fetch_tb.sv` | `I36-S02` | `E11-S01`, `E12-S01`, `I29-S02`, `I35-S02`, `I36-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i36_s02_fpga_compositor_fetch.py` | `I36-S02` | `E11-S01`, `E12-S01`, `I29-S02`, `I35-S02`, `I36-S01` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
-| `agile-impl-v0.1.md` | `I36-S03` | `E11-S01`, `E12-S01`, `I36-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `docs\implementation\fpga-compositor-pipeline.md` | `I36-S03` | `E11-S01`, `E12-S01`, `I36-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `src\cpu_v01\fpga_compositor_pipeline.py` | `I36-S03` | `E11-S01`, `E12-S01`, `I36-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tools\fpga_compositor_pipeline.py` | `I36-S03` | `E11-S01`, `E12-S01`, `I36-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `rtl\cpu_v01_fpga_compositor_pipeline.sv` | `I36-S03` | `E11-S01`, `E12-S01`, `I36-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `rtl\cpu_v01_fpga_compositor_pipeline_tb.sv` | `I36-S03` | `E11-S01`, `E12-S01`, `I36-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i36_s03_fpga_compositor_pipeline.py` | `I36-S03` | `E11-S01`, `E12-S01`, `I36-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `agile-impl-v0.1.md` | `I36-S04` | `E11-S01`, `E12-S01`, `I35-S04`, `I36-S03` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `agile-impl-v0.1.md` | `I36-S05` | `E11-S01`, `E12-S01`, `I26-S04`, `I32-S03`, `I36-S04` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `agile-impl-v0.1.md` | `I36-S06` | `E11-S01`, `E12-S01`, `I28-S03`, `I29-S05`, `I36-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
