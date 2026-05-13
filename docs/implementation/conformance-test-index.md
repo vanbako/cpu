@@ -528,5 +528,8 @@ table in the same change.
 | `src\cpu_v01\fpga_compositor_evidence.py` | `I36-S06` | `E11-S01`, `E12-S01`, `I28-S03`, `I29-S05`, `I36-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tools\fpga_compositor_evidence.py` | `I36-S06` | `E11-S01`, `E12-S01`, `I28-S03`, `I29-S05`, `I36-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `tests\conformance\test_i36_s06_fpga_compositor_evidence.py` | `I36-S06` | `E11-S01`, `E12-S01`, `I28-S03`, `I29-S05`, `I36-S05` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
-| `agile-impl-v0.1.md` | `I36-S07` | `E11-S01`, `E12-S01`, `I35-S06`, `I36-S06` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `docs\implementation\fpga-compositor-board-demo.md` | `I36-S07` | `E11-S01`, `E12-S01`, `I35-S06`, `I36-S06` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `src\cpu_v01\fpga_compositor_board.py` | `I36-S07` | `E11-S01`, `E12-S01`, `I35-S06`, `I36-S06` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tools\fpga_compositor_board.py` | `I36-S07` | `E11-S01`, `E12-S01`, `I35-S06`, `I36-S06` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
+| `tests\conformance\test_i36_s07_fpga_compositor_board.py` | `I36-S07` | `E11-S01`, `E12-S01`, `I35-S06`, `I36-S06` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
 | `agile-impl-v0.1.md` | `I36-S08` | `E11-S01`, `E12-S01`, `I29-S02`, `I30-S02`, `I35-S04`, `I36-S02` | `E15-S03`, `E15-S04`, `E15-S05`, `E15-S07` |
